@@ -144,8 +144,10 @@ export default function McpGuidePage() {
           <ul className="flex flex-col gap-2 text-sm leading-relaxed text-slate-700">
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-              パソコンに <strong className="font-semibold">Claude Code</strong> がインストール済みであること
-              (未導入の場合は情報システム部門・導入担当にお問い合わせください)
+              <span>
+                パソコンに <strong className="font-semibold">Claude Code</strong> がインストール済みであること
+                (未導入の場合は情報システム部門・導入担当にお問い合わせください)
+              </span>
             </li>
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
@@ -153,18 +155,22 @@ export default function McpGuidePage() {
             </li>
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-              <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
-                MCP用アクセストークン
-              </Link>{" "}
-              を発行済みであること(下記手順の中で発行できます)
+              <span>
+                <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
+                  MCP用アクセストークン
+                </Link>{" "}
+                を発行済みであること(下記手順の中で発行できます)
+              </span>
             </li>
           </ul>
         ) : (
           <ul className="flex flex-col gap-2 text-sm leading-relaxed text-slate-700">
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-              パソコンに <strong className="font-semibold">Claude Desktop</strong> アプリがインストール済みであること
-              (未導入の場合は情報システム部門・導入担当にお問い合わせください)
+              <span>
+                パソコンに <strong className="font-semibold">Claude Desktop</strong> アプリがインストール済みであること
+                (未導入の場合は情報システム部門・導入担当にお問い合わせください)
+              </span>
             </li>
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
@@ -177,10 +183,12 @@ export default function McpGuidePage() {
             </li>
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-              <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
-                MCP用アクセストークン
-              </Link>{" "}
-              を発行済みであること(下記手順の中で発行できます)
+              <span>
+                <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
+                  MCP用アクセストークン
+                </Link>{" "}
+                を発行済みであること(下記手順の中で発行できます)
+              </span>
             </li>
           </ul>
         )}
