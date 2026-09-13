@@ -1,9 +1,19 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import { generateToken, hashToken } from "../lib/auth/tokens";
 import { fetchUserProfileRow, toUserProfileDTO } from "../lib/userProfile";
 import type { AuthUser, Env } from "../types";
 
 const me = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
+
+interface ApiTokenRow {
+  id: number;
+  label: string | null;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+const createTokenSchema = z.object({ label: z.string().trim().max(100).optional() });
 
 const updateProfileSchema = z.object({
   displayName: z.string().trim().min(1, "表示名を入力してください").max(100),
@@ -61,6 +71,57 @@ me.patch("/", async (c) => {
   const row = await fetchUserProfileRow(c.env.DB, email);
   if (!row) return c.json({ error: "internal_error" }, 500);
   return c.json({ user: toUserProfileDTO(row) });
+});
+
+// ---- MCPクライアント等から使う個人アクセストークンの一覧(値自体は含まない) ----
+me.get("/tokens", async (c) => {
+  const email = c.get("user").email;
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, label, created_at, last_used_at FROM api_tokens WHERE user_email = ? ORDER BY created_at DESC",
+  )
+    .bind(email)
+    .all<ApiTokenRow>();
+
+  const tokens = (results ?? []).map((r) => ({
+    id: r.id,
+    label: r.label,
+    createdAt: r.created_at,
+    lastUsedAt: r.last_used_at,
+  }));
+  return c.json({ tokens });
+});
+
+// ---- 新規発行。生のトークンはこのレスポンスでのみ返す(DBにはハッシュのみ保存) ----
+me.post("/tokens", async (c) => {
+  const email = c.get("user").email;
+  const parsed = createTokenSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) return c.json({ error: "invalid_request" }, 400);
+
+  const token = generateToken();
+  const tokenHash = await hashToken(token);
+  const label = parsed.data.label && parsed.data.label.length > 0 ? parsed.data.label : null;
+
+  const result = await c.env.DB.prepare("INSERT INTO api_tokens (token_hash, user_email, label) VALUES (?, ?, ?)")
+    .bind(tokenHash, email, label)
+    .run();
+
+  return c.json({
+    token,
+    id: result.meta.last_row_id,
+    label,
+    createdAt: new Date().toISOString(),
+    lastUsedAt: null,
+  });
+});
+
+// ---- 失効 ----
+me.delete("/tokens/:id", async (c) => {
+  const email = c.get("user").email;
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json({ error: "invalid_request" }, 400);
+
+  await c.env.DB.prepare("DELETE FROM api_tokens WHERE id = ? AND user_email = ?").bind(id, email).run();
+  return c.json({ ok: true });
 });
 
 export default me;

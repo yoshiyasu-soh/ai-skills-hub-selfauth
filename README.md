@@ -21,9 +21,9 @@ Cloudflare Workers + D1 + R2 + React(Vite) で構築し、認証はWorker自身�
 - スキルはブラウザから直接ダウンロード
 - ユーザープロフィール閲覧・編集: 表示名・姓名・会社名・役職・部署・従業員の種類を
   投稿者名などから誰でも閲覧可能。本人は自分のプロフィールを自由に編集可能
-- MCP(Model Context Protocol)サーバー: `/api/mcp` にエンドポイントを実装済み。ただし
-  Cloudflare Access のOAuth連携を前提としていたため、Access廃止に伴い外部MCPクライアントからの
-  接続は現状未対応(詳細は [`docs/setup-mcp.md`](docs/setup-mcp.md))
+- MCP(Model Context Protocol)サーバー: `/api/mcp` から Claude Code / Claude Desktop 等のMCP
+  クライアントでスキル・プロンプトを検索・参照可能(現状は参照系のみ)。認証は個人アクセストークン
+  (`/settings/tokens` で発行)を使用(詳細は [`docs/setup-mcp.md`](docs/setup-mcp.md))
 
 ## アーキテクチャ
 
@@ -50,7 +50,7 @@ Cloudflare Workers (Hono)  ──/api/*──▶  D1 (メタデータ) / R2 (ス
 
 1. [`docs/setup-cloudflare.md`](docs/setup-cloudflare.md) — D1/R2 作成、デプロイ
 2. [`docs/setup-selfauth.md`](docs/setup-selfauth.md) — メール送信(Resend)・会員登録受付範囲の設定
-3. (任意) [`docs/setup-mcp.md`](docs/setup-mcp.md) — MCPサーバーについて(現状の制約を含む)
+3. (任意) [`docs/setup-mcp.md`](docs/setup-mcp.md) — MCPサーバーとして利用する場合の設定
 
 ## ローカル開発
 
@@ -75,4 +75,4 @@ npm run dev:frontend
 - GenU など他ツールへのワンクリック連携(現状はクリップボードコピーのみ対応)
 - コメント・レビュー機能
 - 投稿の承認フロー / モデレーション
-- トークンベース認証による外部MCPクライアント(Claude Desktop等)からの `/api/mcp` 接続対応
+- MCP経由での投稿・編集・お気に入り登録等の書き込み系操作、アクセストークンへの有効期限・スコープ付与

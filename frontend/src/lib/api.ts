@@ -1,4 +1,14 @@
-import type { Item, ProfileUpdatePayload, RankingPeriod, SortOption, Tag, User, VersionNotification } from "./types";
+import type {
+  ApiTokenSummary,
+  Item,
+  NewApiToken,
+  ProfileUpdatePayload,
+  RankingPeriod,
+  SortOption,
+  Tag,
+  User,
+  VersionNotification,
+} from "./types";
 
 const API_BASE = "/api";
 
@@ -68,6 +78,13 @@ export const api = {
   me: () => request<{ user: User }>("/me"),
   updateProfile: (payload: ProfileUpdatePayload) =>
     request<{ user: User }>("/me", { method: "PATCH", body: JSON.stringify(payload) }),
+
+  tokens: {
+    list: () => request<{ tokens: ApiTokenSummary[] }>("/me/tokens"),
+    create: (label?: string) =>
+      request<NewApiToken>("/me/tokens", { method: "POST", body: JSON.stringify({ label }) }),
+    remove: (id: number) => request<{ ok: true }>(`/me/tokens/${id}`, { method: "DELETE" }),
+  },
 
   auth: {
     register: (email: string, password: string) =>

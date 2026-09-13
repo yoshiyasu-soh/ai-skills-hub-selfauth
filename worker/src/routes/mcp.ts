@@ -8,10 +8,10 @@ const mcp = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
 /**
  * MCP(Model Context Protocol)エンドポイント。
  * 認証は上位で mount されている authMiddleware(/api/*)にすべて委譲しており、
- * ここに到達した時点で c.get("user") はセッションCookie検証済み。
- * ただしMCPクライアント(Claude Desktop等)はブラウザセッションを持たないため、
- * 現状このエンドポイントを外部MCPクライアントから直接利用することはできない
- * (docs/setup-mcp.md 参照。今後の拡張候補)。
+ * ここに到達した時点で c.get("user") はセッションCookie、または
+ * `Authorization: Bearer <個人アクセストークン>` ヘッダーのいずれかで検証済み。
+ * MCPクライアント(Claude Code / Claude Desktop等)はブラウザセッションを持てないため、
+ * 個人アクセストークン(/api/me/tokens で発行)を使う想定(docs/setup-mcp.md 参照)。
  * リクエストごとにステートレスな McpServer を生成するだけなので、
  * セッション用の永続化(KV/Durable Objects)は不要。
  */

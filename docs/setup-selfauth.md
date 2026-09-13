@@ -63,13 +63,16 @@ Cloudflare Workers は SMTP を直接扱えないため、確認メール・パ�
 - `POST /api/auth/request-password-reset` / `POST /api/auth/reset-password`: パスワード再設定
   (アカウントの有無に関わらず同じレスポンスを返し、登録メールアドレスの推測を防止)
 
-パスワードは PBKDF2-SHA256(21万回)でハッシュ化して保存し、セッションはランダムトークンを
-発行してD1の `sessions` テーブルで管理します(JWTではないため、ログアウトやパスワード変更時に
-即座に失効させられます)。登録・ログイン・パスワードリセットには簡易的なレート制限もかかっています
-(`auth_attempts` テーブル、直近15分の試行回数で制御)。
+パスワードは PBKDF2-SHA256(10万回。Cloudflare Workersの `crypto.subtle` における反復回数の上限)で
+ハッシュ化して保存し、セッションはランダムトークンを発行してD1の `sessions` テーブルで管理します
+(JWTではないため、ログアウトやパスワード変更時に即座に失効させられます)。登録・ログイン・
+パスワードリセットには簡易的なレート制限もかかっています(`auth_attempts` テーブル、直近15分の
+試行回数で制御)。
 
-## 既知の制約
+## MCPサーバーの認証
 
-- MCPサーバー(`/api/mcp`、[`docs/setup-mcp.md`](setup-mcp.md))はブラウザセッションを前提とした
-  Cloudflare Access の OAuth連携を利用していたため、Access を廃止した本バージョンでは
-  外部MCPクライアント(Claude Desktop等)からの接続は現状サポートしていません(今後の拡張候補)。
+MCPクライアント(Claude Code / Claude Desktop等)はブラウザのセッションCookieを持てないため、
+`/api/mcp` は個人アクセストークン(`Authorization: Bearer <トークン>` ヘッダー)でも認証できるように
+なっています。トークンはログイン後、プロフィール編集画面から遷移できる「MCP用アクセストークン」
+ページ(`/settings/tokens`)で発行・失効できます。詳細な接続手順は
+[`docs/setup-mcp.md`](setup-mcp.md) を参照してください。

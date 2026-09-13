@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError, api } from "../lib/api";
 import { useUser } from "../lib/UserContext";
 
@@ -49,7 +49,12 @@ export default function EditProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-5 text-xl font-bold text-slate-900">プロフィールを編集</h1>
+      <div className="mb-5 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-900">プロフィールを編集</h1>
+        <Link to="/settings/tokens" className="text-sm font-medium text-brand-600 hover:text-brand-700">
+          MCP用アクセストークンの管理
+        </Link>
+      </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
         <label className="flex flex-col gap-1 text-sm">
           <span className="font-medium text-slate-700">表示名</span>

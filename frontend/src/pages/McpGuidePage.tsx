@@ -149,7 +149,14 @@ export default function McpGuidePage() {
             </li>
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-              AI Skills Hub にいつも使っているアカウント(会社のメールアドレス)でログインできること
+              AI Skills Hub のアカウントを持っていること
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+              <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
+                MCP用アクセストークン
+              </Link>{" "}
+              を発行済みであること(下記手順の中で発行できます)
             </li>
           </ul>
         ) : (
@@ -166,7 +173,14 @@ export default function McpGuidePage() {
             </li>
             <li className="flex gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-              AI Skills Hub にいつも使っているアカウント(会社のメールアドレス)でログインできること
+              AI Skills Hub のアカウントを持っていること
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+              <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
+                MCP用アクセストークン
+              </Link>{" "}
+              を発行済みであること(下記手順の中で発行できます)
             </li>
           </ul>
         )}
@@ -181,9 +195,22 @@ export default function McpGuidePage() {
             <div className="flex gap-3">
               <StepNumber n={1} />
               <div className="flex-1">
-                <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  「ターミナル」を開く
+                <p className="mb-1.5 text-sm font-semibold text-slate-900">MCP用アクセストークンを発行する</p>
+                <p className="mb-2 text-sm leading-relaxed text-slate-600">
+                  AI Skills Hubにログインし、
+                  <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
+                    「MCP用アクセストークン」ページ
+                  </Link>
+                  で新しいトークンを発行してコピーしておきます。この値は発行直後しか表示されないので
+                  必ずコピーしてください。
                 </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <StepNumber n={2} />
+              <div className="flex-1">
+                <p className="mb-1.5 text-sm font-semibold text-slate-900">「ターミナル」を開く</p>
                 <p className="mb-2 text-sm leading-relaxed text-slate-600">
                   ターミナルとは、コマンド(文字の命令)を打ち込んで操作する黒っぽい画面のことです。
                   普段Claude Codeを起動しているときに使っている画面がそれです。Claude Codeを起動していない場合は、
@@ -193,62 +220,30 @@ export default function McpGuidePage() {
             </div>
 
             <div className="flex gap-3">
-              <StepNumber n={2} />
-              <div className="flex-1">
-                <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  下のコマンドをそのままコピーして、ターミナルに貼り付けてEnterキーを押す
-                </p>
-                <p className="mb-2 text-sm leading-relaxed text-slate-600">
-                  右の「コピー」ボタンを押すとコマンド全体がコピーされます。ターミナルの画面をクリックしてから、
-                  貼り付け(Windowsは右クリックまたは Ctrl+V、Macは Cmd+V)してEnterキーを押してください。
-                </p>
-                <CopyableCommand command={`claude mcp add --transport http ${MCP_SERVER_NAME} ${MCP_URL}`} />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
               <StepNumber n={3} />
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  Claude Codeを起動し直し、認証を行う
+                  下のコマンドの<code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">&lt;トークン&gt;</code>
+                  部分を手順1でコピーした値に置き換え、ターミナルに貼り付けてEnterキーを押す
                 </p>
                 <p className="mb-2 text-sm leading-relaxed text-slate-600">
-                  Claude Codeを一度終了し、もう一度起動してください。起動後、下のコマンドを実行すると、
-                  自動でブラウザが開きます。
+                  右の「コピー」ボタンでコマンド全体をコピーしたあと、
+                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">&lt;トークン&gt;</code>
+                  の部分だけを発行したトークンに書き換えてから実行してください。
                 </p>
-                <CopyableCommand command={`claude mcp login ${MCP_SERVER_NAME}`} />
+                <CopyableCommand
+                  command={`claude mcp add --transport http --header "Authorization: Bearer <トークン>" ${MCP_SERVER_NAME} ${MCP_URL}`}
+                />
+                <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                  ※ Claude Codeのバージョンによって <code className="font-mono">--header</code> オプションの指定方法が
+                  異なる場合があります。うまくいかない場合はターミナルで{" "}
+                  <code className="font-mono">claude mcp add --help</code> を実行して確認してください。
+                </p>
               </div>
             </div>
 
             <div className="flex gap-3">
               <StepNumber n={4} />
-              <div className="flex-1">
-                <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  ブラウザで画面の指示に従ってログイン・許可を行う
-                </p>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  以下の順番で画面が進みます。すべて許可・ログインして問題ありません。
-                </p>
-                <ol className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-slate-600">
-                  <li className="flex items-start gap-1.5">
-                    <ChevronRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    いつも使っている社用メールアドレスとパスワードでログイン画面にサインインする
-                    (すでにログイン済みの場合はこの画面は出ません)
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <ChevronRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    「AI Skills Hub」への接続を確認する画面が出たら「Authorize」(許可)ボタンを押す
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <ChevronRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    さらに、Workerへのアクセスを確認する画面が出た場合も「Allow」(許可)ボタンを押す
-                  </li>
-                </ol>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <StepNumber n={5} />
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">つながったか確認する</p>
                 <p className="mb-2 text-sm leading-relaxed text-slate-600">
@@ -265,6 +260,21 @@ export default function McpGuidePage() {
             <div className="flex gap-3">
               <StepNumber n={1} />
               <div className="flex-1">
+                <p className="mb-1.5 text-sm font-semibold text-slate-900">MCP用アクセストークンを発行する</p>
+                <p className="mb-2 text-sm leading-relaxed text-slate-600">
+                  AI Skills Hubにログインし、
+                  <Link to="/settings/tokens" className="font-medium text-brand-600 hover:text-brand-700">
+                    「MCP用アクセストークン」ページ
+                  </Link>
+                  で新しいトークンを発行してコピーしておきます。この値は発行直後しか表示されないので
+                  必ずコピーしてください。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <StepNumber n={2} />
+              <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">Claude Desktopの設定画面を開く</p>
                 <p className="mb-2 text-sm leading-relaxed text-slate-600">
                   Claude Desktopを起動し、キーボードで <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">Ctrl + ,</code>{" "}
@@ -275,7 +285,7 @@ export default function McpGuidePage() {
             </div>
 
             <div className="flex gap-3">
-              <StepNumber n={2} />
+              <StepNumber n={3} />
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">
                   左側のメニューから「Connectors」(コネクタ)を選ぶ
@@ -287,7 +297,7 @@ export default function McpGuidePage() {
             </div>
 
             <div className="flex gap-3">
-              <StepNumber n={3} />
+              <StepNumber n={4} />
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">
                   画面を一番下までスクロールし、「Add custom connector」(カスタムコネクタを追加)をクリックする
@@ -296,44 +306,26 @@ export default function McpGuidePage() {
             </div>
 
             <div className="flex gap-3">
-              <StepNumber n={4} />
-              <div className="flex-1">
-                <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  名前とURLを入力して「Add」(追加)を押す
-                </p>
-                <p className="mb-2 text-sm leading-relaxed text-slate-600">
-                  「Name」(名前)欄には好きな名前(例: <span className="font-mono">AI Skills Hub</span>)を、
-                  「URL」欄には下記をそのままコピーして貼り付けてください。「Advanced settings」
-                  (詳細設定)は空欄のままで構いません。
-                </p>
-                <CopyableCommand command={MCP_URL} />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
               <StepNumber n={5} />
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  ブラウザで画面の指示に従ってログイン・許可を行う
+                  名前・URL・認証ヘッダーを入力して「Add」(追加)を押す
                 </p>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  「Add」を押すとブラウザが自動的に開きます。以下の順番で進めてください。
+                <p className="mb-2 text-sm leading-relaxed text-slate-600">
+                  「Name」(名前)欄には好きな名前(例: <span className="font-mono">AI Skills Hub</span>)を、
+                  「URL」欄には下記をそのままコピーして貼り付けてください。
                 </p>
-                <ol className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-slate-600">
-                  <li className="flex items-start gap-1.5">
-                    <ChevronRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    いつも使っている社用メールアドレスとパスワードでログイン画面にサインインする
-                    (すでにログイン済みの場合はこの画面は出ません)
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <ChevronRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    「AI Skills Hub」への接続を確認する画面が出たら「Authorize」(許可)ボタンを押す
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <ChevronRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    さらに、Workerへのアクセスを確認する画面が出た場合も「Allow」(許可)ボタンを押す
-                  </li>
-                </ol>
+                <CopyableCommand command={MCP_URL} />
+                <p className="mb-2 mt-3 text-sm leading-relaxed text-slate-600">
+                  続けて「Advanced settings」(詳細設定)を開き、カスタムヘッダー(Header/Authorization等の名前の欄)が
+                  用意されている場合は、キーに <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">Authorization</code>
+                  、値に <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">Bearer &lt;手順1で発行したトークン&gt;</code>{" "}
+                  を入力してください。
+                </p>
+                <p className="text-xs leading-relaxed text-amber-700">
+                  ※ Claude Desktopのバージョンによっては、カスタムヘッダーを指定する欄が用意されていないことがあります。
+                  その場合、現時点ではこの方法でのClaude Desktop接続には対応していません。Claude Codeでの接続をご検討ください。
+                </p>
               </div>
             </div>
 
@@ -356,9 +348,15 @@ export default function McpGuidePage() {
       <section className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
         <p className="mb-1.5 text-sm font-semibold text-amber-900">うまくつながらないとき</p>
         <p className="text-sm leading-relaxed text-amber-800">
-          「Access denied」「権限がありません」のようなメッセージが出る場合、AI Skills Hubの利用が
-          許可されているアカウントでログインしているか確認してください。それでも解決しない場合は、
-          エラーメッセージのスクリーンショットを添えて管理者にご連絡ください。
+          「Unauthorized」「401」のようなメッセージが出る場合、トークンの入力ミス
+          (<code className="rounded bg-white px-1 py-0.5 font-mono text-xs">Bearer </code>{" "}
+          の後ろに半角スペースが入っているか等)、コピー漏れ、または{" "}
+          <Link to="/settings/tokens" className="font-medium text-amber-900 underline">
+            トークン管理ページ
+          </Link>{" "}
+          で失効済みになっていないかを確認してください。解決しない場合は新しいトークンを発行し直して
+          設定を作り直すのが確実です。それでも解決しない場合は、エラーメッセージのスクリーンショットを
+          添えて管理者にご連絡ください。
         </p>
       </section>
 

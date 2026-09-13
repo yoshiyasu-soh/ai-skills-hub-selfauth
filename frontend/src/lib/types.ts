@@ -70,3 +70,14 @@ export interface ProfileUpdatePayload {
   department?: string;
   employeeType?: string;
 }
+
+export interface ApiTokenSummary {
+  id: number;
+  label: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface NewApiToken extends ApiTokenSummary {
+  token: string;
+}
