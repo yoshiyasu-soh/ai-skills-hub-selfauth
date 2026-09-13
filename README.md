@@ -24,6 +24,8 @@ Cloudflare Workers + D1 + R2 + React(Vite) で構築し、認証はWorker自身�
 - MCP(Model Context Protocol)サーバー: `/api/mcp` から Claude Code / Claude Desktop 等のMCP
   クライアントでスキル・プロンプトを検索・参照可能(現状は参照系のみ)。認証は個人アクセストークン
   (`/settings/tokens` で発行)を使用(詳細は [`docs/setup-mcp.md`](docs/setup-mcp.md))
+- 使い方ガイド(`/guide`): サイトの機能・基本操作・よくある質問をまとめたドキュメントページ。
+  フッターから常時アクセス可能
 
 ## アーキテクチャ
 

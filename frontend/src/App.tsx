@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import LogoMark from "./components/LogoMark";
 import ApiTokensPage from "./pages/ApiTokensPage";
+import DocsPage from "./pages/DocsPage";
 import EditItemPage from "./pages/EditItemPage";
 import EditProfilePage from "./pages/EditProfilePage";
 import FavoritesPage from "./pages/FavoritesPage";
@@ -55,9 +57,9 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-slate-50">
       <Header />
-      <main className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-10">
+      <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-8 sm:px-6 lg:px-10">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/items/:id" element={<ItemDetailPage />} />
@@ -68,12 +70,14 @@ export default function App() {
           <Route path="/users/:email" element={<UserProfilePage />} />
           <Route path="/settings/profile" element={<EditProfilePage />} />
           <Route path="/settings/tokens" element={<ApiTokensPage />} />
+          <Route path="/guide" element={<DocsPage />} />
           <Route path="/guide/skills" element={<GuidePage topic="skill" />} />
           <Route path="/guide/prompts" element={<GuidePage topic="prompt" />} />
           <Route path="/guide/mcp" element={<McpGuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }
