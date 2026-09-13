@@ -12,9 +12,9 @@ import {
   TerminalIcon,
 } from "../components/icons";
 
-// このAI Skills HubのMCPサーバー(ポータル)のURL。
-// 別のドメインで運用する場合はここを書き換えてください。
-const MCP_URL = "https://mcp.soh.jp/mcp";
+// このAI Skills HubのMCPエンドポイントのURL。専用ポータルドメインは使わず、
+// このサイト自身のオリジン(カスタムドメイン/workers.devいずれでも自動追従)を使う。
+const MCP_URL = `${window.location.origin}/api/mcp`;
 const MCP_SERVER_NAME = "ai-skills-hub-selfauth";
 
 function CopyableCommand({ command }: { command: string }) {
