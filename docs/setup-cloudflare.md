@@ -31,7 +31,7 @@ https://dash.cloudflare.com/ を開き、メールアドレスとパスワード
 
 ```bash
 git clone <このリポジトリのURL>
-cd ai-skills-hub
+cd ai-skills-hub-selfauth
 npm install
 npx wrangler login   # ブラウザが開くのでCloudflareアカウントで認可する
 ```
@@ -39,7 +39,7 @@ npx wrangler login   # ブラウザが開くのでCloudflareアカウントで�
 ## 2. D1 データベースの作成
 
 ```bash
-npx wrangler d1 create ai-skills-hub-db
+npx wrangler d1 create ai-skills-hub-selfauth-db
 ```
 
 出力される `database_id` を `wrangler.jsonc` の `d1_databases[0].database_id` に貼り付けてください。
@@ -58,7 +58,7 @@ npm run db:migrate:remote
 ## 3. R2 バケットの作成
 
 ```bash
-npx wrangler r2 bucket create ai-skills-hub-assets
+npx wrangler r2 bucket create ai-skills-hub-selfauth-assets
 ```
 
 `wrangler.jsonc` の `r2_buckets[0].bucket_name` と一致していることを確認してください

@@ -15,7 +15,7 @@ import {
 // このAI Skills HubのMCPサーバー(ポータル)のURL。
 // 別のドメインで運用する場合はここを書き換えてください。
 const MCP_URL = "https://mcp.soh.jp/mcp";
-const MCP_SERVER_NAME = "ai-skills-hub";
+const MCP_SERVER_NAME = "ai-skills-hub-selfauth";
 
 function CopyableCommand({ command }: { command: string }) {
   const [copied, setCopied] = useState(false);
@@ -252,7 +252,8 @@ export default function McpGuidePage() {
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">つながったか確認する</p>
                 <p className="mb-2 text-sm leading-relaxed text-slate-600">
-                  Claude Codeの入力欄で下のコマンドを実行し、<code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">ai-skills-hub</code> が
+                  Claude Codeの入力欄で下のコマンドを実行し、
+                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">{MCP_SERVER_NAME}</code> が
                   「Connected」と表示されれば接続完了です。以降、毎回この作業をする必要はありません。
                 </p>
                 <CopyableCommand command="/mcp" />

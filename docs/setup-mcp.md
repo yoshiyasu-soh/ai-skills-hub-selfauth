@@ -34,7 +34,7 @@ MCPサーバーポータル (例: https://mcp.example.com/mcp) ★接続先は�
   = 専用の Access Application (マネージドOAuth 有効)
         │  ② ポータル→バックエンドへ、OAuth認証方式で中継(ユーザーの代理として)
         ▼
-既存の Access Application (ai-skills-hub - Cloudflare Workers)
+既存の Access Application (ai-skills-hub-selfauth - Cloudflare Workers)
   = サイト全体を保護しているアプリ。こちらも マネージドOAuth を有効化する必要がある
         │  Cf-Access-Jwt-Assertion ヘッダを付与して転送
         ▼
@@ -47,7 +47,7 @@ Access内部では、実は**3つの Access Application** が関与します:
 
 | アプリ | 役割 | 作成方法 |
 |---|---|---|
-| `ai-skills-hub - Cloudflare Workers` | サイト全体を保護(既存) | 手動作成済み |
+| `ai-skills-hub-selfauth - Cloudflare Workers` | サイト全体を保護(既存) | 手動作成済み |
 | `AI Skills Hub MCP`(type: `mcp_portal`) | ポータル本体(`mcp.example.com`) | MCPポータル作成時に自動生成 |
 | `AI Skills Hub`(type: `mcp`) | 個別サーバーのリソース表現 | MCPサーバー登録時に自動生成、**ダッシュボードの「アプリケーション」一覧には出てこない** |
 
@@ -70,7 +70,7 @@ Access内部では、実は**3つの Access Application** が関与します:
 ### 前提: 既存のサイト保護アプリでマネージドOAuthを有効化する
 
 1. Zero Trust ダッシュボード › **Access コントロール › アプリケーション** を開き、
-   `docs/setup-cloudflare.md` 手順2-2で作成した既存のアプリ(例: `ai-skills-hub - Cloudflare Workers`)
+   `docs/setup-cloudflare.md` 手順2-2で作成した既存のアプリ(例: `ai-skills-hub-selfauth - Cloudflare Workers`)
    を選択する。
 2. 上部タブの **「追加設定」**(「アプリケーションの詳細」の隣)を開く。
    **マネージドOAuthはここにあります**(「アプリケーションの詳細」タブを下までスクロールしても
@@ -89,7 +89,7 @@ Access内部では、実は**3つの Access Application** が関与します:
    を開き、「Add an MCP server」をクリックする。
 2. **サーバー名**: 例 `AI Skills Hub`
 3. **HTTP(S) URL**: `https://<Workerの公開ドメイン>/api/mcp`
-   (例: `https://ai-skills-hub.example-team.workers.dev/api/mcp`)
+   (例: `https://ai-skills-hub-selfauth.example-team.workers.dev/api/mcp`)
 4. **認証の種類**: **「OAuth」を選択する**(「カスタムヘッダー」は選ばない。Worker側の
    `authMiddleware` は JWT の `email` クレームを必須にしており、Service Token等の
    カスタムヘッダー認証では実ユーザーのメールアドレスが得られず機能しない)。
@@ -155,7 +155,7 @@ PUT /accounts/{account_id}/access/apps/{mcp型アプリのID}
 }
 ```
 
-同じ `allowed_uris` を、既存のバックエンドアプリ(`ai-skills-hub - Cloudflare Workers`)
+同じ `allowed_uris` を、既存のバックエンドアプリ(`ai-skills-hub-selfauth - Cloudflare Workers`)
 側にも設定する。`allow_any_on_localhost`/`allow_any_on_loopback` は **localhost/127.0.0.1
 宛のリダイレクトURIしか許可しない**ため、`https://<ポータル>/servers-callback` のような
 実ホスト名は `allowed_uris` に明示的に追加しないと `redirect_uri is not allowed by the
@@ -248,7 +248,7 @@ PUT /accounts/{account_id}/access/apps/{ポータル本体のAccessアプリのI
 **接続先URLは、ポータルのドメイン直下ではなく、末尾に `/mcp` を付けたパスです。**
 
 ```bash
-claude mcp add --transport http ai-skills-hub https://mcp.example.com/mcp
+claude mcp add --transport http ai-skills-hub-selfauth https://mcp.example.com/mcp
 ```
 
 (`https://mcp.example.com` のみだと `MCP endpoint not found` エラーになる)

@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ai-skills-hub",
+  "name": "ai-skills-hub-selfauth",
   "main": "worker/src/index.ts",
   "compatibility_date": "2024-11-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -15,8 +15,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ai-skills-hub-db",
-      // `npx wrangler d1 create ai-skills-hub-db` 実行後に払い出されるIDに置き換える
+      "database_name": "ai-skills-hub-selfauth-db",
+      // `npx wrangler d1 create ai-skills-hub-selfauth-db` 実行後に払い出されるIDに置き換える
       "database_id": "REPLACE_WITH_D1_DATABASE_ID"
     }
   ],
@@ -24,7 +24,7 @@
   "r2_buckets": [
     {
       "binding": "ASSETS_BUCKET",
-      "bucket_name": "ai-skills-hub-assets"
+      "bucket_name": "ai-skills-hub-selfauth-assets"
     }
   ],
 

@@ -1,5 +1,5 @@
 {
-  "name": "ai-skills-hub-worker",
+  "name": "ai-skills-hub-selfauth-worker",
   "private": true,
   "version": "1.0.0",
   "type": "module",

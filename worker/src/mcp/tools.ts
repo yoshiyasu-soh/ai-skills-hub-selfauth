@@ -12,7 +12,7 @@ const SORT_VALUES = ["newest", "updated", "popular", "favorites", "name"] as con
  * ここでは検証済みの viewerEmail を受け取って利用するだけで、MCP自体は追加のトークン検証を行わない。
  */
 export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): McpServer {
-  const server = new McpServer({ name: "ai-skills-hub", version: "1.0.0" });
+  const server = new McpServer({ name: "ai-skills-hub-selfauth", version: "1.0.0" });
 
   server.registerTool(
     "search_items",
