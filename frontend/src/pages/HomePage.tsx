@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
+import Pagination from "../components/Pagination";
 import TagFilterBar from "../components/TagFilterBar";
 import { BoxIcon, ChevronRightIcon, SearchIcon, SparkleIcon } from "../components/icons";
 import { api } from "../lib/api";
@@ -230,29 +231,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 pt-2 text-sm">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-md border border-slate-300 px-3 py-1 disabled:opacity-40"
-          >
-            前へ
-          </button>
-          <span className="text-slate-500">
-            {page} / {totalPages}
-          </span>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="rounded-md border border-slate-300 px-3 py-1 disabled:opacity-40"
-          >
-            次へ
-          </button>
-        </div>
-      )}
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }
