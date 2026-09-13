@@ -67,6 +67,32 @@ export interface ListItemsResult {
 export const api = {
   me: () => request<{ user: User }>("/me"),
 
+  auth: {
+    register: (email: string, password: string) =>
+      request<{ ok: true; message: string }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      }),
+    verifyEmail: (token: string) =>
+      request<{ ok: true; email: string }>("/auth/verify-email", {
+        method: "POST",
+        body: JSON.stringify({ token }),
+      }),
+    login: (email: string, password: string) =>
+      request<{ user: User }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+    logout: () => request<{ ok: true }>("/auth/logout", { method: "POST" }),
+    requestPasswordReset: (email: string) =>
+      request<{ ok: true; message: string }>("/auth/request-password-reset", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (token: string, password: string) =>
+      request<{ ok: true }>("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ token, password }),
+      }),
+  },
+
   tags: {
     list: () => request<{ tags: Tag[] }>("/tags"),
     create: (name: string) =>
@@ -110,8 +136,6 @@ export const api = {
 
   users: {
     get: (email: string) => request<{ user: User }>(`/users/${encodeURIComponent(email)}`),
-    sync: (email: string) =>
-      request<{ user: User; synced: boolean }>(`/users/${encodeURIComponent(email)}/sync`, { method: "POST" }),
   },
 
   notifications: {

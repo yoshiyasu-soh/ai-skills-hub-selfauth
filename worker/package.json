@@ -9,7 +9,6 @@
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
     "hono": "^4.6.9",
-    "jose": "^5.9.6",
     "zod": "^4.6.2"
   },
   "devDependencies": {

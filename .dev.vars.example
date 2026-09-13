@@ -1,10 +1,11 @@
 # ローカル開発用。このファイルをリポジトリ直下に `.dev.vars` としてコピーして使用してください
 # (Gitには含めないこと)。
 ENVIRONMENT=development
-DEV_BYPASS_EMAIL=you@example.com
 
-# 任意: Microsoft Graph によるユーザープロフィール同期をローカルでも試したい場合のみ設定。
-# 未設定でもアプリは問題なく動作します(プロフィール同期が無効になるだけ)。
-# ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-# ENTRA_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-# ENTRA_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# 任意: Resend (https://resend.com) のAPIキー。未設定の場合、確認メール・パスワードリセットメールは
+# 実送信されず、ターミナルにリンクがログ出力されるだけになる(ローカル動作確認はこれで可能)。
+# RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# 任意: 会員登録を特定ドメインのメールアドレスのみに制限したい場合。
+# REGISTRATION_MODE=domain_restricted
+# ALLOWED_EMAIL_DOMAINS=example.co.jp

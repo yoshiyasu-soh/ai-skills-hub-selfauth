@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useUser } from "../lib/UserContext";
 import LogoMark from "./LogoMark";
 import NotificationBell from "./NotificationBell";
@@ -9,7 +9,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export default function Header() {
-  const { user } = useUser();
+  const { user, logout } = useUser();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
@@ -53,12 +59,13 @@ export default function Header() {
                 </span>
                 <span className="font-medium text-slate-700">{user.displayName}</span>
               </NavLink>
-              <a
-                href="/cdn-cgi/access/logout"
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
                 className="rounded-md px-2 py-1.5 text-xs text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 ログアウト
-              </a>
+              </button>
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { authMiddleware } from "./auth";
+import authRoute from "./routes/auth";
 import favoritesRoute from "./routes/favorites";
 import itemsRoute from "./routes/items";
 import mcpRoute from "./routes/mcp";
@@ -14,8 +15,16 @@ const app = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
 
 // /api/* 以外は wrangler.jsonc の assets.not_found_handling (SPA fallback) が
 // 直接処理するため、この Worker では /api/* のみをハンドリングする。
-app.use("/api/*", authMiddleware);
+// /api/auth/* (登録・ログイン・パスワードリセット等)はログイン前にも叩く必要があるため
+// authMiddleware の対象外とする。
+app.use("/api/*", async (c, next) => {
+  if (c.req.path === "/api/auth" || c.req.path.startsWith("/api/auth/")) {
+    return next();
+  }
+  return authMiddleware(c, next);
+});
 
+app.route("/api/auth", authRoute);
 app.route("/api/items", itemsRoute);
 app.route("/api/tags", tagsRoute);
 app.route("/api/favorites", favoritesRoute);

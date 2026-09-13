@@ -29,22 +29,21 @@
   ],
 
   "vars": {
-    // Cloudflare Zero Trust の Team domain (例: https://your-team.cloudflareaccess.com)
-    "ACCESS_TEAM_DOMAIN": "https://REPLACE_WITH_YOUR_TEAM.cloudflareaccess.com",
-    // Access アプリケーション作成時に払い出される Application Audience (AUD) Tag
-    "ACCESS_AUD": "REPLACE_WITH_ACCESS_APP_AUD_TAG",
-    // "production" 以外(例: "development")のときのみ DEV_BYPASS_EMAIL によるローカル認証バイパスを許可する
+    // Cookieの Secure 属性などに影響する。本番は必ず "production" にする
     "ENVIRONMENT": "production",
 
-    // 以下2つは Microsoft Graph でユーザープロフィール(氏名・役職等)を取得するための設定。
-    // 未設定でもアプリ自体は動作する(プロフィール同期が無効になるだけ)。詳細は docs/setup-entra-id.md 参照。
-    "ENTRA_TENANT_ID": "REPLACE_WITH_ENTRA_TENANT_ID",
-    "ENTRA_CLIENT_ID": "REPLACE_WITH_ENTRA_CLIENT_ID"
-    // ENTRA_CLIENT_SECRET は機密情報のためここには書かず、以下のコマンドで別途設定する:
-    //   npx wrangler secret put ENTRA_CLIENT_SECRET
+    // 会員登録の受付範囲。"open"(誰でも登録可) | "domain_restricted"(ALLOWED_EMAIL_DOMAINSのみ)。
+    // 未設定時は "open" として扱われる。
+    "REGISTRATION_MODE": "open",
+    // REGISTRATION_MODE=domain_restricted のときのみ参照。カンマ区切りの許可ドメイン。
+    // "ALLOWED_EMAIL_DOMAINS": "example.co.jp,example2.co.jp",
 
-    // 任意: "true" にすると、Entra ID の userType が Member 以外(ゲスト等)のアカウントを拒否する。
-    // 上記の Microsoft Graph 連携が前提(未設定のままこれだけ true にすると全員が拒否される)。
-    // "RESTRICT_TO_MEMBERS": "true"
+    // メール送信元アドレス(Resend側でドメイン認証(SPF/DKIM)を済ませたアドレスを推奨。
+    // 未設定・独自ドメイン未検証の場合は Resend のテストドメイン onboarding@resend.dev が使われる)。
+    "RESEND_FROM_EMAIL": "AI Skills Hub <onboarding@resend.dev>"
+    // RESEND_API_KEY は機密情報のためここには書かず、以下のコマンドで別途設定する:
+    //   npx wrangler secret put RESEND_API_KEY
+    // 任意: メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
+    // "APP_BASE_URL": "https://skills.example.com"
   }
 }

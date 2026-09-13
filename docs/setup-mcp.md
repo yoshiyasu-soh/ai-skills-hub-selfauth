@@ -1,5 +1,12 @@
 # MCP(Model Context Protocol)サーバー化
 
+> **注意: このドキュメントは Cloudflare Access(Entra ID SSO)を使っていた旧バージョンの記録です。**
+> 本リポジトリ(会員登録機能版)は Cloudflare Access を廃止しており、以下の手順で前提としている
+> 「Access の マネージドOAuth」「MCPサーバー ポータル」は利用できません。外部MCPクライアント
+> (Claude Desktop等)からの `/api/mcp` 接続は現状未対応です(今後の拡張候補。
+> [`docs/setup-selfauth.md`](setup-selfauth.md) の「既知の制約」も参照)。トラブルシューティングの
+> 記録として、また将来的にトークンベースの認証を実装する際の参考として残しています。
+
 AI Skills Hub は `/api/mcp` に MCP エンドポイントを持ち、Claude Code / Claude Cowork などの
 MCPクライアントから直接、投稿されているスキル・プロンプトを検索・参照できます。
 

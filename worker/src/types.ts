@@ -1,20 +1,23 @@
 export interface Env {
   DB: D1Database;
   ASSETS_BUCKET: R2Bucket;
-  ACCESS_TEAM_DOMAIN: string;
-  ACCESS_AUD: string;
   ENVIRONMENT: string;
-  // .dev.vars でのみ設定するローカル開発用バイパス(本番では未設定)
-  DEV_BYPASS_EMAIL?: string;
-  // Microsoft Graph でユーザープロフィール(氏名・役職等)を取得するための設定。
-  // 未設定でもアプリ本体は動作する(プロフィール同期が無効になるだけ)。
-  ENTRA_TENANT_ID?: string;
-  ENTRA_CLIENT_ID?: string;
-  // 機密情報のため wrangler.jsonc の vars には書かず、`wrangler secret put` で設定する
-  ENTRA_CLIENT_SECRET?: string;
-  // "true" にすると Entra ID の userType が "Member" 以外(Guest等)のユーザーを拒否する。
-  // Microsoft Graph 連携(ENTRA_TENANT_ID等)が未設定の場合、全員が拒否される点に注意。
-  RESTRICT_TO_MEMBERS?: string;
+
+  // 会員登録の受付範囲。"open"(誰でも登録可) | "domain_restricted"(ALLOWED_EMAIL_DOMAINSのみ)。
+  // 未設定時は "open" として扱う。
+  REGISTRATION_MODE?: string;
+  // REGISTRATION_MODE=domain_restricted のときのみ参照するカンマ区切りの許可ドメイン
+  // (例: "example.co.jp,example2.co.jp")。
+  ALLOWED_EMAIL_DOMAINS?: string;
+
+  // メール送信(登録確認・パスワードリセット)には Resend (https://resend.com) を使用する。
+  // 機密情報のため wrangler.jsonc の vars には書かず、`wrangler secret put` で設定する。
+  // 未設定の場合、実送信はスキップされコンソールにログ出力されるのみ(ローカル開発用)。
+  RESEND_API_KEY?: string;
+  // Resend側で送信元ドメイン認証(SPF/DKIM)を済ませたアドレスを指定する。
+  RESEND_FROM_EMAIL?: string;
+  // メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
+  APP_BASE_URL?: string;
 }
 
 export interface AuthUser {
@@ -56,12 +59,4 @@ export interface TagRow {
 export interface UserProfileRow {
   email: string;
   display_name: string;
-  given_name: string | null;
-  surname: string | null;
-  job_title: string | null;
-  company_name: string | null;
-  department: string | null;
-  employee_type: string | null;
-  user_type: string | null;
-  profile_synced_at: string | null;
 }
