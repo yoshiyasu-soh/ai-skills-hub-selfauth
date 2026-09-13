@@ -9,8 +9,12 @@ MCPクライアントから直接、投稿されているスキル・プロン�
 ## 認証: 個人アクセストークン
 
 `/api/mcp` を含む `/api/*` はセッションCookie(ブラウザログイン)で保護されていますが、
-MCPクライアントはブラウザセッションを持てません。そのため `/api/mcp` は
-`Authorization: Bearer <トークン>` ヘッダーでの認証にも対応しています。
+MCPクライアントはブラウザセッションを持てません。そのため `/api/mcp` は以下2通りの
+個人アクセストークン認証にも対応しています。
+
+- `Authorization: Bearer <トークン>` ヘッダー(Claude Code、Claude Desktop等)
+- `?token=<トークン>` クエリパラメータ(リクエストヘッダーを設定できないクライアント向けの代替手段。
+  `/api/mcp` に限り対応)
 
 トークンは AI Skills Hub にログイン後、プロフィール編集画面(`/settings/profile`)から
 遷移できる「MCP用アクセストークン」ページ(`/settings/tokens`)で発行します。
@@ -54,20 +58,25 @@ MCPクライアントはブラウザセッションを持てません。その�
 1. AI Skills Hub にログインし、`/settings/tokens` でトークンを発行してコピーする。
 2. Claude Desktopの設定(`Ctrl + ,` / `Cmd + ,`)→「Connectors」→「Add custom connector」を開く。
 3. 「Name」に任意の名前、「URL」に `https://<あなたのWorkerの公開ドメイン>/api/mcp` を入力する。
-4. 「Advanced settings」にカスタムヘッダーを指定できる欄がある場合、キーに `Authorization`、
-   値に `Bearer <手順1で発行したトークン>` を入力して「Add」を押す。
+4. 「認証」で **サインインなし** を選択する。
+5. 「リクエストヘッダー」で、キーに `authorization`、値に `Bearer <トークン>`
+   (`<トークン>` は手順1でコピーした値に置き換える。`Bearer ` を含めて入力する)を入力して
+   「追加」を押す。
+6. Connectorsの一覧で状態が「Connected」になっていれば接続完了です。
 
-   > Claude Desktopのバージョンによっては、カスタムヘッダーを指定する欄が用意されていないことが
-   > あります。その場合、現時点ではこの方法でのClaude Desktop接続には対応していません
-   > (Claude Codeでの接続をご検討ください)。
-
-5. Connectorsの一覧で状態が「Connected」になっていれば接続完了です。
+> リクエストヘッダーの入力欄が見当たらないバージョンの場合は、代わりにURLの末尾へ
+> `?token=<トークン>` を付け足す方法でも接続できます
+> (例: `https://<あなたのWorkerの公開ドメイン>/api/mcp?token=<トークン>`)。
 
 ## うまくつながらないとき
 
-「Unauthorized」「401」のようなエラーが出る場合、以下を確認してください。
+「Unauthorized」「401」、またはClaude Desktopの「サーバーに接続できませんでした」のような
+エラーが出る場合、以下を確認してください。
 
-- トークンの入力ミス(`Bearer` の後ろの半角スペース、コピー漏れ等)がないか
+- Claude Codeの場合: `Authorization: Bearer <トークン>` の `Bearer` の後ろの半角スペースや
+  コピー漏れがないか
+- Claude Desktopの場合: URLの末尾が `?token=<トークン>` になっているか、トークンの前後に
+  余計な空白・改行が入っていないか
 - `/settings/tokens` でそのトークンが失効済みになっていないか
 
 解決しない場合は、新しいトークンを発行し直して設定を作り直すのが確実です。

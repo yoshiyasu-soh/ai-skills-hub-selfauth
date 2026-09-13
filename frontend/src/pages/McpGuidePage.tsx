@@ -318,29 +318,41 @@ export default function McpGuidePage() {
             <div className="flex gap-3">
               <StepNumber n={5} />
               <div className="flex-1">
-                <p className="mb-1.5 text-sm font-semibold text-slate-900">
-                  名前・URL・認証ヘッダーを入力して「Add」(追加)を押す
-                </p>
+                <p className="mb-1.5 text-sm font-semibold text-slate-900">名前とURLを入力する</p>
                 <p className="mb-2 text-sm leading-relaxed text-slate-600">
                   「Name」(名前)欄には好きな名前(例: <span className="font-mono">AI Skills Hub</span>)を、
                   「URL」欄には下記をそのままコピーして貼り付けてください。
                 </p>
                 <CopyableCommand command={MCP_URL} />
-                <p className="mb-2 mt-3 text-sm leading-relaxed text-slate-600">
-                  続けて「Advanced settings」(詳細設定)を開き、カスタムヘッダー(Header/Authorization等の名前の欄)が
-                  用意されている場合は、キーに <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">Authorization</code>
-                  、値に <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">Bearer &lt;手順1で発行したトークン&gt;</code>{" "}
-                  を入力してください。
-                </p>
-                <p className="text-xs leading-relaxed text-amber-700">
-                  ※ Claude Desktopのバージョンによっては、カスタムヘッダーを指定する欄が用意されていないことがあります。
-                  その場合、現時点ではこの方法でのClaude Desktop接続には対応していません。Claude Codeでの接続をご検討ください。
-                </p>
               </div>
             </div>
 
             <div className="flex gap-3">
               <StepNumber n={6} />
+              <div className="flex-1">
+                <p className="mb-1.5 text-sm font-semibold text-slate-900">
+                  認証で「サインインなし」を選び、リクエストヘッダーでトークンを設定する
+                </p>
+                <p className="mb-2 text-sm leading-relaxed text-slate-600">
+                  「認証」の項目で <strong className="font-semibold">サインインなし</strong> を選択します。
+                  その下の「リクエストヘッダー」で、キーに
+                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">authorization</code>
+                  を選び、値の欄に下のコマンドの
+                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">&lt;トークン&gt;</code>
+                  部分を手順1でコピーした値に置き換えたものを入力してから「追加」を押してください。
+                </p>
+                <CopyableCommand command="Bearer <トークン>" />
+                <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                  ※ 値には <span className="font-mono">Bearer</span> を含めて入力してください(認証方式の指定を兼ねています)。
+                  リクエストヘッダーの入力欄が見当たらないバージョンの場合は、代わりにURLの末尾へ
+                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-xs">?token=&lt;トークン&gt;</code>
+                  を付け足す方法でも接続できます。
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <StepNumber n={7} />
               <div className="flex-1">
                 <p className="mb-1.5 text-sm font-semibold text-slate-900">つながったか確認する</p>
                 <p className="text-sm leading-relaxed text-slate-600">
@@ -358,15 +370,29 @@ export default function McpGuidePage() {
       <section className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-4">
         <p className="mb-1.5 text-sm font-semibold text-amber-900">うまくつながらないとき</p>
         <p className="text-sm leading-relaxed text-amber-800">
-          「Unauthorized」「401」のようなメッセージが出る場合、トークンの入力ミス
-          (<code className="rounded bg-white px-1 py-0.5 font-mono text-xs">Bearer </code>{" "}
-          の後ろに半角スペースが入っているか等)、コピー漏れ、または{" "}
-          <Link to="/settings/tokens" className="font-medium text-amber-900 underline">
-            トークン管理ページ
-          </Link>{" "}
-          で失効済みになっていないかを確認してください。解決しない場合は新しいトークンを発行し直して
-          設定を作り直すのが確実です。それでも解決しない場合は、エラーメッセージのスクリーンショットを
-          添えて管理者にご連絡ください。
+          「Unauthorized」「401」、またはClaude Desktopの「サーバーに接続できませんでした」のような
+          メッセージが出る場合、多くはトークン関連の入力ミスが原因です。以下を確認してください。
+        </p>
+        <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-amber-800">
+          <li>
+            Claude Codeの場合: <code className="rounded bg-white px-1 py-0.5 font-mono text-xs">Bearer </code>
+            の後ろに半角スペースが入っているか、トークンのコピー漏れがないか
+          </li>
+          <li>
+            Claude Desktopの場合: URLの末尾が
+            <code className="rounded bg-white px-1 py-0.5 font-mono text-xs">?token=</code>
+            から始まっているか、トークンの前後に余計な空白・改行が入っていないか
+          </li>
+          <li>
+            <Link to="/settings/tokens" className="font-medium text-amber-900 underline">
+              トークン管理ページ
+            </Link>
+            でそのトークンが失効済みになっていないか
+          </li>
+        </ul>
+        <p className="mt-2 text-sm leading-relaxed text-amber-800">
+          解決しない場合は新しいトークンを発行し直して設定を作り直すのが確実です。それでも解決しない場合は、
+          エラーメッセージのスクリーンショットを添えて管理者にご連絡ください。
         </p>
       </section>
 
