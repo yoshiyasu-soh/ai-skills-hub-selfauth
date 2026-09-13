@@ -113,8 +113,7 @@ export default function DocsPage() {
       </div>
 
       <p className="mb-10 max-w-prose text-sm leading-relaxed text-slate-600">
-        AI Skills Hub は、Claude Code のスキル・プロンプトを共有するためのサイトです。
-        このページでは、サイト全体の機能と基本的な使い方をまとめています。
+        AI Skills Hub は、Claude Code のスキル・プロンプトを共有するためのサイトです。このページでは、サイト全体の機能と基本的な使い方をまとめています。
       </p>
 
       {/* できること */}
@@ -162,8 +161,7 @@ export default function DocsPage() {
             <div className="flex-1">
               <p className="mb-1 text-sm font-semibold text-slate-900">お気に入り登録・利用する</p>
               <p className="text-sm leading-relaxed text-slate-600">
-                スキルはダウンロード、プロンプトはコピーまたはclaude.aiへの受け渡しで利用します。
-                気に入ったものはお気に入り登録しておくと後から見返せます。
+                スキルはダウンロード、プロンプトはコピーまたはclaude.aiへの受け渡しで利用します。気に入ったものはお気に入り登録しておくと後から見返せます。
               </p>
             </div>
           </div>
