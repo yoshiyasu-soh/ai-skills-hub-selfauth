@@ -53,4 +53,20 @@ export interface VersionNotification {
 export interface User {
   email: string;
   displayName: string;
+  givenName: string | null;
+  surname: string | null;
+  companyName: string | null;
+  jobTitle: string | null;
+  department: string | null;
+  employeeType: string | null;
+}
+
+export interface ProfileUpdatePayload {
+  displayName: string;
+  givenName?: string;
+  surname?: string;
+  companyName?: string;
+  jobTitle?: string;
+  department?: string;
+  employeeType?: string;
 }

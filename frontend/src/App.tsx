@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
 import LogoMark from "./components/LogoMark";
 import EditItemPage from "./pages/EditItemPage";
+import EditProfilePage from "./pages/EditProfilePage";
 import FavoritesPage from "./pages/FavoritesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GuidePage from "./pages/GuidePage";
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/ranking" element={<RankingPage />} />
           <Route path="/users/:email" element={<UserProfilePage />} />
+          <Route path="/settings/profile" element={<EditProfilePage />} />
           <Route path="/guide/skills" element={<GuidePage topic="skill" />} />
           <Route path="/guide/prompts" element={<GuidePage topic="prompt" />} />
           <Route path="/guide/mcp" element={<McpGuidePage />} />

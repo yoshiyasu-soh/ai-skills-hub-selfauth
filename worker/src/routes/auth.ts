@@ -14,7 +14,7 @@ import {
   setSessionCookie,
 } from "../lib/auth/session";
 import { generateToken, hashToken } from "../lib/auth/tokens";
-import { toUserProfileDTO } from "../lib/userProfile";
+import { fetchUserProfileRow, toUserProfileDTO } from "../lib/userProfile";
 import type { Env } from "../types";
 
 const auth = new Hono<{ Bindings: Env }>();
@@ -154,10 +154,7 @@ auth.post("/login", async (c) => {
   const token = await createSession(c.env.DB, email);
   setSessionCookie(c, token);
 
-  const profileRow = await c.env.DB.prepare("SELECT email, display_name FROM users WHERE email = ?")
-    .bind(email)
-    .first<{ email: string; display_name: string }>();
-
+  const profileRow = await fetchUserProfileRow(c.env.DB, email);
   return c.json({ user: toUserProfileDTO(profileRow!) });
 });
 

@@ -1,4 +1,4 @@
-import type { Item, RankingPeriod, SortOption, Tag, User, VersionNotification } from "./types";
+import type { Item, ProfileUpdatePayload, RankingPeriod, SortOption, Tag, User, VersionNotification } from "./types";
 
 const API_BASE = "/api";
 
@@ -66,6 +66,8 @@ export interface ListItemsResult {
 
 export const api = {
   me: () => request<{ user: User }>("/me"),
+  updateProfile: (payload: ProfileUpdatePayload) =>
+    request<{ user: User }>("/me", { method: "PATCH", body: JSON.stringify(payload) }),
 
   auth: {
     register: (email: string, password: string) =>

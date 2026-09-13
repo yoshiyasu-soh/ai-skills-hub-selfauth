@@ -59,4 +59,10 @@ export interface TagRow {
 export interface UserProfileRow {
   email: string;
   display_name: string;
+  given_name: string | null;
+  surname: string | null;
+  company_name: string | null;
+  job_title: string | null;
+  department: string | null;
+  employee_type: string | null;
 }

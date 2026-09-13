@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
+import { useUser } from "../lib/UserContext";
 import type { User } from "../lib/types";
+
+function Field({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div>
+      <dt className="text-xs font-medium text-slate-400">{label}</dt>
+      <dd className="mt-0.5 text-sm text-slate-800">{value || <span className="text-slate-300">未設定</span>}</dd>
+    </div>
+  );
+}
 
 export default function UserProfilePage() {
   const { email } = useParams<{ email: string }>();
+  const { user: currentUser } = useUser();
 
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,17 +36,38 @@ export default function UserProfilePage() {
   if (error) return <p className="text-sm text-red-500">{error}</p>;
   if (!profile) return null;
 
+  const isSelf = currentUser?.email === profile.email;
+
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-semibold text-brand-700">
-          {profile.displayName.slice(0, 1)}
-        </span>
-        <div>
-          <h1 className="text-xl font-bold leading-tight text-slate-900">{profile.displayName}</h1>
-          <p className="text-sm text-slate-400">{profile.email}</p>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-semibold text-brand-700">
+            {profile.displayName.slice(0, 1)}
+          </span>
+          <div>
+            <h1 className="text-xl font-bold leading-tight text-slate-900">{profile.displayName}</h1>
+            <p className="text-sm text-slate-400">{profile.email}</p>
+          </div>
         </div>
+        {isSelf && (
+          <Link
+            to="/settings/profile"
+            className="shrink-0 rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+          >
+            編集する
+          </Link>
+        )}
       </div>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+        <Field label="姓" value={profile.surname} />
+        <Field label="名" value={profile.givenName} />
+        <Field label="会社名" value={profile.companyName} />
+        <Field label="役職" value={profile.jobTitle} />
+        <Field label="部署" value={profile.department} />
+        <Field label="従業員の種類" value={profile.employeeType} />
+      </dl>
     </div>
   );
 }
