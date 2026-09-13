@@ -63,7 +63,7 @@ export default function GuidePage({ topic }: GuidePageProps) {
         </div>
       </div>
 
-      <p className="mb-8 max-w-prose text-sm leading-relaxed text-slate-600">
+      <p className="mb-8 text-sm leading-relaxed text-slate-600">
         {isSkill
           ? "SKILLは、Claude(claude.ai / Claude Code / Claude Agent SDK)に特定の作業のやり方を教えるための、指示書と関連ファイルのまとまりです。AI Skills Hubでは、社内で育てたSKILLをZIP一式やSKILL.md単体でここに共有し、誰でもダウンロードしてそのまま使えるようにします。"
           : "プロンプトは、Claude(claude.ai / Claude Code)に投げる指示文をあらかじめ整えて再利用できるようにしたものです。AI Skills Hubでは、コピーしてそのまま貼り付けたり、claude.aiの新規チャットにワンクリックで差し込んだりして使えます。"}

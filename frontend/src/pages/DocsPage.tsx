@@ -112,7 +112,7 @@ export default function DocsPage() {
         </div>
       </div>
 
-      <p className="mb-10 max-w-prose text-sm leading-relaxed text-slate-600">
+      <p className="mb-10 text-sm leading-relaxed text-slate-600">
         AI Skills Hub は、Claude Code のスキル・プロンプトを共有するためのサイトです。
         <span className="whitespace-nowrap">このページでは、</span>
         サイト全体の機能と基本的な使い方をまとめています。

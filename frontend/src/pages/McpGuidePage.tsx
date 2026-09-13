@@ -111,11 +111,8 @@ export default function McpGuidePage() {
         </div>
       </div>
 
-      <p className="mb-6 max-w-prose text-sm leading-relaxed text-slate-600">
-        AI Skills Hubは、MCP(Model Context Protocol)という仕組みを使って、Claude Code /
-        Claude Desktop から直接呼び出せるようになっています。一度つないでおけば、ブラウザでこのサイトを
-        開かなくても、Claudeに話しかけるだけでスキル・プロンプトを検索したり、中身を確認したり、
-        スキルをそのまま手元にインストールしたりできます。
+      <p className="mb-6 text-sm leading-relaxed text-slate-600">
+        AI Skills Hubは、MCP(Model Context Protocol)という仕組みを使って、Claude Code / Claude Desktopから直接呼び出せるようになっています。一度つないでおけば、ブラウザでこのサイトを開かなくても、Claudeに話しかけるだけでスキル・プロンプトを検索したり、中身を確認したり、スキルをそのまま手元にインストールしたりできます。
       </p>
 
       {/* クライアント選択タブ */}
@@ -399,9 +396,8 @@ export default function McpGuidePage() {
       {/* 使い方 */}
       <section className="mb-8">
         <h2 className="mb-4 text-lg font-bold text-slate-900">使い方</h2>
-        <p className="mb-4 max-w-prose text-sm leading-relaxed text-slate-600">
-          むずかしいコマンドを覚える必要はありません。Claudeに、いつも通り日本語で話しかけるだけです。
-          「AI Skills Hub」という単語を含めて頼むと、確実にこのサイトの情報を使って答えてくれます。
+        <p className="mb-4 text-sm leading-relaxed text-slate-600">
+          むずかしいコマンドを覚える必要はありません。Claudeに、いつも通り日本語で話しかけるだけです。「AI Skills Hub」という単語を含めて頼むと、確実にこのサイトの情報を使って答えてくれます。
         </p>
 
         <div className="flex flex-col gap-3">
