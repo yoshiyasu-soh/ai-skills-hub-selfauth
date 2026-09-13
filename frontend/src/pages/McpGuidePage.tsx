@@ -232,11 +232,13 @@ export default function McpGuidePage() {
                   の部分だけを発行したトークンに書き換えてから実行してください。
                 </p>
                 <CopyableCommand
-                  command={`claude mcp add --transport http --header "Authorization: Bearer <トークン>" ${MCP_SERVER_NAME} ${MCP_URL}`}
+                  command={`claude mcp add --transport http ${MCP_SERVER_NAME} ${MCP_URL} --header "Authorization: Bearer <トークン>"`}
                 />
                 <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                  ※ Claude Codeのバージョンによって <code className="font-mono">--header</code> オプションの指定方法が
-                  異なる場合があります。うまくいかない場合はターミナルで{" "}
+                  ※ <code className="font-mono">--header</code> は複数の値を取れるオプションのため、
+                  必ず名前・URLの<strong className="font-semibold">後ろ</strong>に置いてください。前に置くと
+                  <code className="font-mono">error: missing required argument &apos;name&apos;</code>
+                  のようなエラーになります。うまくいかない場合はターミナルで{" "}
                   <code className="font-mono">claude mcp add --help</code> を実行して確認してください。
                 </p>
               </div>

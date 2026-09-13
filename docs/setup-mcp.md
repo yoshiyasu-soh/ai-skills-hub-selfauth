@@ -39,11 +39,13 @@ MCPクライアントはブラウザセッションを持てません。その�
 2. ターミナルで以下を実行する(`<トークン>` は手順1でコピーした値に置き換える):
 
    ```bash
-   claude mcp add --transport http --header "Authorization: Bearer <トークン>" ai-skills-hub-selfauth https://<あなたのWorkerの公開ドメイン>/api/mcp
+   claude mcp add --transport http ai-skills-hub-selfauth https://<あなたのWorkerの公開ドメイン>/api/mcp --header "Authorization: Bearer <トークン>"
    ```
 
-   Claude Codeのバージョンによって `--header` オプションの指定方法が異なる場合は
-   `claude mcp add --help` で確認してください。
+   **`--header` は必ず `name` とURLの後ろに置いてください。** `--header` は複数の値を取れる
+   オプションのため、前に置くと `name`・URLまで値として読み込まれてしまい、
+   `error: missing required argument 'name'` のようなエラーになります。
+   詳細は `claude mcp add --help` で確認できます。
 
 3. Claude Codeで `/mcp` を実行し、`ai-skills-hub-selfauth` が `Connected` と表示されれば接続完了です。
 
