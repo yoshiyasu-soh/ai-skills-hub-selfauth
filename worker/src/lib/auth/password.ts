@@ -1,4 +1,6 @@
-const PBKDF2_ITERATIONS = 210_000;
+// Cloudflare Workersの crypto.subtle は PBKDF2 の反復回数に上限(100,000)があるため、
+// その上限に合わせる(ハッシュ自体に反復回数を保存しているため、将来引き上げても既存ハッシュは検証可能)。
+const PBKDF2_ITERATIONS = 100_000;
 const SALT_BYTES = 16;
 const KEY_LENGTH_BITS = 256;
 
