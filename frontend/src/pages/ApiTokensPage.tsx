@@ -1,14 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ApiError, api } from "../lib/api";
+import { formatDateTime } from "../lib/formatDate";
 import { useToast } from "../lib/ToastContext";
 import type { ApiTokenSummary, NewApiToken } from "../lib/types";
-
-function formatDateTime(value: string | null): string {
-  if (!value) return "—";
-  const iso = value.includes("T") ? value : `${value.replace(" ", "T")}Z`;
-  return new Date(iso).toLocaleString("ja-JP");
-}
 
 export default function ApiTokensPage() {
   const { showToast } = useToast();

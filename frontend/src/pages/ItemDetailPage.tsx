@@ -13,6 +13,7 @@ import {
 } from "../components/icons";
 import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
+import { formatDateTime } from "../lib/formatDate";
 import { useToast } from "../lib/ToastContext";
 import type { Item } from "../lib/types";
 
@@ -185,7 +186,7 @@ export default function ItemDetailPage() {
             </span>
             {item.authorName}
           </Link>
-          <span>更新: {new Date(item.updatedAt).toLocaleString("ja-JP")}</span>
+          <span>更新: {formatDateTime(item.updatedAt)}</span>
         </div>
 
         {item.hasUpdate && (
