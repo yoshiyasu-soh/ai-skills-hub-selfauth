@@ -11,7 +11,7 @@ const PERIODS: { value: RankingPeriod; label: string }[] = [
 ];
 
 export default function RankingPage() {
-  const [type, setType] = useState<"all" | "skill" | "prompt">("all");
+  const [type, setType] = useState<"all" | "skill" | "prompt" | "external">("all");
   const [period, setPeriod] = useState<RankingPeriod>("all");
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +38,7 @@ export default function RankingPage() {
 
       <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-card">
         <div className="flex overflow-hidden rounded-lg border border-slate-200">
-          {(["all", "skill", "prompt"] as const).map((v) => (
+          {(["all", "skill", "prompt", "external"] as const).map((v) => (
             <button
               key={v}
               type="button"
@@ -47,7 +47,7 @@ export default function RankingPage() {
                 type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
               }`}
             >
-              {v === "all" ? "すべて" : v === "skill" ? "スキル" : "プロンプト"}
+              {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : "OSS紹介"}
             </button>
           ))}
         </div>

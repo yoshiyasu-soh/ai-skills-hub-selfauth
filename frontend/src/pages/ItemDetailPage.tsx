@@ -88,6 +88,17 @@ export default function ItemDetailPage() {
     }
   }
 
+  async function handleVisit() {
+    if (!item || !item.sourceUrl) return;
+    window.open(item.sourceUrl, "_blank", "noopener,noreferrer");
+    try {
+      const res = await api.items.visit(item.id);
+      setItem((prev) => (prev ? { ...prev, usageCount: res.usageCount } : prev));
+    } catch {
+      // カウント更新の失敗はユーザー操作をブロックしない
+    }
+  }
+
   function handleDownloadClick() {
     if (!item) return;
     // 実ダウンロードは <a href> のブラウザ標準遷移に任せているため、JS側はこの時点で
@@ -123,8 +134,9 @@ export default function ItemDetailPage() {
   if (!item) return <p className="text-sm text-slate-400">見つかりませんでした。</p>;
 
   const isSkill = item.type === "skill";
-  const accentText = isSkill ? "text-skill" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : "bg-prompt";
+  const isExternal = item.type === "external";
+  const accentText = isSkill ? "text-skill" : isExternal ? "text-amber-600" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-amber-500" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -137,14 +149,20 @@ export default function ItemDetailPage() {
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white ${accentBg}`}>
-              {isSkill ? <BoxIcon className="h-5 w-5" /> : <SparkleIcon className="h-5 w-5" />}
+              {isSkill ? (
+                <BoxIcon className="h-5 w-5" />
+              ) : isExternal ? (
+                <ExternalLinkIcon className="h-5 w-5" />
+              ) : (
+                <SparkleIcon className="h-5 w-5" />
+              )}
             </div>
             <div>
               <span className="flex items-center gap-1.5 text-xs">
                 <span className={`font-semibold uppercase tracking-wide ${accentText}`}>
-                  {isSkill ? "Skill" : "Prompt"}
+                  {isSkill ? "Skill" : isExternal ? "OSS紹介" : "Prompt"}
                 </span>
-                <span className="font-mono text-slate-400">v{item.version}</span>
+                {!isExternal && <span className="font-mono text-slate-400">v{item.version}</span>}
               </span>
               <h1 className="text-2xl font-bold leading-tight text-slate-900">{item.title}</h1>
             </div>
@@ -266,7 +284,7 @@ export default function ItemDetailPage() {
             );
           })()}
 
-          {!isSkill && (
+          {item.type === "prompt" && (
             <section>
               <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">プロンプト本文</h2>
               <pre className="whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-900 p-4 font-mono text-sm leading-relaxed text-slate-100 shadow-card">
@@ -287,6 +305,15 @@ export default function ItemDetailPage() {
                 <DownloadIcon className="h-4 w-4" />
                 ダウンロード
               </a>
+            ) : isExternal ? (
+              <button
+                type="button"
+                onClick={() => void handleVisit()}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600"
+              >
+                <ExternalLinkIcon className="h-4 w-4" />
+                紹介元を見る
+              </button>
             ) : (
               <>
                 <button
@@ -326,6 +353,44 @@ export default function ItemDetailPage() {
                 <span className="truncate font-mono">{item.fileName}</span>
               </div>
               <p className="mt-1 text-xs text-slate-400">{formatBytes(item.fileSize)}</p>
+            </div>
+          )}
+
+          {isExternal && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">紹介元情報</p>
+              <dl className="flex flex-col gap-2 text-sm text-slate-700">
+                {item.sourceAuthor && (
+                  <div>
+                    <dt className="text-xs text-slate-400">元の作者/組織</dt>
+                    <dd>{item.sourceAuthor}</dd>
+                  </div>
+                )}
+                {item.license && (
+                  <div>
+                    <dt className="text-xs text-slate-400">ライセンス</dt>
+                    <dd>{item.license}</dd>
+                  </div>
+                )}
+                {item.sourceUrl && (
+                  <div>
+                    <dt className="text-xs text-slate-400">紹介先URL</dt>
+                    <dd className="truncate">
+                      <a
+                        href={item.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-700 hover:underline"
+                      >
+                        {item.sourceUrl}
+                      </a>
+                    </dd>
+                  </div>
+                )}
+              </dl>
+              <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                これは第三者が公開しているOSS等の紹介です。著作権・ライセンスは紹介元の作者に帰属します。
+              </p>
             </div>
           )}
         </aside>

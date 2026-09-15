@@ -2,8 +2,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
-import { BoxIcon, CheckIcon, InfoIcon, SparkleIcon, TagIcon } from "../components/icons";
-import { api } from "../lib/api";
+import { BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, SparkleIcon, StarIcon, TagIcon } from "../components/icons";
+import { api, ApiError } from "../lib/api";
 import { parseSkillMd } from "../lib/parseSkillMd";
 import type { ItemType, Tag } from "../lib/types";
 
@@ -18,6 +18,21 @@ const TIPS = [
   "適切なタグを選ぶと、他の人が見つけやすくなります",
 ];
 
+const EXTERNAL_TIPS = [
+  "GitHubのURLを入力して「自動取得」を押すと、タイトル・概要・作者・ライセンスを取得できます(空欄の項目のみ入力されます)",
+  "自作物ではなく、既に公開されているOSS等を紹介する投稿です",
+  "著作権・ライセンスは紹介元の作者に帰属します。詳細説明に使い方や注目ポイントを書くと伝わりやすくなります",
+];
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function PostItemPage() {
   const navigate = useNavigate();
 
@@ -30,6 +45,13 @@ export default function PostItemPage() {
   const [file, setFile] = useState<File | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [sourceAuthor, setSourceAuthor] = useState("");
+  const [license, setLicense] = useState("");
+  const [fetchingMeta, setFetchingMeta] = useState(false);
+  const [fetchMetaError, setFetchMetaError] = useState<string | null>(null);
+  const [fetchedStars, setFetchedStars] = useState<number | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +100,45 @@ export default function PostItemPage() {
     }
   }
 
+  async function handleAutoFetch() {
+    setFetchMetaError(null);
+    setFetchedStars(null);
+    if (!sourceUrl.trim() || !isHttpUrl(sourceUrl.trim())) {
+      setFetchMetaError("有効なGitHubのURLを入力してください");
+      return;
+    }
+
+    setFetchingMeta(true);
+    try {
+      const meta = await api.items.fetchMetadata(sourceUrl.trim());
+      let filled = false;
+
+      // 既に手入力された内容は上書きしない(空欄のみ自動入力)
+      if (meta.title && !title.trim()) {
+        setTitle(meta.title);
+        filled = true;
+      }
+      if (meta.description && !summary.trim()) {
+        setSummary(meta.description.slice(0, 200));
+        filled = true;
+      }
+      if (meta.author && !sourceAuthor.trim()) {
+        setSourceAuthor(meta.author);
+        filled = true;
+      }
+      if (meta.license && !license.trim()) {
+        setLicense(meta.license);
+        filled = true;
+      }
+      setFetchedStars(meta.stars);
+      setAutoFilled(filled);
+    } catch (err) {
+      setFetchMetaError(err instanceof ApiError ? err.message : "メタデータの取得に失敗しました");
+    } finally {
+      setFetchingMeta(false);
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -92,6 +153,10 @@ export default function PostItemPage() {
     }
     if (type === "skill" && !file) {
       setError("スキル資産のファイル(.zip または SKILL.md)を選択してください");
+      return;
+    }
+    if (type === "external" && !isHttpUrl(sourceUrl.trim())) {
+      setError("有効な紹介先URLを入力してください");
       return;
     }
 
@@ -109,6 +174,17 @@ export default function PostItemPage() {
         fd.set("tagIds", JSON.stringify(selectedTagIds));
         if (file) fd.set("file", file);
         created = await api.items.create(fd);
+      } else if (type === "external") {
+        created = await api.items.create({
+          type,
+          title,
+          summary,
+          description,
+          sourceUrl: sourceUrl.trim(),
+          sourceAuthor,
+          license,
+          tagIds: JSON.stringify(selectedTagIds),
+        });
       } else {
         created = await api.items.create({
           type,
@@ -128,14 +204,20 @@ export default function PostItemPage() {
     }
   }
 
-  const accentText = type === "skill" ? "text-skill" : "text-prompt";
-  const accentBg = type === "skill" ? "bg-skill" : "bg-prompt";
+  const accentText = type === "skill" ? "text-skill" : type === "prompt" ? "text-prompt" : "text-amber-600";
+  const accentBg = type === "skill" ? "bg-skill" : type === "prompt" ? "bg-prompt" : "bg-amber-500";
 
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-6 flex items-center gap-3">
         <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${accentBg}`}>
-          {type === "skill" ? <BoxIcon className="h-4.5 w-4.5" /> : <SparkleIcon className="h-4 w-4" />}
+          {type === "skill" ? (
+            <BoxIcon className="h-4.5 w-4.5" />
+          ) : type === "prompt" ? (
+            <SparkleIcon className="h-4 w-4" />
+          ) : (
+            <ExternalLinkIcon className="h-4 w-4" />
+          )}
         </div>
         <div>
           <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>新規投稿</p>
@@ -149,7 +231,7 @@ export default function PostItemPage() {
             <div>
               <label className={labelClass}>種別</label>
               <div className="flex overflow-hidden rounded-lg border border-slate-200 w-fit">
-                {(["skill", "prompt"] as const).map((v) => (
+                {(["skill", "prompt", "external"] as const).map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -158,11 +240,74 @@ export default function PostItemPage() {
                       type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
                     }`}
                   >
-                    {v === "skill" ? "スキル(再利用可能な機能)" : "プロンプト(コピー用)"}
+                    {v === "skill" ? "スキル(再利用可能な機能)" : v === "prompt" ? "プロンプト(コピー用)" : "OSS紹介(外部リンク)"}
                   </button>
                 ))}
               </div>
             </div>
+
+            {type === "external" && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4">
+                <label className={labelClass}>紹介先URL(GitHub等) *</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={sourceUrl}
+                    onChange={(e) => {
+                      setSourceUrl(e.target.value);
+                      setFetchMetaError(null);
+                    }}
+                    required
+                    placeholder="https://github.com/owner/repo"
+                    className={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleAutoFetch()}
+                    disabled={fetchingMeta || !sourceUrl.trim()}
+                    className="shrink-0 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+                  >
+                    {fetchingMeta ? "取得中..." : "自動取得"}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500">
+                  GitHubのURLを入力して自動取得を押すと、タイトル・概要・作者・ライセンスを取得できます(現在はGitHubのみ対応)。
+                </p>
+                {fetchMetaError && <p className="mt-1.5 text-xs text-red-500">{fetchMetaError}</p>}
+                {fetchedStars !== null && !fetchMetaError && (
+                  <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <StarIcon filled className="h-3.5 w-3.5" />
+                    取得成功(★{fetchedStars.toLocaleString()})。空欄だった項目に自動入力しました。
+                  </p>
+                )}
+
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>元の作者/組織</label>
+                    <input
+                      type="text"
+                      value={sourceAuthor}
+                      onChange={(e) => setSourceAuthor(e.target.value)}
+                      placeholder="例: anthropics"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>ライセンス</label>
+                    <input
+                      type="text"
+                      value={license}
+                      onChange={(e) => setLicense(e.target.value)}
+                      placeholder="例: MIT"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                  これは第三者が公開しているOSS等の紹介投稿です。著作権・ライセンスは紹介元の作者に帰属します。
+                </p>
+              </div>
+            )}
 
             <div>
               <label className={labelClass}>タイトル *</label>
@@ -201,15 +346,17 @@ export default function PostItemPage() {
               />
             </div>
 
-            <div>
-              <label className={labelClass}>バージョン</label>
-              <input
-                type="text"
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
-                className={`w-40 font-mono ${inputClass}`}
-              />
-            </div>
+            {type !== "external" && (
+              <div>
+                <label className={labelClass}>バージョン</label>
+                <input
+                  type="text"
+                  value={version}
+                  onChange={(e) => setVersion(e.target.value)}
+                  className={`w-40 font-mono ${inputClass}`}
+                />
+              </div>
+            )}
 
             {type === "skill" ? (
               <>
@@ -236,7 +383,7 @@ export default function PostItemPage() {
                   <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
                 </div>
               </>
-            ) : (
+            ) : type === "prompt" ? (
               <div>
                 <label className={labelClass}>プロンプト本文 *</label>
                 <textarea
@@ -247,7 +394,7 @@ export default function PostItemPage() {
                   className={`font-mono ${inputClass}`}
                 />
               </div>
-            )}
+            ) : null}
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
@@ -269,7 +416,7 @@ export default function PostItemPage() {
                 入力のヒント
               </p>
               <ul className="flex flex-col gap-2.5">
-                {TIPS.map((tip) => (
+                {(type === "external" ? EXTERNAL_TIPS : TIPS).map((tip) => (
                   <li key={tip} className="flex gap-2 text-xs leading-relaxed text-slate-600">
                     <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
                     {tip}

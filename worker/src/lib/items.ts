@@ -21,6 +21,9 @@ export interface ItemDTO {
   isFavorited: boolean;
   isOwner: boolean;
   hasUpdate: boolean;
+  sourceUrl: string | null;
+  sourceAuthor: string | null;
+  license: string | null;
 }
 
 type RowWithAuthor = ItemRow & { author_display_name?: string };
@@ -93,11 +96,14 @@ export async function toItemDTOs(
     isFavorited: favSet.has(r.id),
     isOwner: r.author_email === viewerEmail,
     hasUpdate: lastSeenByItem.has(r.id) && lastSeenByItem.get(r.id) !== r.version,
+    sourceUrl: r.source_url,
+    sourceAuthor: r.source_author,
+    license: r.license,
   }));
 }
 
 export interface SearchItemsParams {
-  type?: "skill" | "prompt";
+  type?: "skill" | "prompt" | "external";
   q?: string;
   tagIds?: number[];
   /** "me" ではなく、呼び出し側で解決済みの実メールアドレスを渡すこと */
@@ -122,7 +128,7 @@ export async function searchItems(
   const conditions: string[] = [];
   const values: unknown[] = [];
 
-  if (params.type === "skill" || params.type === "prompt") {
+  if (params.type === "skill" || params.type === "prompt" || params.type === "external") {
     conditions.push("i.type = ?");
     values.push(params.type);
   }

@@ -18,6 +18,10 @@ export interface Env {
   RESEND_FROM_EMAIL?: string;
   // メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
   APP_BASE_URL?: string;
+
+  // 外部紹介(OSS等)投稿時のGitHubメタデータ自動取得で使う任意のトークン。
+  // 未設定でも動作するが(GitHub API未認証枠、60回/時/IP)、設定するとレート制限が緩和される。
+  GITHUB_TOKEN?: string;
 }
 
 export interface AuthUser {
@@ -25,7 +29,7 @@ export interface AuthUser {
   displayName: string;
 }
 
-export type ItemType = "skill" | "prompt";
+export type ItemType = "skill" | "prompt" | "external";
 export type SortOption = "newest" | "updated" | "popular" | "favorites" | "name";
 export type RankingPeriod = "all" | "7d" | "30d";
 
@@ -46,6 +50,9 @@ export interface ItemRow {
   favorite_count: number;
   created_at: string;
   updated_at: string;
+  source_url: string | null;
+  source_author: string | null;
+  license: string | null;
 }
 
 export interface TagRow {

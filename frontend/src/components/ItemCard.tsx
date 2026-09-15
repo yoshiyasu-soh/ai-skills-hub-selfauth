@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Item } from "../lib/types";
-import { BoxIcon, DownloadIcon, SparkleIcon, StarIcon } from "./icons";
+import { BoxIcon, DownloadIcon, ExternalLinkIcon, SparkleIcon, StarIcon } from "./icons";
 
 interface Props {
   item: Item;
@@ -8,8 +8,14 @@ interface Props {
   rank?: number;
 }
 
+const TYPE_META = {
+  skill: { label: "Skill", accentBg: "bg-skill", accentText: "text-skill", Icon: BoxIcon },
+  prompt: { label: "Prompt", accentBg: "bg-prompt", accentText: "text-prompt", Icon: SparkleIcon },
+  external: { label: "OSS紹介", accentBg: "bg-amber-500", accentText: "text-amber-600", Icon: ExternalLinkIcon },
+} as const;
+
 export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
-  const isSkill = item.type === "skill";
+  const { label, accentBg, accentText, Icon } = TYPE_META[item.type];
 
   return (
     <div className="group relative flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-card-hover">
@@ -19,20 +25,12 @@ export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
           {rank !== undefined && <span className="text-sm font-bold tabular-nums text-slate-400">#{rank}</span>}
-          <div
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white ${
-              isSkill ? "bg-skill" : "bg-prompt"
-            }`}
-          >
-            {isSkill ? <BoxIcon className="h-4.5 w-4.5" /> : <SparkleIcon className="h-4 w-4" />}
+          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white ${accentBg}`}>
+            <Icon className="h-4 w-4" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span
-              className={`text-[11px] font-semibold uppercase tracking-wide ${isSkill ? "text-skill" : "text-prompt"}`}
-            >
-              {isSkill ? "Skill" : "Prompt"}
-            </span>
-            <span className="font-mono text-[11px] text-slate-400">v{item.version}</span>
+            <span className={`text-[11px] font-semibold uppercase tracking-wide ${accentText}`}>{label}</span>
+            {item.type !== "external" && <span className="font-mono text-[11px] text-slate-400">v{item.version}</span>}
           </div>
         </div>
         <button

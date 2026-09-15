@@ -19,10 +19,13 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
     {
       title: "スキル・プロンプトを検索",
       description:
-        "AI Skills Hub に投稿されているスキル(SKILL.md/ZIP)・プロンプトをキーワード/種別/タグで検索する。",
+        "AI Skills Hub に投稿されているスキル(SKILL.md/ZIP)・プロンプト・外部OSS紹介をキーワード/種別/タグで検索する。",
       inputSchema: z.object({
         query: z.string().optional().describe("タイトル・概要・詳細説明を対象とした部分一致検索キーワード"),
-        type: z.enum(["skill", "prompt"]).optional().describe("種別で絞り込む(未指定なら両方)"),
+        type: z
+          .enum(["skill", "prompt", "external"])
+          .optional()
+          .describe("種別で絞り込む(externalは外部OSS等の紹介。未指定なら全種別)"),
         tags: z.array(z.string()).optional().describe("タグ名で絞り込む(すべて一致するAND条件、例: ['デザイン'])"),
         sort: z.enum(SORT_VALUES).optional().describe("並び順(既定: newest=新着順)"),
         page: z.number().int().min(1).optional().describe("ページ番号(既定: 1)"),
@@ -105,6 +108,11 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
       };
       if (item.type === "prompt") {
         body.promptBody = item.body;
+      } else if (item.type === "external") {
+        body.sourceUrl = item.sourceUrl;
+        body.sourceAuthor = item.sourceAuthor;
+        body.license = item.license;
+        body.note = "これは第三者が公開しているOSS等の紹介です。著作権は元の作者に帰属します。";
       } else {
         body.usageNote = item.body || null;
         body.fileName = item.fileName;

@@ -24,7 +24,7 @@ async function shouldCountUsage(
   itemId: string,
   userEmail: string,
   authorEmail: string,
-  kind: "download" | "copy",
+  kind: "download" | "copy" | "visit",
 ): Promise<boolean> {
   if (userEmail === authorEmail) return false;
 
@@ -45,6 +45,15 @@ function isAllowedSkillFile(fileName: string): boolean {
 
 function contentTypeForFileName(fileName: string): string {
   return fileName.toLowerCase().endsWith(".md") ? "text/markdown; charset=utf-8" : "application/zip";
+}
+
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 async function readBody(c: AppContext): Promise<{ fields: Fields; file?: File }> {
@@ -99,7 +108,8 @@ items.get("/", async (c) => {
   const result = await searchItems(
     c.env.DB,
     {
-      type: typeParam === "skill" || typeParam === "prompt" ? typeParam : undefined,
+      type:
+        typeParam === "skill" || typeParam === "prompt" || typeParam === "external" ? typeParam : undefined,
       q: c.req.query("q"),
       tagIds,
       authorEmail: authorEmailParam ? (authorEmailParam === "me" ? user.email : authorEmailParam) : undefined,
@@ -112,7 +122,62 @@ items.get("/", async (c) => {
   return c.json(result);
 });
 
-// ---- 新規投稿(スキル: multipart+zip / プロンプト: JSON) ----
+// ---- 外部紹介の投稿フォーム用: GitHubリポジトリのメタデータを自動取得する ----
+// (GET /:id と衝突しないよう、動的パラメータ付きルートより前に定義しておく)
+items.get("/fetch-metadata", async (c) => {
+  const urlParam = c.req.query("url");
+  if (!urlParam) return c.json({ error: "url is required" }, 400);
+
+  let parsed: URL;
+  try {
+    parsed = new URL(urlParam);
+  } catch {
+    return c.json({ error: "invalid url" }, 400);
+  }
+
+  if (parsed.hostname !== "github.com" && parsed.hostname !== "www.github.com") {
+    return c.json({ error: "only github.com URLs are supported for auto-fetch" }, 400);
+  }
+
+  const parts = parsed.pathname.split("/").filter(Boolean);
+  if (parts.length < 2) {
+    return c.json({ error: "could not parse owner/repo from URL" }, 400);
+  }
+  const [owner, repo] = parts;
+
+  const headers: Record<string, string> = {
+    "User-Agent": "ai-skills-hub-selfauth",
+    Accept: "application/vnd.github+json",
+  };
+  if (c.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${c.env.GITHUB_TOKEN}`;
+
+  const res = await fetch(`https://api.github.com/repos/${owner}/${encodeURIComponent(repo)}`, { headers });
+  if (!res.ok) {
+    if (res.status === 404) return c.json({ error: "repository not found" }, 404);
+    if (res.status === 403) return c.json({ error: "github_rate_limited", message: "GitHub APIのレート制限に達しました" }, 429);
+    return c.json({ error: "failed to fetch repository metadata" }, 502);
+  }
+
+  const data = (await res.json()) as {
+    name?: string;
+    description?: string | null;
+    owner?: { login?: string };
+    license?: { spdx_id?: string } | null;
+    stargazers_count?: number;
+    html_url?: string;
+  };
+
+  return c.json({
+    title: data.name ?? repo,
+    description: data.description ?? "",
+    author: data.owner?.login ?? owner,
+    license: data.license?.spdx_id && data.license.spdx_id !== "NOASSERTION" ? data.license.spdx_id : "",
+    stars: data.stargazers_count ?? 0,
+    url: data.html_url ?? urlParam,
+  });
+});
+
+// ---- 新規投稿(スキル: multipart+zip / プロンプト: JSON / 外部紹介: JSON) ----
 items.post("/", async (c) => {
   const user = c.get("user");
   const { fields, file } = await readBody(c);
@@ -124,12 +189,21 @@ items.post("/", async (c) => {
   const version = str(fields, "version", "1.0.0") || "1.0.0";
   const bodyText = str(fields, "body");
   const tagIds = parseTagIds(fields["tagIds"]);
+  const sourceUrl = str(fields, "sourceUrl");
+  const sourceAuthor = str(fields, "sourceAuthor");
+  const license = str(fields, "license");
 
-  if (type !== "skill" && type !== "prompt") return c.json({ error: "type must be 'skill' or 'prompt'" }, 400);
+  if (type !== "skill" && type !== "prompt" && type !== "external") {
+    return c.json({ error: "type must be 'skill', 'prompt' or 'external'" }, 400);
+  }
   if (!title) return c.json({ error: "title is required" }, 400);
   if (title.length > 200) return c.json({ error: "title is too long (max 200 chars)" }, 400);
   if (type === "prompt" && !bodyText) return c.json({ error: "body (prompt text) is required" }, 400);
   if (type === "skill" && !file) return c.json({ error: "file (.zip or .md) is required" }, 400);
+  if (type === "external") {
+    if (!sourceUrl) return c.json({ error: "sourceUrl is required" }, 400);
+    if (!isValidHttpUrl(sourceUrl)) return c.json({ error: "sourceUrl must be a valid http(s) URL" }, 400);
+  }
 
   const id = crypto.randomUUID();
   const slug = slugify(title);
@@ -155,10 +229,26 @@ items.post("/", async (c) => {
   }
 
   await c.env.DB.prepare(
-    `INSERT INTO items (id, type, slug, title, summary, description, body, r2_key, file_name, file_size, version, author_email)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO items (id, type, slug, title, summary, description, body, r2_key, file_name, file_size, version, author_email, source_url, source_author, license)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
-    .bind(id, type, slug, title, summary, description, bodyText, r2Key, fileName, fileSize, version, user.email)
+    .bind(
+      id,
+      type,
+      slug,
+      title,
+      summary,
+      description,
+      bodyText,
+      r2Key,
+      fileName,
+      fileSize,
+      version,
+      user.email,
+      type === "external" ? sourceUrl : null,
+      type === "external" && sourceAuthor ? sourceAuthor : null,
+      type === "external" && license ? license : null,
+    )
     .run();
 
   await applyTags(c.env.DB, id, tagIds, false);
@@ -196,9 +286,17 @@ items.put("/:id", async (c) => {
   const version = fields["version"] !== undefined ? str(fields, "version") || existing.version : existing.version;
   const bodyText = fields["body"] !== undefined ? str(fields, "body") : existing.body;
   const tagIds = fields["tagIds"] !== undefined ? parseTagIds(fields["tagIds"]) : undefined;
+  const sourceUrl = fields["sourceUrl"] !== undefined ? str(fields, "sourceUrl") : (existing.source_url ?? "");
+  const sourceAuthor =
+    fields["sourceAuthor"] !== undefined ? str(fields, "sourceAuthor") : (existing.source_author ?? "");
+  const license = fields["license"] !== undefined ? str(fields, "license") : (existing.license ?? "");
 
   if (!title) return c.json({ error: "title is required" }, 400);
   if (existing.type === "prompt" && !bodyText) return c.json({ error: "body is required for prompt" }, 400);
+  if (existing.type === "external") {
+    if (!sourceUrl) return c.json({ error: "sourceUrl is required" }, 400);
+    if (!isValidHttpUrl(sourceUrl)) return c.json({ error: "sourceUrl must be a valid http(s) URL" }, 400);
+  }
 
   let r2Key = existing.r2_key;
   let fileName = existing.file_name;
@@ -225,10 +323,24 @@ items.put("/:id", async (c) => {
   }
 
   await c.env.DB.prepare(
-    `UPDATE items SET title=?, summary=?, description=?, body=?, version=?, r2_key=?, file_name=?, file_size=?, updated_at=datetime('now')
+    `UPDATE items SET title=?, summary=?, description=?, body=?, version=?, r2_key=?, file_name=?, file_size=?,
+       source_url=?, source_author=?, license=?, updated_at=datetime('now')
      WHERE id=?`,
   )
-    .bind(title, summary, description, bodyText, version, r2Key, fileName, fileSize, id)
+    .bind(
+      title,
+      summary,
+      description,
+      bodyText,
+      version,
+      r2Key,
+      fileName,
+      fileSize,
+      existing.type === "external" ? sourceUrl : null,
+      existing.type === "external" && sourceAuthor ? sourceAuthor : null,
+      existing.type === "external" && license ? license : null,
+      id,
+    )
     .run();
 
   if (tagIds !== undefined) {
@@ -311,6 +423,42 @@ items.post("/:id/copy", async (c) => {
 
   await c.env.DB.batch([
     c.env.DB.prepare("INSERT INTO usage_events (item_id, user_email, kind) VALUES (?, ?, 'copy')").bind(id, user.email),
+    c.env.DB.prepare("UPDATE items SET usage_count = usage_count + 1 WHERE id = ?").bind(id),
+  ]);
+
+  return c.json({ usageCount: item.usage_count + 1 });
+});
+
+// ---- 外部紹介の紹介先クリックを記録(参照数カウント) ----
+items.post("/:id/visit", async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const item = await c.env.DB.prepare(
+    "SELECT id, type, source_url, usage_count, author_email, version FROM items WHERE id = ?",
+  )
+    .bind(id)
+    .first<{
+      id: string;
+      type: string;
+      source_url: string | null;
+      usage_count: number;
+      author_email: string;
+      version: string;
+    }>();
+  if (!item) return c.json({ error: "not_found" }, 404);
+  if (item.type !== "external" || !item.source_url) {
+    return c.json({ error: "this item has no external link" }, 400);
+  }
+
+  // 紹介先を実際に開いた操作なので、保留中の「更新あり」があれば解消する
+  await markItemWatched(c.env.DB, user.email, item.author_email, id, item.version, { markSeen: true });
+
+  if (!(await shouldCountUsage(c.env.DB, id, user.email, item.author_email, "visit"))) {
+    return c.json({ usageCount: item.usage_count });
+  }
+
+  await c.env.DB.batch([
+    c.env.DB.prepare("INSERT INTO usage_events (item_id, user_email, kind) VALUES (?, ?, 'visit')").bind(id, user.email),
     c.env.DB.prepare("UPDATE items SET usage_count = usage_count + 1 WHERE id = ?").bind(id),
   ]);
 

@@ -1,5 +1,6 @@
 import type {
   ApiTokenSummary,
+  GitHubMetadata,
   Item,
   NewApiToken,
   ProfileUpdatePayload,
@@ -58,7 +59,7 @@ function buildQuery(params: Record<string, unknown>): string {
 }
 
 export interface ListItemsParams {
-  type?: "skill" | "prompt";
+  type?: "skill" | "prompt" | "external";
   q?: string;
   tags?: number[];
   sort?: SortOption;
@@ -140,6 +141,9 @@ export const api = {
       request<{ favorited: boolean; favoriteCount: number }>(`/items/${id}/favorite`, { method: "POST" }),
     unfavorite: (id: string) =>
       request<{ favorited: boolean; favoriteCount: number }>(`/items/${id}/favorite`, { method: "DELETE" }),
+    visit: (id: string) => request<{ usageCount: number }>(`/items/${id}/visit`, { method: "POST" }),
+    fetchMetadata: (url: string) =>
+      request<GitHubMetadata>(`/items/fetch-metadata?${buildQuery({ url })}`),
   },
 
   favorites: {
@@ -147,7 +151,7 @@ export const api = {
   },
 
   ranking: {
-    list: (params: { type?: "skill" | "prompt"; period?: RankingPeriod; limit?: number }) =>
+    list: (params: { type?: "skill" | "prompt" | "external"; period?: RankingPeriod; limit?: number }) =>
       request<{ items: Item[]; period: string; type: string }>(
         `/ranking?${buildQuery(params as Record<string, unknown>)}`,
       ),

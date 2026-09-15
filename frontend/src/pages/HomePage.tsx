@@ -21,7 +21,7 @@ export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const mine = searchParams.get("mine") === "1";
 
-  const [type, setType] = useState<"all" | "skill" | "prompt">("all");
+  const [type, setType] = useState<"all" | "skill" | "prompt" | "external">("all");
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [tags, setTags] = useState<Tag[]>([]);
@@ -162,7 +162,7 @@ export default function HomePage() {
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-card">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex overflow-hidden rounded-lg border border-slate-200">
-            {(["all", "skill", "prompt"] as const).map((v) => (
+            {(["all", "skill", "prompt", "external"] as const).map((v) => (
               <button
                 key={v}
                 type="button"
@@ -171,7 +171,7 @@ export default function HomePage() {
                   type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                {v === "all" ? "すべて" : v === "skill" ? "スキル" : "プロンプト"}
+                {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : "OSS紹介"}
               </button>
             ))}
           </div>

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
-import { BoxIcon, CheckIcon, InfoIcon, SparkleIcon, TagIcon } from "../components/icons";
+import { BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, SparkleIcon, TagIcon } from "../components/icons";
 import { api } from "../lib/api";
 import { parseSkillMd } from "../lib/parseSkillMd";
 import type { Item, Tag } from "../lib/types";
@@ -16,6 +16,20 @@ const TIPS = [
   "ファイルは差し替える場合のみ選択してください(未選択なら現在のファイルを維持します)",
   "概要は一覧カードにそのまま表示されます",
 ];
+
+const EXTERNAL_TIPS = [
+  "紹介先URL・作者・ライセンスを変更すると、お気に入り登録済みのユーザーに更新が通知されます",
+  "著作権・ライセンスは紹介元の作者に帰属します",
+];
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export default function EditItemPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +47,10 @@ export default function EditItemPage() {
   const [file, setFile] = useState<File | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [sourceAuthor, setSourceAuthor] = useState("");
+  const [license, setLicense] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +71,9 @@ export default function EditItemPage() {
         setDescription(it.description);
         setVersion(it.version);
         setBody(it.body);
+        setSourceUrl(it.sourceUrl ?? "");
+        setSourceAuthor(it.sourceAuthor ?? "");
+        setLicense(it.license ?? "");
         setSelectedTagIds(it.tags.map((t) => t.id));
         setTags(tagsRes.tags);
       })
@@ -107,6 +128,10 @@ export default function EditItemPage() {
       setError("プロンプト本文を入力してください");
       return;
     }
+    if (item.type === "external" && !isHttpUrl(sourceUrl.trim())) {
+      setError("有効な紹介先URLを入力してください");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -121,6 +146,16 @@ export default function EditItemPage() {
         fd.set("tagIds", JSON.stringify(selectedTagIds));
         if (file) fd.set("file", file);
         updated = await api.items.update(item.id, fd);
+      } else if (item.type === "external") {
+        updated = await api.items.update(item.id, {
+          title,
+          summary,
+          description,
+          sourceUrl: sourceUrl.trim(),
+          sourceAuthor,
+          license,
+          tagIds: JSON.stringify(selectedTagIds),
+        });
       } else {
         updated = await api.items.update(item.id, {
           title,
@@ -144,14 +179,21 @@ export default function EditItemPage() {
   if (!item) return null;
 
   const isSkill = item.type === "skill";
-  const accentText = isSkill ? "text-skill" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : "bg-prompt";
+  const isExternal = item.type === "external";
+  const accentText = isSkill ? "text-skill" : isExternal ? "text-amber-600" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-amber-500" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-6 flex items-center gap-3">
         <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${accentBg}`}>
-          {isSkill ? <BoxIcon className="h-4.5 w-4.5" /> : <SparkleIcon className="h-4 w-4" />}
+          {isSkill ? (
+            <BoxIcon className="h-4.5 w-4.5" />
+          ) : isExternal ? (
+            <ExternalLinkIcon className="h-4 w-4" />
+          ) : (
+            <SparkleIcon className="h-4 w-4" />
+          )}
         </div>
         <div>
           <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>編集</p>
@@ -162,6 +204,45 @@ export default function EditItemPage() {
       <form onSubmit={(e) => void handleSubmit(e)}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
           <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+            {isExternal && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4">
+                <label className={labelClass}>紹介先URL(GitHub等) *</label>
+                <input
+                  type="url"
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  required
+                  placeholder="https://github.com/owner/repo"
+                  className={inputClass}
+                />
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>元の作者/組織</label>
+                    <input
+                      type="text"
+                      value={sourceAuthor}
+                      onChange={(e) => setSourceAuthor(e.target.value)}
+                      placeholder="例: anthropics"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>ライセンス</label>
+                    <input
+                      type="text"
+                      value={license}
+                      onChange={(e) => setLicense(e.target.value)}
+                      placeholder="例: MIT"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                  これは第三者が公開しているOSS等の紹介投稿です。著作権・ライセンスは紹介元の作者に帰属します。
+                </p>
+              </div>
+            )}
+
             <div>
               <label className={labelClass}>タイトル *</label>
               <input
@@ -197,15 +278,17 @@ export default function EditItemPage() {
               />
             </div>
 
-            <div>
-              <label className={labelClass}>バージョン</label>
-              <input
-                type="text"
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
-                className={`w-40 font-mono ${inputClass}`}
-              />
-            </div>
+            {!isExternal && (
+              <div>
+                <label className={labelClass}>バージョン</label>
+                <input
+                  type="text"
+                  value={version}
+                  onChange={(e) => setVersion(e.target.value)}
+                  className={`w-40 font-mono ${inputClass}`}
+                />
+              </div>
+            )}
 
             {isSkill ? (
               <>
@@ -234,7 +317,7 @@ export default function EditItemPage() {
                   <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
                 </div>
               </>
-            ) : (
+            ) : isExternal ? null : (
               <div>
                 <label className={labelClass}>プロンプト本文 *</label>
                 <textarea
@@ -267,7 +350,7 @@ export default function EditItemPage() {
                 編集のヒント
               </p>
               <ul className="flex flex-col gap-2.5">
-                {TIPS.map((tip) => (
+                {(isExternal ? EXTERNAL_TIPS : TIPS).map((tip) => (
                   <li key={tip} className="flex gap-2 text-xs leading-relaxed text-slate-600">
                     <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
                     {tip}

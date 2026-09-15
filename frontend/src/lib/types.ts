@@ -1,4 +1,4 @@
-export type ItemType = "skill" | "prompt";
+export type ItemType = "skill" | "prompt" | "external";
 export type SortOption = "newest" | "updated" | "popular" | "favorites" | "name";
 export type RankingPeriod = "all" | "7d" | "30d";
 
@@ -39,6 +39,18 @@ export interface Item {
   isOwner: boolean;
   hasUpdate: boolean;
   periodCount?: number;
+  sourceUrl: string | null;
+  sourceAuthor: string | null;
+  license: string | null;
+}
+
+export interface GitHubMetadata {
+  title: string;
+  description: string;
+  author: string;
+  license: string;
+  stars: number;
+  url: string;
 }
 
 export interface VersionNotification {

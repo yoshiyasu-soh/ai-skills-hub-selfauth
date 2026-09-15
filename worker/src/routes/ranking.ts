@@ -9,7 +9,8 @@ const ranking = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
 ranking.get("/", async (c) => {
   const user = c.get("user");
   const typeParam = c.req.query("type");
-  const typeFilter = typeParam === "skill" || typeParam === "prompt" ? typeParam : undefined;
+  const typeFilter =
+    typeParam === "skill" || typeParam === "prompt" || typeParam === "external" ? typeParam : undefined;
   const period = (c.req.query("period") as RankingPeriod) || "all";
   const limit = Math.min(50, Math.max(1, Number(c.req.query("limit") ?? "20") || 20));
 
