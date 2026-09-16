@@ -9,3 +9,10 @@ ENVIRONMENT=development
 # 任意: 会員登録を特定ドメインのメールアドレスのみに制限したい場合。
 # REGISTRATION_MODE=domain_restricted
 # ALLOWED_EMAIL_DOMAINS=example.co.jp
+
+# 任意: OSS紹介投稿のGitHub URL自動取得(GET /api/items/fetch-metadata)で使うGitHub Personal
+# Access Token。未設定でも動作するが、GitHub APIの未認証レート制限(60回/時/IP)に達しやすい。
+# 必要なスコープは public リポジトリの読み取りのみ(fine-grained PATなら
+# Public Repositories only・Contents: Read-onlyで作成すれば十分)。
+# https://github.com/settings/tokens から発行する。
+# GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

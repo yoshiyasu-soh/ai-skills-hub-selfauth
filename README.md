@@ -22,8 +22,12 @@ Cloudflare Workers + D1 + R2 + React(Vite) で構築し、認証はWorker自身�
 - ユーザープロフィール閲覧・編集: 表示名・姓名・会社名・役職・部署・従業員の種類を
   投稿者名などから誰でも閲覧可能。本人は自分のプロフィールを自由に編集可能
 - MCP(Model Context Protocol)サーバー: `/api/mcp` から Claude Code / Claude Desktop 等のMCP
-  クライアントでスキル・プロンプトを検索・参照可能(現状は参照系のみ)。認証は個人アクセストークン
-  (`/settings/tokens` で発行)を使用(詳細は [`docs/setup-mcp.md`](docs/setup-mcp.md))
+  クライアントでスキル・プロンプト・OSS紹介の検索・参照に加え、新規投稿・編集・お気に入り登録も
+  可能。認証は個人アクセストークン(`/settings/tokens` で発行)を使用
+  (詳細は [`docs/setup-mcp.md`](docs/setup-mcp.md))
+- OSS紹介投稿: 自作物ではなく既に公開されているOSS等を紹介する投稿種別。GitHubのURLを入力すると
+  タイトル・概要・作者・ライセンスを自動取得可能(GitHub APIのレート制限緩和には
+  `GITHUB_TOKEN` の設定を推奨。[`docs/setup-cloudflare.md`](docs/setup-cloudflare.md) 参照)
 - 使い方ガイド(`/guide`): サイトの機能・基本操作・よくある質問をまとめたドキュメントページ。
   フッターから常時アクセス可能
 
@@ -77,4 +81,4 @@ npm run dev:frontend
 - GenU など他ツールへのワンクリック連携(現状はクリップボードコピーのみ対応)
 - コメント・レビュー機能
 - 投稿の承認フロー / モデレーション
-- MCP経由での投稿・編集・お気に入り登録等の書き込み系操作、アクセストークンへの有効期限・スコープ付与
+- MCP経由での削除(delete_item)対応、アクセストークンへの有効期限・スコープ付与

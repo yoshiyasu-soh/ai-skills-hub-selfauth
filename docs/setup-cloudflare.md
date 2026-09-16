@@ -11,8 +11,9 @@
 [1] リポジトリを clone して npm install           ← ここから初めてローカル作業
 [2] D1 / R2 の作成                                ← ローカル(wrangler CLI)
 [3] Resend の設定(メール送信)                     ← docs/setup-selfauth.md 参照
-[4] wrangler.jsonc に値を埋める
-[5] デプロイ
+[4] GitHubトークンの設定(任意)
+[5] wrangler.jsonc に値を埋める
+[6] デプロイ
 ```
 
 ## 前提
@@ -69,7 +70,31 @@ npx wrangler r2 bucket create ai-skills-hub-selfauth-assets
 会員登録の確認メール・パスワードリセットメールの送信、および登録受付範囲(誰でも登録可 /
 特定ドメインのみ)の設定は [`docs/setup-selfauth.md`](setup-selfauth.md) を参照してください。
 
-## 5. wrangler.jsonc の最終確認
+## 5. GitHubトークンの設定(任意: OSS紹介投稿の自動取得機能)
+
+「OSS紹介」種別の投稿で、GitHubのURLを入力して「自動取得」を押すとタイトル・概要・作者・
+ライセンスを自動入力できます。この機能はGitHub APIを呼び出しますが、未認証の場合は
+60回/時/IPというレート制限にすぐ達してしまいます。以下の手順でトークンを設定すると、
+このレート制限が大幅に緩和されます(5,000回/時)。
+
+1. https://github.com/settings/tokens を開き、Personal Access Token を発行する
+   (fine-grained PATの場合、Repository access は「Public Repositories (read-only)」、
+   Permissions は Contents: Read-only のみで十分です。private リポジトリへのアクセスは不要です)。
+2. 発行したトークンをCloudflareのシークレットとして設定する(値はプロンプトで入力):
+
+   ```bash
+   npx wrangler secret put GITHUB_TOKEN
+   ```
+
+3. 既にデプロイ済みの場合、シークレットの反映のため再デプロイは不要です(即座に反映されます)。
+
+未設定のままでも「自動取得」機能自体は動作しますが、利用頻度が高い場合や短時間に
+複数回叩かれる場合はレート制限に達しやすくなります。
+
+ローカル開発でこの機能を試す場合は、`.dev.vars` に `GITHUB_TOKEN=<トークン>` を追記してください
+(`.dev.vars.example` にひな形があります)。
+
+## 6. wrangler.jsonc の最終確認
 
 以下のプレースホルダーを実際の値に置き換えます:
 
@@ -80,7 +105,7 @@ npx wrangler r2 bucket create ai-skills-hub-selfauth-assets
 `RESEND_FROM_EMAIL` / `REGISTRATION_MODE` / `ALLOWED_EMAIL_DOMAINS` は
 [`docs/setup-selfauth.md`](setup-selfauth.md) の内容に沿って設定してください。
 
-## 6. デプロイ
+## 7. デプロイ
 
 ```bash
 npm run deploy
@@ -89,13 +114,13 @@ npm run deploy
 これはフロントエンドのビルド (`vite build` → `frontend/dist`) を行った上で
 `wrangler deploy` を実行し、Worker・静的アセット・D1/R2 バインディングを一括でデプロイします。
 
-## 7. カスタムドメインの割り当て(任意)
+## 8. カスタムドメインの割り当て(任意)
 
 「Workers & Pages」→ 対象 Worker →「Settings」→「Domains & Routes」から、独自ドメインを
 割り当てられます。割り当てた場合は `wrangler.jsonc` の `APP_BASE_URL` をそのドメインに
 合わせて設定してください([`docs/setup-selfauth.md`](setup-selfauth.md) 参照)。
 
-## 8. 動作確認
+## 9. 動作確認
 
 1. 対象ドメイン(またはWorkerの `*.workers.dev` ドメイン)にアクセスし、会員登録画面が
    表示されることを確認する。
