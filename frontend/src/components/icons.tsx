@@ -108,6 +108,14 @@ export function ChevronRightIcon(props: IconProps) {
   );
 }
 
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="m5 9 7 7 7-7" />
+    </svg>
+  );
+}
+
 export function InfoIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
