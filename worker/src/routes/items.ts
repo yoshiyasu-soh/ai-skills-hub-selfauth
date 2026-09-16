@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
-import { fetchItemRow, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
+import { applyTags, fetchItemRow, isValidHttpUrl, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
 import { slugify } from "../lib/slug";
 import { markItemSeen, markItemWatched } from "../lib/watches";
 import type { AuthUser, Env, SortOption } from "../types";
@@ -47,15 +47,6 @@ function contentTypeForFileName(fileName: string): string {
   return fileName.toLowerCase().endsWith(".md") ? "text/markdown; charset=utf-8" : "application/zip";
 }
 
-function isValidHttpUrl(value: string): boolean {
-  try {
-    const u = new URL(value);
-    return u.protocol === "http:" || u.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 async function readBody(c: AppContext): Promise<{ fields: Fields; file?: File }> {
   const contentType = c.req.header("content-type") ?? "";
   if (contentType.includes("multipart/form-data")) {
@@ -71,26 +62,6 @@ function str(fields: Fields, key: string, fallback = ""): string {
   const v = fields[key];
   if (v === undefined || v === null) return fallback;
   return String(v).trim();
-}
-
-async function applyTags(db: D1Database, itemId: string, tagIds: number[], replace: boolean) {
-  if (replace) {
-    await db.prepare("DELETE FROM item_tags WHERE item_id = ?").bind(itemId).run();
-  }
-  if (tagIds.length === 0) return;
-
-  const placeholders = tagIds.map(() => "?").join(",");
-  const validTags = await db
-    .prepare(`SELECT id FROM tags WHERE id IN (${placeholders})`)
-    .bind(...tagIds)
-    .all<{ id: number }>();
-  const validIds = (validTags.results ?? []).map((t) => t.id);
-  if (validIds.length === 0) return;
-
-  const stmts = validIds.map((tagId) =>
-    db.prepare("INSERT OR IGNORE INTO item_tags (item_id, tag_id) VALUES (?, ?)").bind(itemId, tagId),
-  );
-  await db.batch(stmts);
 }
 
 // ---- 一覧: type / タグ(AND) / 文字列検索 / ソート / ページング ----

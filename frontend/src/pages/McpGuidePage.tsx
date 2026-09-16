@@ -81,6 +81,14 @@ const USAGE_EXAMPLES = [
     prompt: "〇〇スキルをインストールして",
     note: "後述の「スキルをインストールしてもらう」参照。検索→中身の取得→手元への保存まで自動で行われます。",
   },
+  {
+    prompt: "さっき話した内容をプロンプトとしてAI Skills Hubに投稿して",
+    note: "create_item が呼ばれ、新規投稿(スキル/プロンプト/OSS紹介)が作成されます。",
+  },
+  {
+    prompt: "さっきのスキル、お気に入りに登録しておいて",
+    note: "set_item_favorite が呼ばれ、お気に入りに登録されます(一覧画面のお気に入り数にも反映されます)。",
+  },
 ];
 
 type ClientKind = "code" | "desktop";
@@ -450,9 +458,11 @@ export default function McpGuidePage() {
       <section className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <p className="mb-2 text-sm font-semibold text-slate-700">MCP経由ではできないこと</p>
         <p className="text-sm leading-relaxed text-slate-600">
-          現時点では検索・閲覧のみに対応しており、MCP経由での新規投稿・編集・お気に入り登録はできません。
-          これらの操作はこれまで通りWebサイト上で行ってください。また、MCP経由でスキル・プロンプトを見ても、
-          一覧画面の利用数(users)には反映されません。
+          検索・閲覧に加え、新規投稿・編集・お気に入り登録もMCP経由で行えます。ただし、ZIP形式のスキル資産の
+          アップロード・差し替えはMCPのテキストベースの入力では扱えないため、Webサイト上で行ってください
+          (SKILL.md単体形式のスキルであれば、MCP経由での投稿・編集も可能です)。また、MCP経由でスキル・
+          プロンプトを見ても、一覧画面の利用数(users)には反映されません(ダウンロード・コピー・紹介元を見る、
+          という「実際に中身を利用した」操作をWebサイト上で行った際にのみ計測されます)。
         </p>
       </section>
 

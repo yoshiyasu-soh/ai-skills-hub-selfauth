@@ -189,6 +189,65 @@ export async function searchItems(
   return { items, total, page, pageSize };
 }
 
+export function isValidHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * アイテムのタグ付けを行う。REST の投稿/更新と MCP の create_item/update_item ツールの両方から利用する。
+ * replace=true の場合、既存のタグ付けを一旦すべて削除してから付け直す(更新時の全置換)。
+ */
+export async function applyTags(db: D1Database, itemId: string, tagIds: number[], replace: boolean) {
+  if (replace) {
+    await db.prepare("DELETE FROM item_tags WHERE item_id = ?").bind(itemId).run();
+  }
+  if (tagIds.length === 0) return;
+
+  const placeholders = tagIds.map(() => "?").join(",");
+  const validTags = await db
+    .prepare(`SELECT id FROM tags WHERE id IN (${placeholders})`)
+    .bind(...tagIds)
+    .all<{ id: number }>();
+  const validIds = (validTags.results ?? []).map((t) => t.id);
+  if (validIds.length === 0) return;
+
+  const stmts = validIds.map((tagId) =>
+    db.prepare("INSERT OR IGNORE INTO item_tags (item_id, tag_id) VALUES (?, ?)").bind(itemId, tagId),
+  );
+  await db.batch(stmts);
+}
+
+/**
+ * タグ名の配列から対応するタグIDを解決する。存在しない名前は(投稿画面のタグ追加と同様に)
+ * その場で新規作成する。空白のみの名前・30文字超の名前は無視する。
+ */
+export async function resolveOrCreateTagIds(db: D1Database, names: string[], createdBy: string): Promise<number[]> {
+  const ids: number[] = [];
+  for (const raw of names) {
+    const label = raw.trim();
+    if (!label || label.length > 30) continue;
+    const name = label.toLowerCase();
+
+    const existing = await db.prepare("SELECT id FROM tags WHERE name = ?").bind(name).first<{ id: number }>();
+    if (existing) {
+      ids.push(existing.id);
+      continue;
+    }
+
+    const result = await db
+      .prepare("INSERT INTO tags (name, label, is_default, created_by) VALUES (?, ?, 0, ?)")
+      .bind(name, label, createdBy)
+      .run();
+    ids.push(Number(result.meta.last_row_id));
+  }
+  return Array.from(new Set(ids));
+}
+
 export async function fetchItemRow(db: D1Database, id: string): Promise<RowWithAuthor | null> {
   return db
     .prepare(

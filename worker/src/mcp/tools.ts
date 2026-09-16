@@ -1,13 +1,24 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
-import { fetchItemRow, searchItems, toItemDTOs } from "../lib/items";
-import type { Env } from "../types";
+import {
+  applyTags,
+  fetchItemRow,
+  isValidHttpUrl,
+  resolveOrCreateTagIds,
+  searchItems,
+  toItemDTOs,
+} from "../lib/items";
+import { slugify } from "../lib/slug";
+import { markItemWatched } from "../lib/watches";
+import type { Env, ItemRow } from "../types";
 
 const SORT_VALUES = ["newest", "updated", "popular", "favorites", "name"] as const;
 
 /**
- * MCP経由で公開する参照系ツール一式を登録する。
- * 書き込み系(投稿・編集・お気に入り・DL/コピーのカウント等)は現時点では未対応。
+ * MCP経由で公開するツール一式を登録する。参照系に加え、投稿・編集・お気に入り登録も対応する。
+ * ただしスキルのZIP資産アップロードはMCPのテキストベースの入力では扱えないため、
+ * type=skill の新規投稿・資産差し替えは SKILL.md 単体形式(テキスト)のみサポートする
+ * (ZIP形式で投稿済みのスキルの資産差し替えはWebサイトから行う必要がある)。
  * 認証は呼び出し元のHonoルート(/api配下は authMiddleware で保護済み)にすべて委譲しており、
  * ここでは検証済みの viewerEmail を受け取って利用するだけで、MCP自体は追加のトークン検証を行わない。
  */
@@ -179,6 +190,266 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
       }
       const text = await obj.text();
       return { content: [{ type: "text", text }] };
+    },
+  );
+
+  server.registerTool(
+    "create_item",
+    {
+      title: "スキル・プロンプト・OSS紹介を新規投稿",
+      description:
+        "AI Skills Hub に新しいスキル/プロンプト/外部OSS紹介を投稿する。" +
+        "type=skillの場合、資産はSKILL.md単体形式(テキスト)のみ対応(ZIP形式はWebサイトから投稿する必要がある)。",
+      inputSchema: z.object({
+        type: z.enum(["skill", "prompt", "external"]).describe("投稿する種別"),
+        title: z.string().min(1).max(200).describe("タイトル(必須)"),
+        summary: z.string().max(200).optional().describe("概要(一覧カードに表示。100字程度を推奨)"),
+        description: z.string().optional().describe("詳細説明(Markdown対応)"),
+        version: z.string().optional().describe("バージョン(既定: 1.0.0。type=externalでは無視される)"),
+        body: z.string().optional().describe("type=promptの場合は本文(必須)。type=skillの場合は使い方メモ(任意)"),
+        skillMarkdown: z.string().optional().describe("type=skillの場合のSKILL.md本文(必須)"),
+        sourceUrl: z.string().optional().describe("type=externalの場合、紹介先のURL(必須)"),
+        sourceAuthor: z.string().optional().describe("type=externalの場合、元の作者/組織(任意)"),
+        license: z.string().optional().describe("type=externalの場合、ライセンス(任意)"),
+        tags: z
+          .array(z.string())
+          .optional()
+          .describe("タグ名の配列。既存のタグ名に一致すればそれを使い、無ければ新規作成する"),
+      }),
+    },
+    async ({ type, title, summary, description, version, body, skillMarkdown, sourceUrl, sourceAuthor, license, tags }) => {
+      const trimmedTitle = title.trim();
+      if (!trimmedTitle) return { content: [{ type: "text", text: "タイトルを入力してください" }], isError: true };
+
+      const bodyText = (body ?? "").trim();
+      if (type === "prompt" && !bodyText) {
+        return { content: [{ type: "text", text: "プロンプト本文(body)を入力してください" }], isError: true };
+      }
+      const skillMd = (skillMarkdown ?? "").trim();
+      if (type === "skill" && !skillMd) {
+        return {
+          content: [{ type: "text", text: "SKILL.md本文(skillMarkdown)を入力してください" }],
+          isError: true,
+        };
+      }
+      const trimmedSourceUrl = (sourceUrl ?? "").trim();
+      if (type === "external") {
+        if (!trimmedSourceUrl) {
+          return { content: [{ type: "text", text: "紹介先URL(sourceUrl)を入力してください" }], isError: true };
+        }
+        if (!isValidHttpUrl(trimmedSourceUrl)) {
+          return { content: [{ type: "text", text: "sourceUrlは有効なhttp(s) URLである必要があります" }], isError: true };
+        }
+      }
+
+      const id = crypto.randomUUID();
+      const slug = slugify(trimmedTitle);
+
+      let r2Key: string | null = null;
+      let fileName: string | null = null;
+      let fileSize: number | null = null;
+      if (type === "skill") {
+        r2Key = `skills/${id}/SKILL.md`;
+        fileName = "SKILL.md";
+        fileSize = new TextEncoder().encode(skillMd).length;
+        await env.ASSETS_BUCKET.put(r2Key, skillMd, {
+          httpMetadata: { contentType: "text/markdown; charset=utf-8" },
+        });
+      }
+
+      const tagIds = tags && tags.length > 0 ? await resolveOrCreateTagIds(env.DB, tags, viewerEmail) : [];
+
+      await env.DB.prepare(
+        `INSERT INTO items (id, type, slug, title, summary, description, body, r2_key, file_name, file_size, version, author_email, source_url, source_author, license)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+        .bind(
+          id,
+          type,
+          slug,
+          trimmedTitle,
+          summary ?? "",
+          description ?? "",
+          bodyText,
+          r2Key,
+          fileName,
+          fileSize,
+          version?.trim() || "1.0.0",
+          viewerEmail,
+          type === "external" ? trimmedSourceUrl : null,
+          type === "external" && sourceAuthor ? sourceAuthor : null,
+          type === "external" && license ? license : null,
+        )
+        .run();
+
+      await applyTags(env.DB, id, tagIds, false);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ id, type, title: trimmedTitle, url: `${baseUrl}/items/${id}` }, null, 2),
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    "update_item",
+    {
+      title: "投稿済みのスキル・プロンプト・OSS紹介を編集",
+      description:
+        "自分が投稿したアイテムを編集する。指定したフィールドのみ更新し、省略したフィールドは現在の値を維持する。" +
+        "type=skillでZIP形式の資産(拡張子.md以外)を投稿済みの場合、skillMarkdownによる資産差し替えはできない(Webサイトから行う必要がある)。",
+      inputSchema: z.object({
+        id: z.string().describe("編集するアイテムID"),
+        title: z.string().min(1).max(200).optional(),
+        summary: z.string().max(200).optional(),
+        description: z.string().optional(),
+        version: z.string().optional().describe("バージョンを変更すると、既存の購読者に更新が通知される"),
+        body: z.string().optional().describe("type=promptなら本文。type=skillなら使い方メモ"),
+        skillMarkdown: z.string().optional().describe("type=skillの場合、SKILL.md本文を差し替える(SKILL.md単体投稿のみ)"),
+        sourceUrl: z.string().optional().describe("type=externalの場合の紹介先URL"),
+        sourceAuthor: z.string().optional(),
+        license: z.string().optional(),
+        tags: z.array(z.string()).optional().describe("指定した場合、既存のタグ付けをこの配列で全置換する"),
+      }),
+    },
+    async ({ id, title, summary, description, version, body, skillMarkdown, sourceUrl, sourceAuthor, license, tags }) => {
+      const existing = await fetchItemRow(env.DB, id);
+      if (!existing) {
+        return { content: [{ type: "text", text: `アイテムが見つかりません(id=${id})` }], isError: true };
+      }
+      if (existing.author_email !== viewerEmail) {
+        return { content: [{ type: "text", text: "この投稿を編集する権限がありません" }], isError: true };
+      }
+
+      const newTitle = title !== undefined ? title.trim() : existing.title;
+      if (!newTitle) return { content: [{ type: "text", text: "タイトルを入力してください" }], isError: true };
+
+      const newSummary = summary ?? existing.summary;
+      const newDescription = description ?? existing.description;
+      const newVersion = version?.trim() || existing.version;
+      const newBody = body ?? existing.body;
+      const newSourceUrl = (sourceUrl ?? existing.source_url ?? "").trim();
+      const newSourceAuthor = sourceAuthor ?? existing.source_author ?? "";
+      const newLicense = license ?? existing.license ?? "";
+
+      if (existing.type === "prompt" && !newBody.trim()) {
+        return { content: [{ type: "text", text: "プロンプト本文(body)は空にできません" }], isError: true };
+      }
+      if (existing.type === "external") {
+        if (!newSourceUrl) {
+          return { content: [{ type: "text", text: "紹介先URL(sourceUrl)は空にできません" }], isError: true };
+        }
+        if (!isValidHttpUrl(newSourceUrl)) {
+          return { content: [{ type: "text", text: "sourceUrlは有効なhttp(s) URLである必要があります" }], isError: true };
+        }
+      }
+
+      let r2Key = existing.r2_key;
+      let fileName = existing.file_name;
+      let fileSize = existing.file_size;
+      if (skillMarkdown !== undefined) {
+        if (existing.type !== "skill") {
+          return { content: [{ type: "text", text: "skillMarkdownはtype=skillの投稿にのみ指定できます" }], isError: true };
+        }
+        if (existing.file_name && !existing.file_name.toLowerCase().endsWith(".md")) {
+          return {
+            content: [
+              { type: "text", text: "ZIP形式で投稿済みのスキル資産はMCP経由では差し替えできません。Webサイトから編集してください。" },
+            ],
+            isError: true,
+          };
+        }
+        r2Key = existing.r2_key ?? `skills/${id}/SKILL.md`;
+        fileName = "SKILL.md";
+        fileSize = new TextEncoder().encode(skillMarkdown).length;
+        await env.ASSETS_BUCKET.put(r2Key, skillMarkdown, {
+          httpMetadata: { contentType: "text/markdown; charset=utf-8" },
+        });
+      }
+
+      await env.DB.prepare(
+        `UPDATE items SET title=?, summary=?, description=?, body=?, version=?, r2_key=?, file_name=?, file_size=?,
+           source_url=?, source_author=?, license=?, updated_at=datetime('now')
+         WHERE id=?`,
+      )
+        .bind(
+          newTitle,
+          newSummary,
+          newDescription,
+          newBody,
+          newVersion,
+          r2Key,
+          fileName,
+          fileSize,
+          existing.type === "external" ? newSourceUrl : null,
+          existing.type === "external" && newSourceAuthor ? newSourceAuthor : null,
+          existing.type === "external" && newLicense ? newLicense : null,
+          id,
+        )
+        .run();
+
+      if (tags !== undefined) {
+        const tagIds = tags.length > 0 ? await resolveOrCreateTagIds(env.DB, tags, viewerEmail) : [];
+        await applyTags(env.DB, id, tagIds, true);
+      }
+
+      return {
+        content: [
+          { type: "text", text: JSON.stringify({ id, title: newTitle, url: `${baseUrl}/items/${id}` }, null, 2) },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    "set_item_favorite",
+    {
+      title: "お気に入りの登録/解除",
+      description: "指定したアイテムをお気に入りに登録、または解除する。",
+      inputSchema: z.object({
+        id: z.string().describe("アイテムID"),
+        favorited: z.boolean().describe("true: お気に入りに登録する / false: 解除する"),
+      }),
+    },
+    async ({ id, favorited }) => {
+      const item = await env.DB.prepare("SELECT id, author_email, version FROM items WHERE id = ?")
+        .bind(id)
+        .first<Pick<ItemRow, "id" | "author_email" | "version">>();
+      if (!item) {
+        return { content: [{ type: "text", text: `アイテムが見つかりません(id=${id})` }], isError: true };
+      }
+
+      if (favorited) {
+        const result = await env.DB.prepare("INSERT OR IGNORE INTO favorites (user_email, item_id) VALUES (?, ?)")
+          .bind(viewerEmail, id)
+          .run();
+        if (result.meta.changes > 0) {
+          await env.DB.prepare("UPDATE items SET favorite_count = favorite_count + 1 WHERE id = ?").bind(id).run();
+        }
+        await markItemWatched(env.DB, viewerEmail, item.author_email, id, item.version, { markSeen: false });
+      } else {
+        const result = await env.DB.prepare("DELETE FROM favorites WHERE user_email = ? AND item_id = ?")
+          .bind(viewerEmail, id)
+          .run();
+        if (result.meta.changes > 0) {
+          await env.DB.prepare("UPDATE items SET favorite_count = MAX(favorite_count - 1, 0) WHERE id = ?")
+            .bind(id)
+            .run();
+        }
+      }
+
+      const row = await env.DB.prepare("SELECT favorite_count FROM items WHERE id = ?")
+        .bind(id)
+        .first<{ favorite_count: number }>();
+      return {
+        content: [
+          { type: "text", text: JSON.stringify({ favorited, favoriteCount: row?.favorite_count ?? 0 }, null, 2) },
+        ],
+      };
     },
   );
 
