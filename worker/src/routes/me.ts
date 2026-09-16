@@ -11,9 +11,14 @@ interface ApiTokenRow {
   label: string | null;
   created_at: string;
   last_used_at: string | null;
+  expires_at: string | null;
 }
 
-const createTokenSchema = z.object({ label: z.string().trim().max(100).optional() });
+// 有効期限は「無期限」または 1〜3650日(約10年)の範囲で日数指定を受け付ける。
+const createTokenSchema = z.object({
+  label: z.string().trim().max(100).optional(),
+  expiresInDays: z.number().int().min(1).max(3650).optional(),
+});
 
 const updateProfileSchema = z.object({
   displayName: z.string().trim().min(1, "表示名を入力してください").max(100),
@@ -77,7 +82,7 @@ me.patch("/", async (c) => {
 me.get("/tokens", async (c) => {
   const email = c.get("user").email;
   const { results } = await c.env.DB.prepare(
-    "SELECT id, label, created_at, last_used_at FROM api_tokens WHERE user_email = ? ORDER BY created_at DESC",
+    "SELECT id, label, created_at, last_used_at, expires_at FROM api_tokens WHERE user_email = ? ORDER BY created_at DESC",
   )
     .bind(email)
     .all<ApiTokenRow>();
@@ -87,6 +92,7 @@ me.get("/tokens", async (c) => {
     label: r.label,
     createdAt: r.created_at,
     lastUsedAt: r.last_used_at,
+    expiresAt: r.expires_at,
   }));
   return c.json({ tokens });
 });
@@ -100,9 +106,19 @@ me.post("/tokens", async (c) => {
   const token = generateToken();
   const tokenHash = await hashToken(token);
   const label = parsed.data.label && parsed.data.label.length > 0 ? parsed.data.label : null;
+  const expiresInDays = parsed.data.expiresInDays;
 
-  const result = await c.env.DB.prepare("INSERT INTO api_tokens (token_hash, user_email, label) VALUES (?, ?, ?)")
-    .bind(tokenHash, email, label)
+  const expiresAtRow = expiresInDays
+    ? await c.env.DB.prepare("SELECT datetime('now', ?) as expires_at").bind(`+${expiresInDays} days`).first<{
+        expires_at: string;
+      }>()
+    : null;
+  const expiresAt = expiresAtRow?.expires_at ?? null;
+
+  const result = await c.env.DB.prepare(
+    "INSERT INTO api_tokens (token_hash, user_email, label, expires_at) VALUES (?, ?, ?, ?)",
+  )
+    .bind(tokenHash, email, label, expiresAt)
     .run();
 
   return c.json({
@@ -111,6 +127,7 @@ me.post("/tokens", async (c) => {
     label,
     createdAt: new Date().toISOString(),
     lastUsedAt: null,
+    expiresAt,
   });
 });
 

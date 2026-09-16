@@ -13,7 +13,7 @@ async function authenticateApiToken(c: AppContext, rawToken: string): Promise<bo
     `SELECT a.user_email as email, u.display_name as display_name
      FROM api_tokens a
      JOIN users u ON u.email = a.user_email
-     WHERE a.token_hash = ?`,
+     WHERE a.token_hash = ? AND (a.expires_at IS NULL OR a.expires_at > datetime('now'))`,
   )
     .bind(tokenHash)
     .first<{ email: string; display_name: string }>();

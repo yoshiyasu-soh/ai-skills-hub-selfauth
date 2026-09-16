@@ -82,8 +82,8 @@ export const api = {
 
   tokens: {
     list: () => request<{ tokens: ApiTokenSummary[] }>("/me/tokens"),
-    create: (label?: string) =>
-      request<NewApiToken>("/me/tokens", { method: "POST", body: JSON.stringify({ label }) }),
+    create: (label?: string, expiresInDays?: number) =>
+      request<NewApiToken>("/me/tokens", { method: "POST", body: JSON.stringify({ label, expiresInDays }) }),
     remove: (id: number) => request<{ ok: true }>(`/me/tokens/${id}`, { method: "DELETE" }),
   },
 

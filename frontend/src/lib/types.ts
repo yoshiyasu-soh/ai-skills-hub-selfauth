@@ -88,6 +88,7 @@ export interface ApiTokenSummary {
   label: string | null;
   createdAt: string;
   lastUsedAt: string | null;
+  expiresAt: string | null;
 }
 
 export interface NewApiToken extends ApiTokenSummary {
