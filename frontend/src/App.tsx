@@ -78,6 +78,7 @@ export default function App() {
           <Route path="/guide" element={<DocsPage />} />
           <Route path="/guide/skills" element={<GuidePage topic="skill" />} />
           <Route path="/guide/prompts" element={<GuidePage topic="prompt" />} />
+          <Route path="/guide/external" element={<GuidePage topic="external" />} />
           <Route path="/guide/mcp" element={<McpGuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

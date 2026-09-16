@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import Pagination from "../components/Pagination";
 import TagFilterBar from "../components/TagFilterBar";
-import { BoxIcon, ChevronRightIcon, SearchIcon, SparkleIcon } from "../components/icons";
+import { BoxIcon, ChevronRightIcon, ExternalLinkIcon, SearchIcon, SparkleIcon } from "../components/icons";
 import { api } from "../lib/api";
 import type { Item, SortOption, Tag } from "../lib/types";
 
@@ -129,7 +129,7 @@ export default function HomePage() {
             実務で使えるAIスキルやプロンプトを共有・発見できます。あなたの知識・ノウハウも、ぜひシェアしてください。
           </p>
         </div>
-        <div className="grid shrink-0 grid-cols-2 gap-3 sm:w-96">
+        <div className="grid shrink-0 grid-cols-3 gap-3 sm:w-[36rem]">
           <Link
             to="/guide/skills"
             className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-card transition hover:border-skill/40 hover:shadow-card-hover"
@@ -155,6 +155,19 @@ export default function HomePage() {
               <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-prompt" />
             </p>
             <p className="mt-0.5 text-xs leading-relaxed text-slate-400">Claudeにそのままコピーして使える指示文。</p>
+          </Link>
+          <Link
+            to="/guide/external"
+            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-card transition hover:border-amber-400/40 hover:shadow-card-hover"
+          >
+            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+              <ExternalLinkIcon className="h-4 w-4" />
+            </div>
+            <p className="flex items-center gap-1 text-sm font-semibold text-slate-800">
+              OSS紹介とは？
+              <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-amber-600" />
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">既に公開されているOSSをリンクで紹介する投稿。</p>
           </Link>
         </div>
       </div>

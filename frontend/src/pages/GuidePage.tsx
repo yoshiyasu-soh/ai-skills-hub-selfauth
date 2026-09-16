@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeftIcon, BoxIcon, CheckIcon, CodeIcon, CopyIcon, ExternalLinkIcon, SparkleIcon } from "../components/icons";
 
 interface GuidePageProps {
-  topic: "skill" | "prompt";
+  topic: "skill" | "prompt" | "external";
 }
 
 const SKILL_POINTS = [
@@ -35,10 +35,63 @@ const PROMPT_POINTS = [
   },
 ];
 
+const EXTERNAL_POINTS = [
+  {
+    title: "自作ではなく「紹介」のための投稿種別",
+    body: "GitHub等で既に公開されているOSSのスキル・プロンプト・ツールを、AI Skills Hub上に「こんな便利なものがある」と紹介するための投稿です。ファイルそのものはホストせず、紹介先へのリンクのみを保持します。著作権・ライセンスは紹介元の作者に帰属します。",
+  },
+  {
+    title: "GitHubのURLを入力するだけで自動入力できる",
+    body: "投稿画面で紹介先のGitHub URLを入力して「自動取得」を押すと、GitHub APIからタイトル・概要・作者・ライセンスを取得し、空欄の項目に自動入力します(現在はGitHubのみ対応)。",
+  },
+  {
+    title: "「紹介元を見る」で参照数がカウントされる",
+    body: "一覧・詳細ページには通常のダウンロード/コピーの代わりに「紹介元を見る」ボタンが表示されます。これを押すと紹介先のURLが新しいタブで開き、利用数(users)としてカウントされます。",
+  },
+];
+
+const TOPIC_META = {
+  skill: {
+    label: "Skill",
+    accentBg: "bg-skill",
+    accentText: "text-skill",
+    accentBgSoft: "bg-skill/10",
+    Icon: BoxIcon,
+    title: "SKILLとは？",
+    intro:
+      "SKILLは、Claude(claude.ai / Claude Code / Claude Agent SDK)に特定の作業のやり方を教えるための、指示書と関連ファイルのまとまりです。AI Skills Hubでは、社内で育てたSKILLをZIP一式やSKILL.md単体でここに共有し、誰でもダウンロードしてそのまま使えるようにします。",
+    points: SKILL_POINTS,
+    postLabel: "SKILLを投稿する",
+  },
+  prompt: {
+    label: "Prompt",
+    accentBg: "bg-prompt",
+    accentText: "text-prompt",
+    accentBgSoft: "bg-prompt/10",
+    Icon: SparkleIcon,
+    title: "プロンプトとは？",
+    intro:
+      "プロンプトは、Claude(claude.ai / Claude Code)に投げる指示文をあらかじめ整えて再利用できるようにしたものです。AI Skills Hubでは、コピーしてそのまま貼り付けたり、claude.aiの新規チャットにワンクリックで差し込んだりして使えます。",
+    points: PROMPT_POINTS,
+    postLabel: "プロンプトを投稿する",
+  },
+  external: {
+    label: "OSS紹介",
+    accentBg: "bg-amber-500",
+    accentText: "text-amber-600",
+    accentBgSoft: "bg-amber-500/10",
+    Icon: ExternalLinkIcon,
+    title: "OSS紹介とは？",
+    intro:
+      "OSS紹介は、自作物ではなく、既にGitHub等で公開されている便利なスキル・プロンプト・ツールを「こんなものがあります」と紹介するための投稿種別です。ファイルそのものはAI Skills Hub上にホストせず、紹介先へのリンクのみを保持します。著作権・ライセンスは紹介元の作者に帰属します。",
+    points: EXTERNAL_POINTS,
+    postLabel: "OSS紹介を投稿する",
+  },
+} as const;
+
 export default function GuidePage({ topic }: GuidePageProps) {
-  const isSkill = topic === "skill";
-  const accent = isSkill ? "skill" : "prompt";
-  const points = isSkill ? SKILL_POINTS : PROMPT_POINTS;
+  const meta = TOPIC_META[topic];
+  const { label, accentBg, accentText, accentBgSoft, Icon, title, intro, points, postLabel } = meta;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -48,34 +101,22 @@ export default function GuidePage({ topic }: GuidePageProps) {
       </Link>
 
       <div className="mb-6 flex items-center gap-3">
-        <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl text-white ${
-            isSkill ? "bg-skill" : "bg-prompt"
-          }`}
-        >
-          {isSkill ? <BoxIcon className="h-5 w-5" /> : <SparkleIcon className="h-5 w-5" />}
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-white ${accentBg}`}>
+          <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className={`text-xs font-semibold uppercase tracking-wide ${isSkill ? "text-skill" : "text-prompt"}`}>
-            {isSkill ? "Skill" : "Prompt"}
-          </p>
-          <h1 className="text-xl font-bold text-slate-900">{isSkill ? "SKILLとは？" : "プロンプトとは？"}</h1>
+          <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>{label}</p>
+          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
         </div>
       </div>
 
-      <p className="mb-8 text-sm leading-relaxed text-slate-600">
-        {isSkill
-          ? "SKILLは、Claude(claude.ai / Claude Code / Claude Agent SDK)に特定の作業のやり方を教えるための、指示書と関連ファイルのまとまりです。AI Skills Hubでは、社内で育てたSKILLをZIP一式やSKILL.md単体でここに共有し、誰でもダウンロードしてそのまま使えるようにします。"
-          : "プロンプトは、Claude(claude.ai / Claude Code)に投げる指示文をあらかじめ整えて再利用できるようにしたものです。AI Skills Hubでは、コピーしてそのまま貼り付けたり、claude.aiの新規チャットにワンクリックで差し込んだりして使えます。"}
-      </p>
+      <p className="mb-8 text-sm leading-relaxed text-slate-600">{intro}</p>
 
       <div className="mb-8 flex flex-col gap-4">
         {points.map((p) => (
           <div key={p.title} className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card">
             <span
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                isSkill ? "bg-skill/10 text-skill" : "bg-prompt/10 text-prompt"
-              }`}
+              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${accentBgSoft} ${accentText}`}
             >
               <CheckIcon className="h-3 w-3" />
             </span>
@@ -87,7 +128,7 @@ export default function GuidePage({ topic }: GuidePageProps) {
         ))}
       </div>
 
-      {isSkill ? (
+      {topic === "skill" ? (
         <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
             <CodeIcon className="h-3.5 w-3.5" />
@@ -106,7 +147,7 @@ description: プルリクエストのレビュー依頼を受けたときに使�
 3. 指摘は具体的な行番号付きで書く`}
           </pre>
         </div>
-      ) : (
+      ) : topic === "prompt" ? (
         <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
             <CopyIcon className="h-3.5 w-3.5" />
@@ -133,16 +174,41 @@ description: プルリクエストのレビュー依頼を受けたときに使�
             </li>
           </ol>
         </div>
+      ) : (
+        <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <ExternalLinkIcon className="h-3.5 w-3.5" />
+            登録の流れ
+          </p>
+          <ol className="flex flex-col gap-2 text-sm text-slate-700">
+            <li className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-xs font-semibold text-amber-600">
+                1
+              </span>
+              投稿画面で種別「OSS紹介」を選び、紹介先のGitHub URLを入力する
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-xs font-semibold text-amber-600">
+                2
+              </span>
+              「自動取得」を押すと、タイトル・概要・作者・ライセンスが自動入力される(空欄の項目のみ)
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-xs font-semibold text-amber-600">
+                3
+              </span>
+              内容を確認・補足して投稿すると、一覧・詳細ページから「紹介元を見る」で参照できるようになる
+            </li>
+          </ol>
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          to={`/post`}
-          className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white ${
-            isSkill ? "bg-skill hover:bg-skill/90" : "bg-prompt hover:bg-prompt/90"
-          }`}
+          to="/post"
+          className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white ${accentBg} hover:opacity-90`}
         >
-          {isSkill ? "SKILLを投稿する" : "プロンプトを投稿する"}
+          {postLabel}
         </Link>
         <Link
           to="/"

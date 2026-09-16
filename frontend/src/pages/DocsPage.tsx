@@ -180,6 +180,10 @@ export default function DocsPage() {
                 <Link to="/guide/prompts" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
                   プロンプトとは?
                 </Link>
+                /
+                <Link to="/guide/external" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+                  OSS紹介とは?
+                </Link>
                 を参照してください。
               </p>
             </div>
