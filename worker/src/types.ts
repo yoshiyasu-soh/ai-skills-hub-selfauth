@@ -1,3 +1,18 @@
+/**
+ * Cloudflare Email Service の send_email バインディング(env.EMAIL)の型。
+ * @cloudflare/workers-types が追随する前に新しいオブジェクト形式のsend()を使うため、
+ * 必要な範囲だけ自前で定義する(Workers Paidプランでのみ実際に送信できる)。
+ */
+export interface CloudflareEmailBinding {
+  send(message: {
+    to: string;
+    from: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  }): Promise<{ messageId: string }>;
+}
+
 export interface Env {
   DB: D1Database;
   ASSETS_BUCKET: R2Bucket;
@@ -10,12 +25,25 @@ export interface Env {
   // (例: "example.co.jp,example2.co.jp")。
   ALLOWED_EMAIL_DOMAINS?: string;
 
+  // メール送信(登録確認・パスワードリセット)の送信方式。
+  // "resend"(既定, 未設定時もこちら): Resend (https://resend.com) のHTTP APIを使う。Workers Freeプランでも利用可。
+  // "cloudflare": Cloudflare Email Service (env.EMAILバインディング)を使う。Workers Paidプラン限定。
+  // 詳細は docs/setup-selfauth.md 参照。
+  EMAIL_PROVIDER?: string;
+
   // メール送信(登録確認・パスワードリセット)には Resend (https://resend.com) を使用する。
   // 機密情報のため wrangler.jsonc の vars には書かず、`wrangler secret put` で設定する。
   // 未設定の場合、実送信はスキップされコンソールにログ出力されるのみ(ローカル開発用)。
   RESEND_API_KEY?: string;
   // Resend側で送信元ドメイン認証(SPF/DKIM)を済ませたアドレスを指定する。
   RESEND_FROM_EMAIL?: string;
+
+  // EMAIL_PROVIDER=cloudflare のときの送信元アドレス。Cloudflare Email Serviceで
+  // ドメイン認証(Onboard Domain)を済ませたドメインのアドレスを指定する必要がある。
+  EMAIL_FROM_ADDRESS?: string;
+  // wrangler.jsonc の send_email バインディング。EMAIL_PROVIDER=cloudflare のときのみ使用する。
+  EMAIL?: CloudflareEmailBinding;
+
   // メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
   APP_BASE_URL?: string;
 

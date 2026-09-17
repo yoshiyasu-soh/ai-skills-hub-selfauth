@@ -6,6 +6,11 @@ ENVIRONMENT=development
 # 実送信されず、ターミナルにリンクがログ出力されるだけになる(ローカル動作確認はこれで可能)。
 # RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
+# 任意: メール送信をCloudflare Email Service経由にする場合(Workers Paidプラン限定)。
+# 詳細は docs/setup-selfauth.md 参照。未設定時は "resend" として扱われる。
+# EMAIL_PROVIDER=cloudflare
+# EMAIL_FROM_ADDRESS=AI Skills Hub <no-reply@skills.example.com>
+
 # 任意: 会員登録を特定ドメインのメールアドレスのみに制限したい場合。
 # REGISTRATION_MODE=domain_restricted
 # ALLOWED_EMAIL_DOMAINS=example.co.jp

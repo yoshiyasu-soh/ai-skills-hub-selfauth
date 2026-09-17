@@ -39,7 +39,8 @@ Cloudflare Workers + D1 + R2 + React(Vite) で構築し、認証はWorker自身�
         ▼
 Cloudflare Workers (Hono)  ──/api/*──▶  D1 (メタデータ) / R2 (スキルZIP)
         │                                    │
-        │                                    └─▶ Resend (確認メール・パスワードリセットメール送信)
+        │                                    └─▶ Resend または Cloudflare Email Service
+        │                                        (確認メール・パスワードリセットメール送信。切替式)
         └─/以外─▶ 静的アセット(React/Vite ビルド成果物, SPA)
 ```
 
@@ -55,7 +56,7 @@ Cloudflare Workers (Hono)  ──/api/*──▶  D1 (メタデータ) / R2 (ス
 ## セットアップ
 
 1. [`docs/setup-cloudflare.md`](docs/setup-cloudflare.md) — D1/R2 作成、デプロイ
-2. [`docs/setup-selfauth.md`](docs/setup-selfauth.md) — メール送信(Resend)・会員登録受付範囲の設定
+2. [`docs/setup-selfauth.md`](docs/setup-selfauth.md) — メール送信(Resend / Cloudflare Email Service切替)・会員登録受付範囲の設定
 3. (任意) [`docs/setup-mcp.md`](docs/setup-mcp.md) — MCPサーバーとして利用する場合の設定
 
 ## ローカル開発
@@ -72,8 +73,9 @@ npx wrangler dev
 npm run dev:frontend
 ```
 
-`RESEND_API_KEY` 未設定の場合、確認メール・パスワードリセットメールはターミナルにログ出力される
-だけになります。詳細は [`docs/setup-selfauth.md`](docs/setup-selfauth.md) を参照してください。
+既定(Resend)で `RESEND_API_KEY` 未設定の場合、確認メール・パスワードリセットメールはターミナルに
+ログ出力されるだけになります。Cloudflare Email Service(Workers Paidプラン限定)への切替を含め、
+詳細は [`docs/setup-selfauth.md`](docs/setup-selfauth.md) を参照してください。
 
 ## 今後の拡張候補(今回のスコープ外)
 

@@ -3,13 +3,25 @@
 このリポジトリは Cloudflare Access(Entra ID SSO)に依存せず、Worker自身がメール+パスワードでの
 会員登録・ログインを提供します。認証まわりで追加設定が必要なのは以下の2点だけです。
 
-1. メール送信(Resend)の設定
+1. メール送信の設定(Resend または Cloudflare Email Service)
 2. 会員登録の受付範囲の設定(誰でも登録可 / 特定ドメインのみ)
 
-## 1. Resend の設定(確認メール・パスワードリセットメールの送信)
+## 1. メール送信の設定(確認メール・パスワードリセットメールの送信)
 
 Cloudflare Workers は SMTP を直接扱えないため、確認メール・パスワードリセットメールの送信には
-[Resend](https://resend.com/) の HTTP API を使用します。
+外部サービス(Resend)または Cloudflare 自身の Email Service を使います。`wrangler.jsonc` の
+`vars.EMAIL_PROVIDER` でどちらを使うか切り替えます(既定は `"resend"`)。
+
+| | `EMAIL_PROVIDER=resend`(既定) | `EMAIL_PROVIDER=cloudflare` |
+|---|---|---|
+| 利用可能なプラン | Workers Freeプランでも利用可 | **Workers Paidプラン限定**(Freeプランだと送信時にエラーになる) |
+| 必要な外部アカウント | Resendアカウント + APIキー | 不要(Cloudflareアカウント内で完結) |
+| ドメイン認証 | Resend側でSPF/DKIM設定 | Cloudflareダッシュボードで「Onboard Domain」(SPF/DKIM/DMARC/バウンス用MXを自動追加) |
+
+どちらを使うか判断に迷う場合は、まず既定の `resend` のままで問題ありません。既に
+Workers Paidプランを契約済みで、外部サービスへの依存を減らしたい場合に `cloudflare` を検討してください。
+
+### 1-A. Resend を使う場合(既定)
 
 1. https://resend.com/ でアカウントを作成する(無料枠あり)。
 2. **本番運用する場合は必ず送信元ドメインを追加・認証(SPF/DKIM)してください**
@@ -28,15 +40,45 @@ Cloudflare Workers は SMTP を直接扱えないため、確認メール・パ�
    (例: `"AI Skills Hub <no-reply@skills.example.com>"`)。未変更の場合はResendのテストドメインが
    使われます。
 
-6. (任意)確認メール・パスワードリセットメール内のリンクは既定でリクエストのoriginを使います。
-   カスタムドメイン運用時など明示的に固定したい場合は `wrangler.jsonc` の `vars` に
-   `APP_BASE_URL` を追加してください(例: `"https://skills.example.com"`)。
+`RESEND_API_KEY` を設定していない場合、メールは実送信されず、確認リンク・リセットリンクを含む
+本文がターミナルにログ出力されるだけになります(ローカル動作確認はこれで可能です)。
+
+### 1-B. Cloudflare Email Service を使う場合(Workers Paidプラン限定)
+
+1. Cloudflareダッシュボード → **Compute & AI → Email Service → Email Sending** を開き、
+   「Onboard Domain」から送信元に使うドメインを選ぶ(そのドメインがCloudflare DNSで
+   管理されている必要があります)。SPF/DKIM/DMARC/バウンス用MXレコードが自動追加されます
+   (反映まで数分〜最大24時間)。
+2. `wrangler.jsonc` の `send_email` バインディング(既定で `EMAIL` という名前で宣言済み)は
+   そのままで問題ありません。
+3. `wrangler.jsonc` の `vars` を以下のように設定する:
+
+   ```jsonc
+   "EMAIL_PROVIDER": "cloudflare",
+   "EMAIL_FROM_ADDRESS": "AI Skills Hub <no-reply@skills.example.com>", // 手順1で認証したドメインのアドレス
+   ```
+
+4. デプロイする(`npm run deploy`)。Workers Freeプランのままデプロイ・利用しようとすると、
+   実際の送信時に「メール送信は現在、Workers Paid プランでのみ利用可能です」というエラーになります。
+   Paidプランへのアップグレードが必要です。
 
 ### ローカル開発時の挙動
 
-`RESEND_API_KEY` を設定していない場合、メールは実送信されず、確認リンク・リセットリンクを含む
-本文がターミナルにログ出力されるだけになります。ローカルではこのログからリンクをコピーして
-動作確認してください(`.dev.vars` に `RESEND_API_KEY` を設定すれば実送信も試せます)。
+- `EMAIL_PROVIDER=resend`(既定)かつ `RESEND_API_KEY` 未設定の場合: 実送信されず、ターミナルに
+  確認リンク・リセットリンクを含む本文がログ出力されます。
+- `EMAIL_PROVIDER=cloudflare` の場合: `wrangler dev` は既定で送信をローカルにシミュレートし、
+  実際には送信せず `.wrangler/tmp/email/` 配下にHTML本文を保存します(内容を確認しながら
+  開発できます)。実際に送信して試したい場合は `wrangler.jsonc` の `send_email` に
+  `"remote": true` を追加してください([remote bindings](https://developers.cloudflare.com/workers/local-development/#remote-bindings))。
+
+いずれの方式でも、`.dev.vars`(`.dev.vars.example` をコピーして使用)で `EMAIL_PROVIDER` を
+上書きしてローカルでの挙動を切り替えられます。
+
+### APP_BASE_URL(任意)
+
+確認メール・パスワードリセットメール内のリンクは既定でリクエストのoriginを使います。
+カスタムドメイン運用時など明示的に固定したい場合は `wrangler.jsonc` の `vars` に
+`APP_BASE_URL` を追加してください(例: `"https://skills.example.com"`)。
 
 ## 2. 会員登録の受付範囲
 
