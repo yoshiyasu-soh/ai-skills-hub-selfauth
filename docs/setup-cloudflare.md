@@ -96,6 +96,13 @@ npx wrangler r2 bucket create ai-skills-hub-selfauth-assets
 
 ## 6. wrangler.jsonc の最終確認
 
+`wrangler.jsonc` は本番の資源IDを含むため Git 管理対象外です(`.gitignore` 参照)。
+まだ手元に無い場合は、テンプレートをコピーして作成してください:
+
+```bash
+cp wrangler.jsonc.example wrangler.jsonc
+```
+
 以下のプレースホルダーを実際の値に置き換えます:
 
 ```jsonc

@@ -49,6 +49,7 @@ Cloudflare Workers (Hono)  ──/api/*──▶  D1 (メタデータ) / R2 (ス
 - `frontend/` : React + Vite + Tailwind CSS の SPA。
 - `migrations/` : D1(SQLite)のスキーマ定義。
 - `wrangler.jsonc` : Worker 本体、D1/R2 バインディング、静的アセット配信の設定。
+  本番の資源IDを含むため Git 管理対象外(`wrangler.jsonc.example` をコピーして作成)。
 
 パスワードは PBKDF2-SHA256 でハッシュ化して保存し、セッションはD1で管理するランダムトークン方式
 (JWTではない)のため、ログアウトやパスワード変更時に即座に失効させられます。
