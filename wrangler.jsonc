@@ -1,56 +1,64 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ai-skills-hub-selfauth",
-  "main": "worker/src/index.ts",
-  "compatibility_date": "2024-11-01",
-  "compatibility_flags": ["nodejs_compat"],
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "ai-skills-hub-selfauth",
+	"main": "worker/src/index.ts",
+	"compatibility_date": "2024-11-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	// フロントエンド(Vite)のビルド成果物を静的配信し、/api/* だけ Worker で処理する
+	"assets": {
+		"directory": "./frontend/dist",
+		"not_found_handling": "single-page-application",
+		"run_worker_first": [
+			"/api/*"
+		]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "ai-skills-hub-selfauth-db",
+			// `npx wrangler d1 create ai-skills-hub-selfauth-db` 実行後に払い出されるIDに置き換える
+			"database_id": "d94c55ed-eb83-4983-8e5f-1c5f41853984"
+		},
+		{
+			"binding": "ai_skills_hub_selfauth_db",
+			"database_name": "ai-skills-hub-selfauth-db",
+			"database_id": "d94c55ed-eb83-4983-8e5f-1c5f41853984"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "ASSETS_BUCKET",
+			"bucket_name": "ai-skills-hub-selfauth-assets"
+		},
+		{
+			"bucket_name": "ai-skills-hub-selfauth-assets",
+			"binding": "ai_skills_hub_selfauth_assets"
+		}
+	],
+	"vars": {
+		// Cookieの Secure 属性などに影響する。本番は必ず "production" にする
+		"ENVIRONMENT": "production",
+		// 会員登録の受付範囲。"open"(誰でも登録可) | "domain_restricted"(ALLOWED_EMAIL_DOMAINSのみ)。
+		// 未設定時は "open" として扱われる。
+//		"REGISTRATION_MODE": "open",
+		"REGISTRATION_MODE": "domain_restricted",
+		// REGISTRATION_MODE=domain_restricted のときのみ参照。カンマ区切りの許可ドメイン。
+		"ALLOWED_EMAIL_DOMAINS": "outlook.com,hotmail.com,gmail.com",
+		// メール送信元アドレス(Resend側でドメイン認証(SPF/DKIM)を済ませたアドレスを推奨。
+		// 未設定・独自ドメイン未検証の場合は Resend のテストドメイン onboarding@resend.dev が使われる)。
+		"RESEND_FROM_EMAIL": "AI Skills Hub <ash@notifications.soh.jp>",
+		// RESEND_API_KEY は機密情報のためここには書かず、以下のコマンドで別途設定する:
+		//   npx wrangler secret put RESEND_API_KEY
+		// 任意: メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
+		"APP_BASE_URL": "https://ai-skills-hub-selfauth.soh.jp"
 
-  // フロントエンド(Vite)のビルド成果物を静的配信し、/api/* だけ Worker で処理する
-  "assets": {
-    "directory": "./frontend/dist",
-    "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
-  },
-
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "ai-skills-hub-selfauth-db",
-      // `npx wrangler d1 create ai-skills-hub-selfauth-db` 実行後に払い出されるIDに置き換える
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
-    }
-  ],
-
-  "r2_buckets": [
-    {
-      "binding": "ASSETS_BUCKET",
-      "bucket_name": "ai-skills-hub-selfauth-assets"
-    }
-  ],
-
-  "vars": {
-    // Cookieの Secure 属性などに影響する。本番は必ず "production" にする
-    "ENVIRONMENT": "production",
-
-    // 会員登録の受付範囲。"open"(誰でも登録可) | "domain_restricted"(ALLOWED_EMAIL_DOMAINSのみ)。
-    // 未設定時は "open" として扱われる。
-    "REGISTRATION_MODE": "open",
-    // REGISTRATION_MODE=domain_restricted のときのみ参照。カンマ区切りの許可ドメイン。
-    // "ALLOWED_EMAIL_DOMAINS": "example.co.jp,example2.co.jp",
-
-    // メール送信元アドレス(Resend側でドメイン認証(SPF/DKIM)を済ませたアドレスを推奨。
-    // 未設定・独自ドメイン未検証の場合は Resend のテストドメイン onboarding@resend.dev が使われる)。
-    "RESEND_FROM_EMAIL": "AI Skills Hub <onboarding@resend.dev>"
-    // RESEND_API_KEY は機密情報のためここには書かず、以下のコマンドで別途設定する:
-    //   npx wrangler secret put RESEND_API_KEY
-    // 任意: メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
-    // "APP_BASE_URL": "https://skills.example.com"
-
-    // 任意: OSS紹介投稿のGitHub URL自動取得(GET /api/items/fetch-metadata)で使うGitHub Personal
-    // Access Token。未設定でも動作するが、GitHub APIの未認証レート制限(60回/時/IP)に達しやすい。
-    // 機密情報のためここには書かず、以下のコマンドで別途設定する:
-    //   npx wrangler secret put GITHUB_TOKEN
-    // (必要なスコープは public_repo の読み取りのみ。fine-grained PATなら
-    //  Public Repositories のみ・Contents: Read-only で作成すれば十分)
-  }
+		// 任意: OSS紹介投稿のGitHub URL自動取得(GET /api/items/fetch-metadata)で使うGitHub Personal
+		// Access Token。未設定でも動作するが、GitHub APIの未認証レート制限(60回/時/IP)に達しやすい。
+		// 機密情報のためここには書かず、以下のコマンドで別途設定する:
+		//   npx wrangler secret put GITHUB_TOKEN
+		// (必要なスコープは public_repo の読み取りのみ。fine-grained PATなら
+		//  Public Repositories のみ・Contents: Read-only で作成すれば十分)
+	}
 }
