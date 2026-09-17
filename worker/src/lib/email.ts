@@ -7,11 +7,24 @@ interface SendEmailInput {
 }
 
 /**
+ * メール送信の入口。EMAIL_PROVIDER(既定: "resend")に応じて送信方式を切り替える。
+ * - "resend": Resendのテナント。Workers Freeプランでも利用可能(既定はこちら)。
+ * - "cloudflare": Cloudflare Email Service(send_emailバインディング)。Workers Paidプラン限定。
+ */
+export async function sendEmail(env: Env, input: SendEmailInput): Promise<void> {
+  if (env.EMAIL_PROVIDER === "cloudflare") {
+    await sendViaCloudflare(env, input);
+    return;
+  }
+  await sendViaResend(env, input);
+}
+
+/**
  * Resend (https://resend.com) のHTTP APIでメールを送信する。
  * ローカル開発等で RESEND_API_KEY が未設定の場合は実送信せず、コンソールにリンク等を出力するだけにする
  * (本番相当の動作確認にはRESEND_API_KEYの設定が必要)。
  */
-export async function sendEmail(env: Env, input: SendEmailInput): Promise<void> {
+async function sendViaResend(env: Env, input: SendEmailInput): Promise<void> {
   if (!env.RESEND_API_KEY) {
     console.warn(
       `[email:dev] RESEND_API_KEY未設定のため送信をスキップしました。宛先=${input.to} 件名=${input.subject}\n${input.html}`,
@@ -37,6 +50,33 @@ export async function sendEmail(env: Env, input: SendEmailInput): Promise<void> 
     const body = await res.text().catch(() => "");
     throw new Error(`Resend API error: ${res.status} ${body}`);
   }
+}
+
+/**
+ * Cloudflare Email Service (send_emailバインディング)でメールを送信する。
+ * Workers Paidプランでのみ実際に送信できる(Freeプランではバインディング呼び出し時にエラーになる)。
+ * バインディング未設定・送信元アドレス未設定の場合は実送信せず、コンソールにログ出力するだけにする。
+ */
+async function sendViaCloudflare(env: Env, input: SendEmailInput): Promise<void> {
+  if (!env.EMAIL) {
+    console.warn(
+      `[email:dev] EMAIL_PROVIDER=cloudflareですが send_email バインディング(EMAIL)が未設定のため送信をスキップしました。wrangler.jsoncのsend_emailを確認してください。宛先=${input.to} 件名=${input.subject}\n${input.html}`,
+    );
+    return;
+  }
+  if (!env.EMAIL_FROM_ADDRESS) {
+    console.warn(
+      `[email:dev] EMAIL_PROVIDER=cloudflareですが EMAIL_FROM_ADDRESS が未設定のため送信をスキップしました。宛先=${input.to} 件名=${input.subject}\n${input.html}`,
+    );
+    return;
+  }
+
+  await env.EMAIL.send({
+    to: input.to,
+    from: env.EMAIL_FROM_ADDRESS,
+    subject: input.subject,
+    html: input.html,
+  });
 }
 
 function appBaseUrl(env: Env, requestUrl: string): string {

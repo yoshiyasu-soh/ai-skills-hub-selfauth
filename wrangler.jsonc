@@ -37,6 +37,14 @@
 			"binding": "ai_skills_hub_selfauth_assets"
 		}
 	],
+	// メール送信をCloudflare Email Serviceで行う場合(EMAIL_PROVIDER=cloudflare、Workers Paidプラン限定)
+	// にのみ使うバインディング。Resend利用時(既定)は宣言されていても呼び出されない。
+	// 詳細は docs/setup-selfauth.md 参照。
+	"send_email": [
+		{
+			"name": "EMAIL"
+		}
+	],
 	"vars": {
 		// Cookieの Secure 属性などに影響する。本番は必ず "production" にする
 		"ENVIRONMENT": "production",
@@ -46,14 +54,20 @@
 		"REGISTRATION_MODE": "domain_restricted",
 		// REGISTRATION_MODE=domain_restricted のときのみ参照。カンマ区切りの許可ドメイン。
 		"ALLOWED_EMAIL_DOMAINS": "outlook.com,hotmail.com,gmail.com",
+		// メール送信の方式。"resend"(既定, Workers Freeプランでも利用可) | "cloudflare"(Workers Paid
+		// プラン限定。Cloudflare Email Serviceのsend_emailバインディングを使う)。
+		// 未設定時は "resend" として扱われる。詳細は docs/setup-selfauth.md 参照。
+		"EMAIL_PROVIDER": "resend",
 		// メール送信元アドレス(Resend側でドメイン認証(SPF/DKIM)を済ませたアドレスを推奨。
 		// 未設定・独自ドメイン未検証の場合は Resend のテストドメイン onboarding@resend.dev が使われる)。
 		"RESEND_FROM_EMAIL": "AI Skills Hub <ash@notifications.soh.jp>",
 		// RESEND_API_KEY は機密情報のためここには書かず、以下のコマンドで別途設定する:
 		//   npx wrangler secret put RESEND_API_KEY
 		// 任意: メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
-		"APP_BASE_URL": "https://ai-skills-hub-selfauth.soh.jp"
-
+		"APP_BASE_URL": "https://ai-skills-hub-selfauth.soh.jp",
+		// EMAIL_PROVIDER=cloudflare のときのみ必須。Cloudflare Email ServiceでOnboard Domain済みの
+		// ドメインの送信元アドレス(例: "AI Skills Hub <no-reply@skills.example.com>")。
+		// "EMAIL_FROM_ADDRESS": "AI Skills Hub <no-reply@skills.example.com>",
 		// 任意: OSS紹介投稿のGitHub URL自動取得(GET /api/items/fetch-metadata)で使うGitHub Personal
 		// Access Token。未設定でも動作するが、GitHub APIの未認証レート制限(60回/時/IP)に達しやすい。
 		// 機密情報のためここには書かず、以下のコマンドで別途設定する:
