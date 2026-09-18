@@ -78,6 +78,23 @@ npm run dev:frontend
 ログ出力されるだけになります。Cloudflare Email Service(Workers Paidプラン限定)への切替を含め、
 詳細は [`docs/setup-selfauth.md`](docs/setup-selfauth.md) を参照してください。
 
+## テスト
+
+```bash
+npm run test:worker
+```
+
+`worker/test/` に [`@cloudflare/vitest-plugin`](https://developers.cloudflare.com/workers/testing/vitest-integration/)
+を使った自動テストがあります(実際のworkerdランタイム上でD1バインディングを使って実行されるため、
+モックではなく本物の挙動を検証できます)。テスト用のD1には `migrations/` の内容がテスト実行の
+たびに自動適用されます(`worker/wrangler.test.jsonc` — 本番用の `wrangler.jsonc` とは別の、
+テスト専用のプレースホルダー設定)。
+
+現在カバーしているのは認証ミドルウェア(セッションCookie・個人アクセストークン・有効期限)、
+投稿の作成バリデーションと編集・削除の権限チェック、およびスキーマの前提条件
+(`CLAUDE.md` に明文化した内容)の回帰チェックです。`push`/PRごとに
+[GitHub Actions](.github/workflows/test.yml) でも自動実行されます。
+
 ## 今後の拡張候補(今回のスコープ外)
 
 - `npx skills add <name>` のような CLI 配布(現状は ZIP/SKILL.md 一括ダウンロードのみ対応)

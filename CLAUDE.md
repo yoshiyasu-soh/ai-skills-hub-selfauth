@@ -137,3 +137,12 @@ rm -rf .wrangler/state && npm run db:migrate:local
 - git: PRは作成せず、`main`ブランチへ直接コミット・pushする(ユーザーの標準運用)。
 - 機密情報(APIキー等)は `wrangler.jsonc` の `vars` に書かず、`npx wrangler secret put <NAME>` で設定する。
   ローカル開発用のひな形は `.dev.vars.example` に追記する。
+- 自動テスト: `worker/test/` に `@cloudflare/vitest-plugin` ベースの自動テストがある
+  (`npm run test:worker`)。GitHub Actions(`.github/workflows/test.yml`)でも
+  push/PRごとに実行される。認証・認可(authMiddleware, PUT/DELETEの権限)や投稿バリデーションに
+  手を入れたら、既存テストを壊していないか確認し、可能なら新しい振る舞いのテストも追加すること。
+  `worker/test/schema-safety.test.ts` は「items(id)を参照する子テーブルの一覧」と
+  「items.type/usage_events.kindにCHECK制約が無いこと」を自動検証している
+  (このファイル自体がルール3の内容と同期していることを保証する仕組み)。新しく `items` を
+  参照するテーブルを追加したら、このテストの `KNOWN_ITEMS_CHILD_TABLES` とCLAUDE.mdのルール3の
+  両方を更新すること。

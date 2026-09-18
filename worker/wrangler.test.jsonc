@@ -1,0 +1,37 @@
+{
+  // テスト実行(vitest.config.ts)専用のWrangler設定。
+  // 本番用 wrangler.jsonc(Git管理対象外)や wrangler.jsonc.example とは別に、
+  // ここだけで完結する固定のテスト用バインディングを持つ。
+  // 拡張子は必ず .jsonc にすること(@cloudflare/vitest-plugin が拡張子でJSONC/JSON/TOMLを
+  // 判定しており、.example 等の別拡張子だとバインディングが一切読み込まれない)。
+  "name": "ai-skills-hub-selfauth-test",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ai-skills-hub-selfauth-test-db",
+      "database_id": "test-db-id"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "ASSETS_BUCKET",
+      "bucket_name": "ai-skills-hub-selfauth-test-assets"
+    }
+  ],
+
+  "send_email": [
+    {
+      "name": "EMAIL"
+    }
+  ],
+
+  "vars": {
+    "ENVIRONMENT": "development",
+    "REGISTRATION_MODE": "open"
+  }
+}
