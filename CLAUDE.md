@@ -113,6 +113,19 @@ rm -rf .wrangler/state && npm run db:migrate:local
 **1件でも0件になっていたら、そのマイグレーションを`db:migrate:remote`で本番に当ててはいけない。**
 ルール2の退避・復元パターンを入れて修正してから再テストすること。
 
+### 追記(2026-09-18): `items.type` / `usage_events.kind` のCHECK制約は撤去済み
+
+`migrations/0012_drop_type_check_constraints.sql` で、この事故の直接の引き金だった
+`items.type` / `usage_events.kind` のCHECK制約自体を撤去した(検証は元々アプリケーション層
+(`worker/src/routes/items.ts`, `worker/src/mcp/tools.ts`)で厳密に行っており、DB制約は
+実質的に冗長だった)。そのため、**今後 `items` に新しいtype(例: 5つ目の種別)を追加する際や
+`usage_events` に新しいkindを追加する際は、テーブル再構築は不要**になった
+(単にアプリケーション層の許容値リストに追加するだけでよい)。
+
+ただし、ルール1〜4自体は将来また別の理由(NOT NULL列の追加でバックフィルが必要、他のCHECK制約の
+追加、他テーブルの再構築等)でテーブル再構築が必要になった場合に備えて有効なまま残す。
+再構築が必要になったら必ずこのルールに従うこと。
+
 ### ルール5: 一度 `db:migrate:remote` で本番に適用したマイグレーションファイルは、内容を書き換えない
 
 適用済みのマイグレーションは再実行されないため、ファイルを直しても本番には反映されない。
