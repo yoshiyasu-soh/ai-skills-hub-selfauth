@@ -15,6 +15,7 @@ import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
 import { formatCompactNumber } from "../lib/formatNumber";
+import { installDirName } from "../lib/installName";
 import { useToast } from "../lib/ToastContext";
 import type { Item } from "../lib/types";
 
@@ -25,16 +26,32 @@ function formatBytes(bytes: number | null): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-// Claude Codeの `~/.claude/skills/<slug>/` にワンライナーで取得・配置するコマンドを組み立てる。
+type InstallOs = "unix" | "windows";
+
+// Claude Codeの `~/.claude/skills/<name>/` にワンライナーで取得・配置するコマンドを組み立てる。
 // アクセストークン自体はコマンド中に埋め込まず、環境変数への代入をユーザー自身に行ってもらう。
-function buildInstallCommand(item: Item): string {
+// bash系(macOS/Linux/Git Bash)とWindows PowerShellでコマンド体系が全く異なるため、OSごとに別々に組み立てる。
+function buildInstallCommand(item: Item, os: InstallOs): string {
   const url = `${window.location.origin}${api.items.downloadUrl(item.id)}`;
-  const dir = `~/.claude/skills/${item.slug}`;
+  const name = installDirName(item.title, item.id.slice(0, 8));
+  const isMd = (item.fileName ?? "").toLowerCase().endsWith(".md");
+
+  if (os === "windows") {
+    const dir = `$env:USERPROFILE\\.claude\\skills\\${name}`;
+    const headers = `@{ Authorization = "Bearer $env:AI_SKILLS_HUB_TOKEN" }`;
+    if (isMd) {
+      return `New-Item -ItemType Directory -Force -Path "${dir}" | Out-Null; Invoke-WebRequest -Uri "${url}" -Headers ${headers} -OutFile "${dir}\\SKILL.md"`;
+    }
+    const zip = `$env:TEMP\\${name}.zip`;
+    return `Invoke-WebRequest -Uri "${url}" -Headers ${headers} -OutFile "${zip}"; New-Item -ItemType Directory -Force -Path "${dir}" | Out-Null; Expand-Archive -Path "${zip}" -DestinationPath "${dir}" -Force; Remove-Item "${zip}"`;
+  }
+
+  const dir = `~/.claude/skills/${name}`;
   const auth = `-H "Authorization: Bearer $AI_SKILLS_HUB_TOKEN"`;
-  if ((item.fileName ?? "").toLowerCase().endsWith(".md")) {
+  if (isMd) {
     return `mkdir -p ${dir} && curl -fsSL ${auth} "${url}" -o ${dir}/SKILL.md`;
   }
-  return `curl -fsSL ${auth} "${url}" -o /tmp/${item.slug}.zip && mkdir -p ${dir} && unzip -o /tmp/${item.slug}.zip -d ${dir} && rm /tmp/${item.slug}.zip`;
+  return `curl -fsSL ${auth} "${url}" -o /tmp/${name}.zip && mkdir -p ${dir} && unzip -o /tmp/${name}.zip -d ${dir} && rm /tmp/${name}.zip`;
 }
 
 export default function ItemDetailPage() {
@@ -46,6 +63,9 @@ export default function ItemDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contentTab, setContentTab] = useState<"description" | "body">("description");
+  const [installOs, setInstallOs] = useState<InstallOs>(() =>
+    navigator.userAgent.includes("Windows") ? "windows" : "unix",
+  );
   const [installCommandCopied, setInstallCommandCopied] = useState(false);
 
   useEffect(() => {
@@ -134,7 +154,7 @@ export default function ItemDetailPage() {
   async function handleCopyInstallCommand() {
     if (!item) return;
     try {
-      await navigator.clipboard.writeText(buildInstallCommand(item));
+      await navigator.clipboard.writeText(buildInstallCommand(item, installOs));
       setInstallCommandCopied(true);
       setTimeout(() => setInstallCommandCopied(false), 1500);
     } catch {
@@ -393,9 +413,29 @@ export default function ItemDetailPage() {
           {isSkill && item.fileName && (
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">インストールコマンド</p>
+              <div className="mb-2 inline-flex rounded-md border border-slate-200 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setInstallOs("unix")}
+                  className={`whitespace-nowrap rounded px-2 py-1 font-medium transition-colors ${
+                    installOs === "unix" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  macOS / Linux
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallOs("windows")}
+                  className={`whitespace-nowrap rounded px-2 py-1 font-medium transition-colors ${
+                    installOs === "windows" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Windows
+                </button>
+              </div>
               <div className="flex items-start gap-2 rounded-lg bg-slate-900 px-3.5 py-2.5">
                 <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-slate-100">
-                  {buildInstallCommand(item)}
+                  {buildInstallCommand(item, installOs)}
                 </code>
                 <button
                   type="button"
@@ -406,12 +446,26 @@ export default function ItemDetailPage() {
                 </button>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                <code className="font-mono">$AI_SKILLS_HUB_TOKEN</code> に自分の
-                <Link to="/settings/tokens" className="text-brand-600 hover:underline">
-                  アクセストークン
-                </Link>
-                を設定してから実行すると、Claude Codeの<code className="font-mono">~/.claude/skills/</code>
-                以下にこのスキルを直接取得できます。
+                {installOs === "windows" ? (
+                  <>
+                    <code className="font-mono">$env:AI_SKILLS_HUB_TOKEN</code> に自分の
+                    <Link to="/settings/tokens" className="text-brand-600 hover:underline">
+                      アクセストークン
+                    </Link>
+                    を設定してからPowerShellで実行すると、Claude Codeの
+                    <code className="font-mono">%USERPROFILE%\.claude\skills\</code>
+                    以下にこのスキルを直接取得できます(コマンドプロンプトではなくPowerShellで実行してください)。
+                  </>
+                ) : (
+                  <>
+                    <code className="font-mono">$AI_SKILLS_HUB_TOKEN</code> に自分の
+                    <Link to="/settings/tokens" className="text-brand-600 hover:underline">
+                      アクセストークン
+                    </Link>
+                    を設定してから実行すると、Claude Codeの<code className="font-mono">~/.claude/skills/</code>
+                    以下にこのスキルを直接取得できます。
+                  </>
+                )}
               </p>
             </div>
           )}
