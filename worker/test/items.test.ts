@@ -23,6 +23,7 @@ beforeEach(async () => {
   await env.DB.exec("DELETE FROM favorites");
   await env.DB.exec("DELETE FROM item_watches");
   await env.DB.exec("DELETE FROM usage_events");
+  await env.DB.exec("DELETE FROM item_comments");
   await env.DB.exec("DELETE FROM items");
   await env.DB.exec("DELETE FROM sessions");
   await env.DB.exec("DELETE FROM users");
@@ -176,5 +177,108 @@ describe("PUT/DELETE /api/items/:id 権限", () => {
       headers: await authHeaders(OWNER),
     });
     expect(deleteRes.status).toBe(200);
+  });
+});
+
+describe("コメントスレッド", () => {
+  async function createPrompt(): Promise<string> {
+    const res = await SELF.fetch("https://example.com/api/items", {
+      method: "POST",
+      headers: await authHeaders(OWNER),
+      body: JSON.stringify({ type: "prompt", title: "所有者のプロンプト", body: "本文" }),
+    });
+    const data = await res.json<{ item: { id: string } }>();
+    return data.item.id;
+  }
+
+  it("本文未指定は400", async () => {
+    const id = await createPrompt();
+    const res = await SELF.fetch(`https://example.com/api/items/${id}/comments`, {
+      method: "POST",
+      headers: await authHeaders(OTHER),
+      body: JSON.stringify({ body: "" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("存在しないアイテムへの投稿は404", async () => {
+    const res = await SELF.fetch("https://example.com/api/items/does-not-exist/comments", {
+      method: "POST",
+      headers: await authHeaders(OTHER),
+      body: JSON.stringify({ body: "こんにちは" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("投稿・一覧取得ができ、投稿者自身は削除できる(canDelete=true)", async () => {
+    const id = await createPrompt();
+    const createRes = await SELF.fetch(`https://example.com/api/items/${id}/comments`, {
+      method: "POST",
+      headers: await authHeaders(OTHER),
+      body: JSON.stringify({ body: "とても参考になりました" }),
+    });
+    expect(createRes.status).toBe(201);
+    const created = await createRes.json<{ comment: { id: number; body: string; authorEmail: string; canDelete: boolean } }>();
+    expect(created.comment.body).toBe("とても参考になりました");
+    expect(created.comment.authorEmail).toBe(OTHER);
+    expect(created.comment.canDelete).toBe(true);
+
+    const listRes = await SELF.fetch(`https://example.com/api/items/${id}/comments`, {
+      headers: await authHeaders(OTHER),
+    });
+    expect(listRes.status).toBe(200);
+    const list = await listRes.json<{ comments: { id: number }[] }>();
+    expect(list.comments).toHaveLength(1);
+
+    const deleteRes = await SELF.fetch(`https://example.com/api/items/${id}/comments/${created.comment.id}`, {
+      method: "DELETE",
+      headers: await authHeaders(OTHER),
+    });
+    expect(deleteRes.status).toBe(200);
+  });
+
+  it("第三者はコメントを削除できない(403)が、アイテムの投稿者はモデレーションとして削除できる", async () => {
+    const id = await createPrompt();
+    const createRes = await SELF.fetch(`https://example.com/api/items/${id}/comments`, {
+      method: "POST",
+      headers: await authHeaders(OTHER),
+      body: JSON.stringify({ body: "コメント" }),
+    });
+    const created = await createRes.json<{ comment: { id: number } }>();
+
+    // 第三者(コメント投稿者でもアイテム投稿者でもない)は削除不可
+    const thirdParty = "third@example.com";
+    await seedUser(thirdParty);
+    const forbiddenRes = await SELF.fetch(`https://example.com/api/items/${id}/comments/${created.comment.id}`, {
+      method: "DELETE",
+      headers: await authHeaders(thirdParty),
+    });
+    expect(forbiddenRes.status).toBe(403);
+
+    // アイテムの投稿者(OWNER)はコメント投稿者でなくてもモデレーションとして削除できる
+    const ownerDeleteRes = await SELF.fetch(`https://example.com/api/items/${id}/comments/${created.comment.id}`, {
+      method: "DELETE",
+      headers: await authHeaders(OWNER),
+    });
+    expect(ownerDeleteRes.status).toBe(200);
+  });
+
+  it("アイテムを削除するとコメントも連動して削除される", async () => {
+    const id = await createPrompt();
+    await SELF.fetch(`https://example.com/api/items/${id}/comments`, {
+      method: "POST",
+      headers: await authHeaders(OTHER),
+      body: JSON.stringify({ body: "コメント" }),
+    });
+
+    await SELF.fetch(`https://example.com/api/items/${id}`, {
+      method: "DELETE",
+      headers: await authHeaders(OWNER),
+    });
+
+    const row = await env.DB.prepare("SELECT COUNT(*) as c FROM item_comments WHERE item_id = ?")
+      .bind(id)
+      .first<{ c: number }>();
+    expect(row?.c).toBe(0);
   });
 });

@@ -202,3 +202,11 @@ export function FileIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function ChatIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 5.5h16v11H9l-4 3.5v-3.5H4Z" />
+    </svg>
+  );
+}

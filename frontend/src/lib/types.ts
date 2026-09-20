@@ -45,6 +45,16 @@ export interface Item {
   stars: number | null;
 }
 
+export interface Comment {
+  id: number;
+  itemId: string;
+  authorEmail: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  canDelete: boolean;
+}
+
 export interface GitHubMetadata {
   title: string;
   description: string;

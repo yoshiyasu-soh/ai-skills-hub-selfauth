@@ -11,6 +11,7 @@ import {
   StarIcon,
   UserIcon,
 } from "../components/icons";
+import CommentSection from "../components/CommentSection";
 import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
@@ -346,6 +347,8 @@ export default function ItemDetailPage() {
               </pre>
             </section>
           )}
+
+          <CommentSection itemId={item.id} />
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20">

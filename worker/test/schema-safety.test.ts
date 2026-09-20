@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 // items を再構築するマイグレーションを書く前に、必ずこのリストと退避・復元対象が
 // 一致していることを確認すること。新しいテーブルが items を参照するようになったら、
 // ここと CLAUDE.md の両方を更新する。
-const KNOWN_ITEMS_CHILD_TABLES = ["item_tags", "favorites", "item_watches", "usage_events"];
+const KNOWN_ITEMS_CHILD_TABLES = ["item_tags", "favorites", "item_watches", "usage_events", "item_comments"];
 
 async function tablesReferencing(targetTable: string): Promise<string[]> {
   const { results } = await env.DB.prepare(

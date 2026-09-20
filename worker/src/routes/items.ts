@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
+import { toCommentDTO, type CommentRow } from "../lib/comments";
 import { applyTags, fetchItemRow, isValidHttpUrl, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
 import { slugify } from "../lib/slug";
 import { markItemSeen, markItemWatched } from "../lib/watches";
@@ -352,6 +353,7 @@ items.delete("/:id", async (c) => {
     c.env.DB.prepare("DELETE FROM item_tags WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM favorites WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM usage_events WHERE item_id = ?").bind(id),
+    c.env.DB.prepare("DELETE FROM item_comments WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM items WHERE id = ?").bind(id),
   ]);
 
@@ -490,6 +492,82 @@ items.delete("/:id/favorite", async (c) => {
 
   const row = await c.env.DB.prepare("SELECT favorite_count FROM items WHERE id = ?").bind(id).first<{ favorite_count: number }>();
   return c.json({ favorited: false, favoriteCount: row?.favorite_count ?? 0 });
+});
+
+const MAX_COMMENT_LENGTH = 2000;
+
+const COMMENT_SELECT = `
+  SELECT ic.id as id, ic.item_id as item_id, ic.author_email as author_email,
+         ic.body as body, ic.created_at as created_at, u.display_name as author_display_name
+  FROM item_comments ic
+  JOIN users u ON u.email = ic.author_email
+`;
+
+// ---- コメント一覧取得(投稿日時の古い順) ----
+items.get("/:id/comments", async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const item = await c.env.DB.prepare("SELECT author_email FROM items WHERE id = ?")
+    .bind(id)
+    .first<{ author_email: string }>();
+  if (!item) return c.json({ error: "not_found" }, 404);
+
+  const { results } = await c.env.DB.prepare(`${COMMENT_SELECT} WHERE ic.item_id = ? ORDER BY ic.created_at ASC`)
+    .bind(id)
+    .all<CommentRow>();
+
+  const comments = (results ?? []).map((r) => toCommentDTO(r, user.email, item.author_email));
+  return c.json({ comments });
+});
+
+// ---- コメント投稿 ----
+items.post("/:id/comments", async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const item = await c.env.DB.prepare("SELECT author_email FROM items WHERE id = ?")
+    .bind(id)
+    .first<{ author_email: string }>();
+  if (!item) return c.json({ error: "not_found" }, 404);
+
+  const { fields } = await readBody(c);
+  const body = str(fields, "body");
+  if (!body) return c.json({ error: "body is required" }, 400);
+  if (body.length > MAX_COMMENT_LENGTH) {
+    return c.json({ error: `body must be ${MAX_COMMENT_LENGTH} characters or fewer` }, 400);
+  }
+
+  const result = await c.env.DB.prepare("INSERT INTO item_comments (item_id, author_email, body) VALUES (?, ?, ?)")
+    .bind(id, user.email, body)
+    .run();
+
+  const row = await c.env.DB.prepare(`${COMMENT_SELECT} WHERE ic.id = ?`)
+    .bind(result.meta.last_row_id)
+    .first<CommentRow>();
+  if (!row) return c.json({ error: "internal_error" }, 500);
+
+  return c.json({ comment: toCommentDTO(row, user.email, item.author_email) }, 201);
+});
+
+// ---- コメント削除(投稿者本人、またはそのアイテムの投稿者による削除) ----
+items.delete("/:id/comments/:commentId", async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const commentId = c.req.param("commentId");
+
+  const comment = await c.env.DB.prepare(
+    `SELECT ic.author_email as author_email, i.author_email as item_author_email
+     FROM item_comments ic JOIN items i ON i.id = ic.item_id
+     WHERE ic.id = ? AND ic.item_id = ?`,
+  )
+    .bind(commentId, id)
+    .first<{ author_email: string; item_author_email: string }>();
+  if (!comment) return c.json({ error: "not_found" }, 404);
+  if (comment.author_email !== user.email && comment.item_author_email !== user.email) {
+    return c.json({ error: "forbidden" }, 403);
+  }
+
+  await c.env.DB.prepare("DELETE FROM item_comments WHERE id = ?").bind(commentId).run();
+  return c.json({ ok: true });
 });
 
 export default items;

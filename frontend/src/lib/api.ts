@@ -1,5 +1,6 @@
 import type {
   ApiTokenSummary,
+  Comment,
   GitHubMetadata,
   Item,
   NewApiToken,
@@ -144,6 +145,16 @@ export const api = {
     visit: (id: string) => request<{ usageCount: number }>(`/items/${id}/visit`, { method: "POST" }),
     fetchMetadata: (url: string) =>
       request<GitHubMetadata>(`/items/fetch-metadata?${buildQuery({ url })}`),
+    comments: {
+      list: (id: string) => request<{ comments: Comment[] }>(`/items/${id}/comments`),
+      create: (id: string, body: string) =>
+        request<{ comment: Comment }>(`/items/${id}/comments`, {
+          method: "POST",
+          body: JSON.stringify({ body }),
+        }),
+      remove: (id: string, commentId: number) =>
+        request<{ ok: true }>(`/items/${id}/comments/${commentId}`, { method: "DELETE" }),
+    },
   },
 
   favorites: {
