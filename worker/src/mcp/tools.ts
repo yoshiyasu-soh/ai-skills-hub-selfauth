@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import {
   applyTags,
+  bumpPatchVersion,
   fetchItemRow,
   isValidHttpUrl,
   resolveOrCreateTagIds,
@@ -206,7 +207,6 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
         title: z.string().min(1).max(200).describe("タイトル(必須)"),
         summary: z.string().max(200).optional().describe("概要(一覧カードに表示。100字程度を推奨)"),
         description: z.string().optional().describe("詳細説明(Markdown対応)"),
-        version: z.string().optional().describe("バージョン(既定: 1.0.0。type=externalでは無視される)"),
         body: z.string().optional().describe("type=promptの場合は本文(必須)。type=skillの場合は使い方メモ(任意)"),
         skillMarkdown: z.string().optional().describe("type=skillの場合のSKILL.md本文(必須)"),
         sourceUrl: z.string().optional().describe("type=externalの場合、紹介先のURL(必須)"),
@@ -218,7 +218,7 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
           .describe("タグ名の配列。既存のタグ名に一致すればそれを使い、無ければ新規作成する"),
       }),
     },
-    async ({ type, title, summary, description, version, body, skillMarkdown, sourceUrl, sourceAuthor, license, tags }) => {
+    async ({ type, title, summary, description, body, skillMarkdown, sourceUrl, sourceAuthor, license, tags }) => {
       const trimmedTitle = title.trim();
       if (!trimmedTitle) return { content: [{ type: "text", text: "タイトルを入力してください" }], isError: true };
 
@@ -275,7 +275,7 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
           r2Key,
           fileName,
           fileSize,
-          version?.trim() || "1.0.0",
+          "1.0.0",
           viewerEmail,
           type === "external" ? trimmedSourceUrl : null,
           type === "external" && sourceAuthor ? sourceAuthor : null,
@@ -302,13 +302,14 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
       title: "投稿済みのスキル・プロンプト・OSS紹介を編集",
       description:
         "自分が投稿したアイテムを編集する。指定したフィールドのみ更新し、省略したフィールドは現在の値を維持する。" +
-        "type=skillでZIP形式の資産(拡張子.md以外)を投稿済みの場合、skillMarkdownによる資産差し替えはできない(Webサイトから行う必要がある)。",
+        "type=skillでZIP形式の資産(拡張子.md以外)を投稿済みの場合、skillMarkdownによる資産差し替えはできない(Webサイトから行う必要がある)。" +
+        "バージョンは手動指定できず、type=promptならbody、type=skillならskillMarkdownが実際に変わった時のみ" +
+        "サーバー側でパッチ番号が自動的に上がる(タグ・説明文等だけの編集や、type=externalの編集ではバージョンは変化しない)。",
       inputSchema: z.object({
         id: z.string().describe("編集するアイテムID"),
         title: z.string().min(1).max(200).optional(),
         summary: z.string().max(200).optional(),
         description: z.string().optional(),
-        version: z.string().optional().describe("バージョンを変更すると、既存の購読者に更新が通知される"),
         body: z.string().optional().describe("type=promptなら本文。type=skillなら使い方メモ"),
         skillMarkdown: z.string().optional().describe("type=skillの場合、SKILL.md本文を差し替える(SKILL.md単体投稿のみ)"),
         sourceUrl: z.string().optional().describe("type=externalの場合の紹介先URL"),
@@ -317,7 +318,7 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
         tags: z.array(z.string()).optional().describe("指定した場合、既存のタグ付けをこの配列で全置換する"),
       }),
     },
-    async ({ id, title, summary, description, version, body, skillMarkdown, sourceUrl, sourceAuthor, license, tags }) => {
+    async ({ id, title, summary, description, body, skillMarkdown, sourceUrl, sourceAuthor, license, tags }) => {
       const existing = await fetchItemRow(env.DB, id);
       if (!existing) {
         return { content: [{ type: "text", text: `アイテムが見つかりません(id=${id})` }], isError: true };
@@ -331,8 +332,16 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
 
       const newSummary = summary ?? existing.summary;
       const newDescription = description ?? existing.description;
-      const newVersion = version?.trim() || existing.version;
       const newBody = body ?? existing.body;
+      // バージョンは手動指定を受け付けない。本体(type=promptならbody、type=skillならskillMarkdown)が
+      // 実質的に変わった時だけサーバー側でパッチ番号を自動的に上げる。
+      const contentChanged =
+        existing.type === "prompt"
+          ? newBody !== existing.body
+          : existing.type === "skill"
+            ? skillMarkdown !== undefined
+            : false;
+      const newVersion = contentChanged ? bumpPatchVersion(existing.version) : existing.version;
       const newSourceUrl = (sourceUrl ?? existing.source_url ?? "").trim();
       const newSourceAuthor = sourceAuthor ?? existing.source_author ?? "";
       const newLicense = license ?? existing.license ?? "";

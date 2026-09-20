@@ -201,6 +201,17 @@ export function isValidHttpUrl(value: string): boolean {
 }
 
 /**
+ * "1.2.3" 形式のバージョン文字列のパッチ番号を+1する。
+ * 過去の手動運用時代のバージョン("v1"や"2024-01-01"等)で形式が合わない場合は "1.0.1" にフォールバックする。
+ */
+export function bumpPatchVersion(version: string): string {
+  const m = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!m) return "1.0.1";
+  const [, major, minor, patch] = m;
+  return `${major}.${minor}.${Number(patch) + 1}`;
+}
+
+/**
  * アイテムのタグ付けを行う。REST の投稿/更新と MCP の create_item/update_item ツールの両方から利用する。
  * replace=true の場合、既存のタグ付けを一旦すべて削除してから付け直す(更新時の全置換)。
  */

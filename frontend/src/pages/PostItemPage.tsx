@@ -40,7 +40,6 @@ export default function PostItemPage() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
-  const [version, setVersion] = useState("1.0.0");
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -169,7 +168,6 @@ export default function PostItemPage() {
         fd.set("title", title);
         fd.set("summary", summary);
         fd.set("description", description);
-        fd.set("version", version);
         fd.set("body", body);
         fd.set("tagIds", JSON.stringify(selectedTagIds));
         if (file) fd.set("file", file);
@@ -192,7 +190,6 @@ export default function PostItemPage() {
           title,
           summary,
           description,
-          version,
           body,
           tagIds: JSON.stringify(selectedTagIds),
         });
@@ -346,18 +343,6 @@ export default function PostItemPage() {
                 textareaClassName={inputClass}
               />
             </div>
-
-            {type !== "external" && (
-              <div>
-                <label className={labelClass}>バージョン</label>
-                <input
-                  type="text"
-                  value={version}
-                  onChange={(e) => setVersion(e.target.value)}
-                  className={`w-40 font-mono ${inputClass}`}
-                />
-              </div>
-            )}
 
             {type === "skill" ? (
               <>

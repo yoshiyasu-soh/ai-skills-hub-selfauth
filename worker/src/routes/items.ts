@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { toCommentDTO, type CommentRow } from "../lib/comments";
-import { applyTags, fetchItemRow, isValidHttpUrl, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
+import { applyTags, bumpPatchVersion, fetchItemRow, isValidHttpUrl, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
 import { slugify } from "../lib/slug";
 import { markItemSeen, markItemWatched } from "../lib/watches";
 import type { AuthUser, Env, SortOption } from "../types";
@@ -166,7 +166,9 @@ items.post("/", async (c) => {
   const title = str(fields, "title");
   const summary = str(fields, "summary");
   const description = str(fields, "description");
-  const version = str(fields, "version", "1.0.0") || "1.0.0";
+  // バージョンは常に1.0.0から始まり、以降は本体(プロンプト本文/添付ファイル)の更新時にのみ
+  // サーバー側で自動的に上がる(手動入力は受け付けない)。
+  const version = "1.0.0";
   const bodyText = str(fields, "body");
   const tagIds = parseTagIds(fields["tagIds"]);
   const sourceUrl = str(fields, "sourceUrl");
@@ -265,7 +267,6 @@ items.put("/:id", async (c) => {
   const title = fields["title"] !== undefined ? str(fields, "title") : existing.title;
   const summary = fields["summary"] !== undefined ? str(fields, "summary") : existing.summary;
   const description = fields["description"] !== undefined ? str(fields, "description") : existing.description;
-  const version = fields["version"] !== undefined ? str(fields, "version") || existing.version : existing.version;
   const bodyText = fields["body"] !== undefined ? str(fields, "body") : existing.body;
   const tagIds = fields["tagIds"] !== undefined ? parseTagIds(fields["tagIds"]) : undefined;
   const sourceUrl = fields["sourceUrl"] !== undefined ? str(fields, "sourceUrl") : (existing.source_url ?? "");
@@ -273,6 +274,17 @@ items.put("/:id", async (c) => {
     fields["sourceAuthor"] !== undefined ? str(fields, "sourceAuthor") : (existing.source_author ?? "");
   const license = fields["license"] !== undefined ? str(fields, "license") : (existing.license ?? "");
   const stars = fields["stars"] !== undefined ? nonNegativeIntOrNull(fields, "stars") : existing.stars;
+
+  // バージョンは手動入力を受け付けない。本体(プロンプト本文/添付ファイル)が実質的に
+  // 変わった時だけサーバー側でパッチ番号を自動的に上げる。タグ・説明文だけの編集や、
+  // 外部紹介(OSS紹介)の編集ではバージョンは変化しない。
+  const contentChanged =
+    existing.type === "prompt"
+      ? bodyText !== existing.body
+      : existing.type === "skill"
+        ? Boolean(file)
+        : false;
+  const version = contentChanged ? bumpPatchVersion(existing.version) : existing.version;
 
   if (!title) return c.json({ error: "title is required" }, 400);
   if (existing.type === "prompt" && !bodyText) return c.json({ error: "body is required for prompt" }, 400);

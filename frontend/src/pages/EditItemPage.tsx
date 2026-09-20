@@ -12,7 +12,7 @@ const inputClass =
 const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
 
 const TIPS = [
-  "バージョンを変更すると、DL・コピー・お気に入り登録済みのユーザーに更新が通知されます",
+  "プロンプト本文・添付ファイルを実際に更新すると、自動的にバージョンが上がり、DL・コピー・お気に入り登録済みのユーザーに更新が通知されます(タグ・説明文だけの変更ではバージョンは変わりません)",
   "ファイルは差し替える場合のみ選択してください(未選択なら現在のファイルを維持します)",
   "概要は一覧カードにそのまま表示されます",
 ];
@@ -42,7 +42,6 @@ export default function EditItemPage() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
-  const [version, setVersion] = useState("");
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -69,7 +68,6 @@ export default function EditItemPage() {
         setTitle(it.title);
         setSummary(it.summary);
         setDescription(it.description);
-        setVersion(it.version);
         setBody(it.body);
         setSourceUrl(it.sourceUrl ?? "");
         setSourceAuthor(it.sourceAuthor ?? "");
@@ -141,7 +139,6 @@ export default function EditItemPage() {
         fd.set("title", title);
         fd.set("summary", summary);
         fd.set("description", description);
-        fd.set("version", version);
         fd.set("body", body);
         fd.set("tagIds", JSON.stringify(selectedTagIds));
         if (file) fd.set("file", file);
@@ -161,7 +158,6 @@ export default function EditItemPage() {
           title,
           summary,
           description,
-          version,
           body,
           tagIds: JSON.stringify(selectedTagIds),
         });
@@ -281,12 +277,12 @@ export default function EditItemPage() {
             {!isExternal && (
               <div>
                 <label className={labelClass}>バージョン</label>
-                <input
-                  type="text"
-                  value={version}
-                  onChange={(e) => setVersion(e.target.value)}
-                  className={`w-40 font-mono ${inputClass}`}
-                />
+                <p className="font-mono text-sm text-slate-600">
+                  v{item.version}
+                  <span className="ml-2 font-sans text-xs text-slate-400">
+                    ({isSkill ? "添付ファイル" : "本文"}を更新すると自動的に上がります)
+                  </span>
+                </p>
               </div>
             )}
 
