@@ -25,6 +25,18 @@ function formatBytes(bytes: number | null): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+// Claude Codeの `~/.claude/skills/<slug>/` にワンライナーで取得・配置するコマンドを組み立てる。
+// アクセストークン自体はコマンド中に埋め込まず、環境変数への代入をユーザー自身に行ってもらう。
+function buildInstallCommand(item: Item): string {
+  const url = `${window.location.origin}${api.items.downloadUrl(item.id)}`;
+  const dir = `~/.claude/skills/${item.slug}`;
+  const auth = `-H "Authorization: Bearer $AI_SKILLS_HUB_TOKEN"`;
+  if ((item.fileName ?? "").toLowerCase().endsWith(".md")) {
+    return `mkdir -p ${dir} && curl -fsSL ${auth} "${url}" -o ${dir}/SKILL.md`;
+  }
+  return `curl -fsSL ${auth} "${url}" -o /tmp/${item.slug}.zip && mkdir -p ${dir} && unzip -o /tmp/${item.slug}.zip -d ${dir} && rm /tmp/${item.slug}.zip`;
+}
+
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -34,6 +46,7 @@ export default function ItemDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contentTab, setContentTab] = useState<"description" | "body">("description");
+  const [installCommandCopied, setInstallCommandCopied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -116,6 +129,17 @@ export default function ItemDetailPage() {
           // 再取得に失敗しても表示中の値をそのまま維持する
         });
     }, 1000);
+  }
+
+  async function handleCopyInstallCommand() {
+    if (!item) return;
+    try {
+      await navigator.clipboard.writeText(buildInstallCommand(item));
+      setInstallCommandCopied(true);
+      setTimeout(() => setInstallCommandCopied(false), 1500);
+    } catch {
+      showToast("クリップボードへのコピーに失敗しました");
+    }
   }
 
   async function handleDelete() {
@@ -363,6 +387,32 @@ export default function ItemDetailPage() {
                 <span className="truncate font-mono">{item.fileName}</span>
               </div>
               <p className="mt-1 text-xs text-slate-400">{formatBytes(item.fileSize)}</p>
+            </div>
+          )}
+
+          {isSkill && item.fileName && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">インストールコマンド</p>
+              <div className="flex items-start gap-2 rounded-lg bg-slate-900 px-3.5 py-2.5">
+                <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-slate-100">
+                  {buildInstallCommand(item)}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => void handleCopyInstallCommand()}
+                  className="shrink-0 rounded-md border border-slate-700 px-2 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800"
+                >
+                  {installCommandCopied ? "コピーしました" : "コピー"}
+                </button>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                <code className="font-mono">$AI_SKILLS_HUB_TOKEN</code> に自分の
+                <Link to="/settings/tokens" className="text-brand-600 hover:underline">
+                  アクセストークン
+                </Link>
+                を設定してから実行すると、Claude Codeの<code className="font-mono">~/.claude/skills/</code>
+                以下にこのスキルを直接取得できます。
+              </p>
             </div>
           )}
 
