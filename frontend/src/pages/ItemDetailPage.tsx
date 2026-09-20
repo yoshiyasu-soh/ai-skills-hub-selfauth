@@ -63,7 +63,8 @@ export default function ItemDetailPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [contentTab, setContentTab] = useState<"description" | "body">("description");
+  const [contentTab, setContentTab] = useState<"description" | "body" | "comments">("description");
+  const [commentCount, setCommentCount] = useState(0);
   const [installOs, setInstallOs] = useState<InstallOs>(() =>
     navigator.userAgent.includes("Windows") ? "windows" : "unix",
   );
@@ -290,9 +291,13 @@ export default function ItemDetailPage() {
           {(() => {
             const hasDescription = Boolean(item.description);
             const hasBody = isSkill && Boolean(item.body);
-            if (!hasDescription && !hasBody) return null;
-            // 両方揃っている時だけユーザーの選択(contentTab)を使う。片方しか無い場合は常にそちらを表示する。
-            const activeTab = hasDescription && hasBody ? contentTab : hasDescription ? "description" : "body";
+            // コメントタブは常に存在するため、選択中のタブが実際に表示可能かをここで検証する。
+            const availableTabs = [
+              ...(hasDescription ? (["description"] as const) : []),
+              ...(hasBody ? (["body"] as const) : []),
+              "comments" as const,
+            ];
+            const activeTab = availableTabs.includes(contentTab) ? contentTab : availableTabs[0];
 
             return (
               <section className="rounded-xl border border-slate-200 bg-white shadow-card">
@@ -323,6 +328,17 @@ export default function ItemDetailPage() {
                       使い方メモ
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setContentTab("comments")}
+                    className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      activeTab === "comments"
+                        ? "border-b-2 border-brand-600 text-brand-700"
+                        : "border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                    }`}
+                  >
+                    コメント{commentCount > 0 && ` (${commentCount})`}
+                  </button>
                 </div>
                 <div className="p-5">
                   {hasDescription && activeTab === "description" && (
@@ -334,6 +350,9 @@ export default function ItemDetailPage() {
                   {hasBody && activeTab === "body" && (
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{item.body}</p>
                   )}
+                  <div className={activeTab === "comments" ? "" : "hidden"}>
+                    <CommentSection itemId={item.id} onCountChange={setCommentCount} />
+                  </div>
                 </div>
               </section>
             );
@@ -347,8 +366,6 @@ export default function ItemDetailPage() {
               </pre>
             </section>
           )}
-
-          <CommentSection itemId={item.id} />
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20">
