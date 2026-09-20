@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeftIcon,
   BoxIcon,
@@ -58,7 +58,11 @@ function buildInstallCommand(item: Item, os: InstallOs): string {
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+  // 一覧(カード)から遷移した場合は、そこで選んでいた絞り込み・ソート・ページを保ったまま戻れるように
+  // ItemCard側でstateに戻り先URLを積んでおいてもらう。無ければ("/一覧"直リンク等)一覧トップへ。
+  const backTo = (location.state as { from?: string } | null)?.from ?? "/";
 
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
@@ -187,7 +191,7 @@ export default function ItemDetailPage() {
 
   return (
     <div className="mx-auto max-w-[1280px]">
-      <Link to="/" className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
+      <Link to={backTo} className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
         <ArrowLeftIcon className="h-4 w-4" />
         一覧に戻る
       </Link>

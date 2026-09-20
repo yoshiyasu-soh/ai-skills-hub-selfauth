@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { formatCompactNumber } from "../lib/formatNumber";
 import type { Item } from "../lib/types";
 import { BoxIcon, DownloadIcon, ExternalLinkIcon, SparkleIcon, StarIcon } from "./icons";
@@ -17,11 +17,20 @@ const TYPE_META = {
 
 export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
   const { label, accentBg, accentText, Icon } = TYPE_META[item.type];
+  const location = useLocation();
+  // 一覧側の絞り込み・ソート・ページ(現在のURL)を渡しておき、詳細ページの
+  // 「一覧に戻る」がここへ戻れるようにする。
+  const backState = { from: `${location.pathname}${location.search}` };
 
   return (
     <div className="group relative flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-card-hover">
       {/* カード全体を1枚のリンクとして扱う(下の各インタラクティブ要素は relative+z-10 で手前に出して個別にクリックできるようにしている) */}
-      <Link to={`/items/${item.id}`} className="absolute inset-0 z-0 rounded-xl" aria-label={item.title} />
+      <Link
+        to={`/items/${item.id}`}
+        state={backState}
+        className="absolute inset-0 z-0 rounded-xl"
+        aria-label={item.title}
+      />
 
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">

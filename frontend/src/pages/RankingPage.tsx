@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import { BarsIcon } from "../components/icons";
 import { api } from "../lib/api";
@@ -9,13 +10,38 @@ const PERIODS: { value: RankingPeriod; label: string }[] = [
   { value: "30d", label: "過去30日" },
   { value: "7d", label: "過去7日" },
 ];
+const PERIOD_VALUES = PERIODS.map((p) => p.value) as readonly string[];
+
+const TYPE_VALUES = ["all", "skill", "prompt", "external"] as const;
+type TypeFilter = (typeof TYPE_VALUES)[number];
 
 export default function RankingPage() {
-  const [type, setType] = useState<"all" | "skill" | "prompt" | "external">("all");
-  const [period, setPeriod] = useState<RankingPeriod>("all");
+  // 一覧に戻った時に絞り込みが保持されるよう、HomePageと同様にURLを情報源にする。
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawType = searchParams.get("type");
+  const type: TypeFilter = (TYPE_VALUES as readonly string[]).includes(rawType ?? "") ? (rawType as TypeFilter) : "all";
+  const rawPeriod = searchParams.get("period");
+  const period: RankingPeriod = PERIOD_VALUES.includes(rawPeriod ?? "") ? (rawPeriod as RankingPeriod) : "all";
+
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  function updateParams(patch: Record<string, string | undefined>) {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === undefined || v === "") next.delete(k);
+          else next.set(k, v);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
     setLoading(true);
@@ -25,7 +51,8 @@ export default function RankingPage() {
       .then((res) => setItems(res.items))
       .catch((err) => setError(err instanceof Error ? err.message : "取得に失敗しました"))
       .finally(() => setLoading(false));
-  }, [type, period]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchKey]);
 
   return (
     <div>
@@ -38,11 +65,11 @@ export default function RankingPage() {
 
       <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-card">
         <div className="flex overflow-hidden rounded-lg border border-slate-200">
-          {(["all", "skill", "prompt", "external"] as const).map((v) => (
+          {TYPE_VALUES.map((v) => (
             <button
               key={v}
               type="button"
-              onClick={() => setType(v)}
+              onClick={() => updateParams({ type: v === "all" ? undefined : v })}
               className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                 type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
               }`}
@@ -56,7 +83,7 @@ export default function RankingPage() {
             <button
               key={p.value}
               type="button"
-              onClick={() => setPeriod(p.value)}
+              onClick={() => updateParams({ period: p.value === "all" ? undefined : p.value })}
               className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                 period === p.value ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
               }`}

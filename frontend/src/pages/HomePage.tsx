@@ -14,39 +14,90 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "favorites", label: "お気に入り数順" },
   { value: "name", label: "名前順" },
 ];
+const SORT_VALUES = SORT_OPTIONS.map((o) => o.value) as readonly string[];
+
+const TYPE_VALUES = ["all", "skill", "prompt", "external"] as const;
+type TypeFilter = (typeof TYPE_VALUES)[number];
 
 const PAGE_SIZE = 20;
 
+function parseTagIds(raw: string | null): number[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map(Number)
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
 export default function HomePage() {
+  // 一覧の絞り込み・ソート・ページはすべてURLのクエリパラメータを唯一の情報源とする。
+  // これにより、詳細を見てから「一覧に戻る」で戻った時に条件が保持される
+  // (ItemCardが戻り先URLをstateとして持たせ、詳細ページ側でそこへ戻す)。
   const [searchParams, setSearchParams] = useSearchParams();
+
   const mine = searchParams.get("mine") === "1";
+  const rawType = searchParams.get("type");
+  const type: TypeFilter = (TYPE_VALUES as readonly string[]).includes(rawType ?? "") ? (rawType as TypeFilter) : "all";
+  const rawSort = searchParams.get("sort");
+  const sort: SortOption = SORT_VALUES.includes(rawSort ?? "") ? (rawSort as SortOption) : "newest";
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const selectedTagIds = parseTagIds(searchParams.get("tags"));
 
-  const [type, setType] = useState<"all" | "skill" | "prompt" | "external">("all");
-  const [q, setQ] = useState("");
-  const [debouncedQ, setDebouncedQ] = useState("");
+  // 検索欄はキー入力の度にURLを書き換えると重いため、ローカルstateで即時反映しつつ
+  // デバウンス後にのみURL(=検索条件の実体)へコミットする。
+  const [q, setQ] = useState(() => searchParams.get("q") ?? "");
+
   const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
-  const [sort, setSort] = useState<SortOption>("newest");
-  const [page, setPage] = useState(1);
-
-  function toggleMine() {
-    const next = new URLSearchParams(searchParams);
-    if (mine) {
-      next.delete("mine");
-    } else {
-      next.set("mine", "1");
-    }
-    setSearchParams(next);
-  }
-
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  function updateParams(patch: Record<string, string | undefined>) {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === undefined || v === "") next.delete(k);
+          else next.set(k, v);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  }
+
+  function handleTypeChange(v: TypeFilter) {
+    updateParams({ type: v === "all" ? undefined : v, page: undefined });
+  }
+
+  function handleSortChange(v: SortOption) {
+    updateParams({ sort: v === "newest" ? undefined : v, page: undefined });
+  }
+
+  function handleTagsChange(ids: number[]) {
+    updateParams({ tags: ids.length > 0 ? ids.join(",") : undefined, page: undefined });
+  }
+
+  function handlePageChange(p: number) {
+    updateParams({ page: p === 1 ? undefined : String(p) });
+  }
+
+  function toggleMine() {
+    updateParams({ mine: mine ? undefined : "1", page: undefined });
+  }
+
+  // qの入力を300ms後にURLへコミットする。マウント直後(URLの値をそのまま初期値にしただけ)は
+  // 何もしない(ここで無条件にコミットするとpageがリセットされ、復元したページ番号が消えてしまう)。
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(q), 300);
+    const t = setTimeout(() => {
+      const committed = searchParams.get("q") ?? "";
+      const trimmed = q.trim();
+      if (trimmed === committed) return;
+      updateParams({ q: trimmed || undefined, page: undefined });
+    }, 300);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
   useEffect(() => {
@@ -58,9 +109,7 @@ export default function HomePage() {
       });
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-  }, [type, debouncedQ, selectedTagIds, sort, mine]);
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
     let cancelled = false;
@@ -69,7 +118,7 @@ export default function HomePage() {
     api.items
       .list({
         type: type === "all" ? undefined : type,
-        q: debouncedQ || undefined,
+        q: (searchParams.get("q") ?? "").trim() || undefined,
         tags: selectedTagIds,
         sort,
         page,
@@ -90,7 +139,8 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [type, debouncedQ, selectedTagIds, sort, page, mine]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchKey]);
 
   async function handleToggleFavorite(item: Item) {
     setItems((prev) =>
@@ -175,11 +225,11 @@ export default function HomePage() {
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-card">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex overflow-hidden rounded-lg border border-slate-200">
-            {(["all", "skill", "prompt", "external"] as const).map((v) => (
+            {TYPE_VALUES.map((v) => (
               <button
                 key={v}
                 type="button"
-                onClick={() => setType(v)}
+                onClick={() => handleTypeChange(v)}
                 className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                   type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
                 }`}
@@ -214,7 +264,7 @@ export default function HomePage() {
 
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value as SortOption)}
+            onChange={(e) => handleSortChange(e.target.value as SortOption)}
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
           >
             {SORT_OPTIONS.map((opt) => (
@@ -225,7 +275,7 @@ export default function HomePage() {
           </select>
         </div>
 
-        <TagFilterBar tags={tags} selected={selectedTagIds} onChange={setSelectedTagIds} />
+        <TagFilterBar tags={tags} selected={selectedTagIds} onChange={handleTagsChange} />
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
@@ -244,7 +294,7 @@ export default function HomePage() {
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} onChange={handlePageChange} />
     </div>
   );
 }
