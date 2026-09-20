@@ -55,6 +55,15 @@ export interface Comment {
   canDelete: boolean;
 }
 
+export interface ItemVersion {
+  id: number;
+  version: string;
+  body: string;
+  fileName: string | null;
+  fileSize: number | null;
+  createdAt: string;
+}
+
 export interface GitHubMetadata {
   title: string;
   description: string;

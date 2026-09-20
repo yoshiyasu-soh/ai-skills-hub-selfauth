@@ -61,6 +61,8 @@ DROP TABLE _mig_backup_usage_events;
 - `item_watches`(更新通知の購読・既読バージョン)
 - `usage_events`(DL/コピー/訪問ログ。期間別ランキングと「同じ人の重複カウント防止」に使用)
 - `item_comments`(投稿へのコメントスレッド。0014で追加)
+- `item_versions`(過去バージョンのスナップショット。0015で追加。`r2_key`が指すR2オブジェクトは
+  アイテム削除時にDB行と一緒に明示的に削除する必要がある(`worker/src/routes/items.ts`のDELETE `/:id`参照))
 
 新しいテーブルが `items(id)` を参照するようになったら、このリストにも追記すること。
 `users` テーブルなど他の親テーブルについても同様に、再構築が必要になった際は参照している

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { toCommentDTO, type CommentRow } from "../lib/comments";
 import { applyTags, bumpPatchVersion, fetchItemRow, isValidHttpUrl, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
 import { slugify } from "../lib/slug";
+import { toVersionDTO, type VersionRow } from "../lib/versions";
 import { markItemSeen, markItemWatched } from "../lib/watches";
 import type { AuthUser, Env, SortOption } from "../types";
 
@@ -305,16 +306,32 @@ items.put("/:id", async (c) => {
       return c.json({ error: `file too large (max ${MAX_SKILL_FILE_SIZE / 1024 / 1024}MB)` }, 400);
     }
 
-    const newKey = `skills/${id}/${file.name}`;
+    // バージョンごとに別オブジェクトとして保存する(過去バージョンの参照用に、同名で
+    // 再アップロードしても既存のファイルを上書き・削除しない)。
+    const newKey = `skills/${id}/${Date.now()}-${file.name}`;
     await c.env.ASSETS_BUCKET.put(newKey, await file.arrayBuffer(), {
       httpMetadata: { contentType: contentTypeForFileName(file.name) },
     });
-    if (existing.r2_key && existing.r2_key !== newKey) {
-      await c.env.ASSETS_BUCKET.delete(existing.r2_key);
-    }
     r2Key = newKey;
     fileName = file.name;
     fileSize = file.size;
+  }
+
+  // バージョンが実際に上がる時は、置き換えられる直前の内容を履歴として残す。
+  if (contentChanged) {
+    await c.env.DB.prepare(
+      `INSERT INTO item_versions (item_id, version, body, r2_key, file_name, file_size, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+    )
+      .bind(
+        id,
+        existing.version,
+        existing.type === "prompt" ? existing.body : "",
+        existing.type === "skill" ? existing.r2_key : null,
+        existing.type === "skill" ? existing.file_name : null,
+        existing.type === "skill" ? existing.file_size : null,
+      )
+      .run();
   }
 
   await c.env.DB.prepare(
@@ -360,12 +377,21 @@ items.delete("/:id", async (c) => {
   if (existing.r2_key) {
     await c.env.ASSETS_BUCKET.delete(existing.r2_key);
   }
+  const { results: oldVersionFiles } = await c.env.DB.prepare(
+    "SELECT r2_key FROM item_versions WHERE item_id = ? AND r2_key IS NOT NULL",
+  )
+    .bind(id)
+    .all<{ r2_key: string }>();
+  for (const v of oldVersionFiles ?? []) {
+    await c.env.ASSETS_BUCKET.delete(v.r2_key);
+  }
 
   await c.env.DB.batch([
     c.env.DB.prepare("DELETE FROM item_tags WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM favorites WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM usage_events WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM item_comments WHERE item_id = ?").bind(id),
+    c.env.DB.prepare("DELETE FROM item_versions WHERE item_id = ?").bind(id),
     c.env.DB.prepare("DELETE FROM items WHERE id = ?").bind(id),
   ]);
 
@@ -393,6 +419,53 @@ items.get("/:id/download", async (c) => {
   await markItemWatched(c.env.DB, user.email, item.author_email, id, item.version, { markSeen: true });
 
   const fileName = item.file_name ?? "skill.zip";
+  return new Response(obj.body, {
+    headers: {
+      "Content-Type": contentTypeForFileName(fileName),
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(fileName)}"`,
+      "Content-Length": String(obj.size),
+    },
+  });
+});
+
+// ---- 過去バージョンの一覧(古い順)。外部紹介(OSS紹介)にはバージョン概念が無いため対象外 ----
+items.get("/:id/versions", async (c) => {
+  const item = await c.env.DB.prepare("SELECT id, type FROM items WHERE id = ?")
+    .bind(c.req.param("id"))
+    .first<{ id: string; type: string }>();
+  if (!item) return c.json({ error: "not_found" }, 404);
+  if (item.type === "external") return c.json({ versions: [] });
+
+  const { results } = await c.env.DB.prepare(
+    `SELECT id, version, body, r2_key, file_name, file_size, created_at
+     FROM item_versions WHERE item_id = ? ORDER BY created_at ASC`,
+  )
+    .bind(item.id)
+    .all<VersionRow>();
+
+  return c.json({ versions: (results ?? []).map(toVersionDTO) });
+});
+
+// ---- 過去バージョンのスキル資産ダウンロード(DL数のカウント対象外) ----
+items.get("/:id/versions/:versionId/download", async (c) => {
+  const id = c.req.param("id");
+  const versionId = c.req.param("versionId");
+
+  const item = await c.env.DB.prepare("SELECT type FROM items WHERE id = ?").bind(id).first<{ type: string }>();
+  if (!item) return c.json({ error: "not_found" }, 404);
+  if (item.type !== "skill") return c.json({ error: "this item has no downloadable file" }, 400);
+
+  const version = await c.env.DB.prepare(
+    "SELECT r2_key, file_name FROM item_versions WHERE id = ? AND item_id = ?",
+  )
+    .bind(versionId, id)
+    .first<{ r2_key: string | null; file_name: string | null }>();
+  if (!version || !version.r2_key) return c.json({ error: "this version has no downloadable file" }, 400);
+
+  const obj = await c.env.ASSETS_BUCKET.get(version.r2_key);
+  if (!obj) return c.json({ error: "file not found in storage" }, 404);
+
+  const fileName = version.file_name ?? "skill.zip";
   return new Response(obj.body, {
     headers: {
       "Content-Type": contentTypeForFileName(fileName),

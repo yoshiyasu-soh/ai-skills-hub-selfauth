@@ -3,6 +3,7 @@ import type {
   Comment,
   GitHubMetadata,
   Item,
+  ItemVersion,
   NewApiToken,
   ProfileUpdatePayload,
   RankingPeriod,
@@ -154,6 +155,10 @@ export const api = {
         }),
       remove: (id: string, commentId: number) =>
         request<{ ok: true }>(`/items/${id}/comments/${commentId}`, { method: "DELETE" }),
+    },
+    versions: {
+      list: (id: string) => request<{ versions: ItemVersion[] }>(`/items/${id}/versions`),
+      downloadUrl: (id: string, versionId: number) => `${API_BASE}/items/${id}/versions/${versionId}/download`,
     },
   },
 

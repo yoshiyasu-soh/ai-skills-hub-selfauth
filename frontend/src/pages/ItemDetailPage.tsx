@@ -12,6 +12,7 @@ import {
   UserIcon,
 } from "../components/icons";
 import CommentSection from "../components/CommentSection";
+import VersionHistorySection from "../components/VersionHistorySection";
 import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
@@ -67,8 +68,9 @@ export default function ItemDetailPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [contentTab, setContentTab] = useState<"description" | "body" | "comments">("description");
+  const [contentTab, setContentTab] = useState<"description" | "body" | "comments" | "history">("description");
   const [commentCount, setCommentCount] = useState(0);
+  const [versionCount, setVersionCount] = useState(0);
   const [installOs, setInstallOs] = useState<InstallOs>(() =>
     navigator.userAgent.includes("Windows") ? "windows" : "unix",
   );
@@ -295,11 +297,14 @@ export default function ItemDetailPage() {
           {(() => {
             const hasDescription = Boolean(item.description);
             const hasBody = isSkill && Boolean(item.body);
-            // コメントタブは常に存在するため、選択中のタブが実際に表示可能かをここで検証する。
+            // コメントタブは常に存在する。バージョン履歴タブは外部紹介(OSS紹介)以外の
+            // 全種別に存在する(外部紹介にはバージョンの概念自体を適用していないため)。
+            // 選択中のタブが実際に表示可能かをここで検証する。
             const availableTabs = [
               ...(hasDescription ? (["description"] as const) : []),
               ...(hasBody ? (["body"] as const) : []),
               "comments" as const,
+              ...(isExternal ? [] : (["history"] as const)),
             ];
             const activeTab = availableTabs.includes(contentTab) ? contentTab : availableTabs[0];
 
@@ -343,6 +348,19 @@ export default function ItemDetailPage() {
                   >
                     コメント{commentCount > 0 && ` (${commentCount})`}
                   </button>
+                  {!isExternal && (
+                    <button
+                      type="button"
+                      onClick={() => setContentTab("history")}
+                      className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                        activeTab === "history"
+                          ? "border-b-2 border-brand-600 text-brand-700"
+                          : "border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                      }`}
+                    >
+                      バージョン履歴{versionCount > 0 && ` (${versionCount})`}
+                    </button>
+                  )}
                 </div>
                 <div className="p-5">
                   {hasDescription && activeTab === "description" && (
@@ -357,6 +375,11 @@ export default function ItemDetailPage() {
                   <div className={activeTab === "comments" ? "" : "hidden"}>
                     <CommentSection itemId={item.id} onCountChange={setCommentCount} />
                   </div>
+                  {!isExternal && (
+                    <div className={activeTab === "history" ? "" : "hidden"}>
+                      <VersionHistorySection item={item} onCountChange={setVersionCount} />
+                    </div>
+                  )}
                 </div>
               </section>
             );

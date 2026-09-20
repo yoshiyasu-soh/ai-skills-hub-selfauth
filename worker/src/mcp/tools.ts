@@ -373,12 +373,31 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
             isError: true,
           };
         }
-        r2Key = existing.r2_key ?? `skills/${id}/SKILL.md`;
+        // バージョンごとに別オブジェクトとして保存する(過去バージョンの参照用に、
+        // 既存のファイルを上書きしない)。
+        r2Key = `skills/${id}/${Date.now()}-SKILL.md`;
         fileName = "SKILL.md";
         fileSize = new TextEncoder().encode(skillMarkdown).length;
         await env.ASSETS_BUCKET.put(r2Key, skillMarkdown, {
           httpMetadata: { contentType: "text/markdown; charset=utf-8" },
         });
+      }
+
+      // バージョンが実際に上がる時は、置き換えられる直前の内容を履歴として残す。
+      if (contentChanged) {
+        await env.DB.prepare(
+          `INSERT INTO item_versions (item_id, version, body, r2_key, file_name, file_size, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+        )
+          .bind(
+            id,
+            existing.version,
+            existing.type === "prompt" ? existing.body : "",
+            existing.type === "skill" ? existing.r2_key : null,
+            existing.type === "skill" ? existing.file_name : null,
+            existing.type === "skill" ? existing.file_size : null,
+          )
+          .run();
       }
 
       await env.DB.prepare(
