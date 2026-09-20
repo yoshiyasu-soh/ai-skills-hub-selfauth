@@ -14,6 +14,7 @@ import {
 import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
+import { formatCompactNumber } from "../lib/formatNumber";
 import { useToast } from "../lib/ToastContext";
 import type { Item } from "../lib/types";
 
@@ -162,7 +163,16 @@ export default function ItemDetailPage() {
                 <span className={`font-semibold uppercase tracking-wide ${accentText}`}>
                   {isSkill ? "Skill" : isExternal ? "OSS紹介" : "Prompt"}
                 </span>
-                {!isExternal && <span className="font-mono text-slate-400">v{item.version}</span>}
+                {isExternal ? (
+                  item.stars !== null && (
+                    <span className="flex items-center gap-1 font-mono text-slate-400">
+                      <StarIcon filled className="h-3.5 w-3.5 text-amber-400" />
+                      {formatCompactNumber(item.stars)}
+                    </span>
+                  )
+                ) : (
+                  <span className="font-mono text-slate-400">v{item.version}</span>
+                )}
               </span>
               <h1 className="text-2xl font-bold leading-tight text-slate-900">{item.title}</h1>
             </div>
@@ -370,6 +380,15 @@ export default function ItemDetailPage() {
                   <div>
                     <dt className="text-xs text-slate-400">ライセンス</dt>
                     <dd>{item.license}</dd>
+                  </div>
+                )}
+                {item.stars !== null && (
+                  <div>
+                    <dt className="text-xs text-slate-400">GitHub Stars</dt>
+                    <dd className="flex items-center gap-1">
+                      <StarIcon filled className="h-3.5 w-3.5 text-amber-400" />
+                      {item.stars.toLocaleString()}
+                    </dd>
                   </div>
                 )}
                 {item.sourceUrl && (

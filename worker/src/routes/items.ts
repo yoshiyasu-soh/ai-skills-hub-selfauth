@@ -64,6 +64,14 @@ function str(fields: Fields, key: string, fallback = ""): string {
   return String(v).trim();
 }
 
+/** 非負整数として解釈できない値(未指定・空文字・NaN等)は null として扱う */
+function nonNegativeIntOrNull(fields: Fields, key: string): number | null {
+  const v = fields[key];
+  if (v === undefined || v === null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? Math.trunc(n) : null;
+}
+
 // ---- 一覧: type / タグ(AND) / 文字列検索 / ソート / ページング ----
 items.get("/", async (c) => {
   const user = c.get("user");
@@ -163,6 +171,7 @@ items.post("/", async (c) => {
   const sourceUrl = str(fields, "sourceUrl");
   const sourceAuthor = str(fields, "sourceAuthor");
   const license = str(fields, "license");
+  const stars = nonNegativeIntOrNull(fields, "stars");
 
   if (type !== "skill" && type !== "prompt" && type !== "external") {
     return c.json({ error: "type must be 'skill', 'prompt' or 'external'" }, 400);
@@ -200,8 +209,8 @@ items.post("/", async (c) => {
   }
 
   await c.env.DB.prepare(
-    `INSERT INTO items (id, type, slug, title, summary, description, body, r2_key, file_name, file_size, version, author_email, source_url, source_author, license)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO items (id, type, slug, title, summary, description, body, r2_key, file_name, file_size, version, author_email, source_url, source_author, license, stars)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       id,
@@ -219,6 +228,7 @@ items.post("/", async (c) => {
       type === "external" ? sourceUrl : null,
       type === "external" && sourceAuthor ? sourceAuthor : null,
       type === "external" && license ? license : null,
+      type === "external" ? stars : null,
     )
     .run();
 
@@ -261,6 +271,7 @@ items.put("/:id", async (c) => {
   const sourceAuthor =
     fields["sourceAuthor"] !== undefined ? str(fields, "sourceAuthor") : (existing.source_author ?? "");
   const license = fields["license"] !== undefined ? str(fields, "license") : (existing.license ?? "");
+  const stars = fields["stars"] !== undefined ? nonNegativeIntOrNull(fields, "stars") : existing.stars;
 
   if (!title) return c.json({ error: "title is required" }, 400);
   if (existing.type === "prompt" && !bodyText) return c.json({ error: "body is required for prompt" }, 400);
@@ -295,7 +306,7 @@ items.put("/:id", async (c) => {
 
   await c.env.DB.prepare(
     `UPDATE items SET title=?, summary=?, description=?, body=?, version=?, r2_key=?, file_name=?, file_size=?,
-       source_url=?, source_author=?, license=?, updated_at=datetime('now')
+       source_url=?, source_author=?, license=?, stars=?, updated_at=datetime('now')
      WHERE id=?`,
   )
     .bind(
@@ -310,6 +321,7 @@ items.put("/:id", async (c) => {
       existing.type === "external" ? sourceUrl : null,
       existing.type === "external" && sourceAuthor ? sourceAuthor : null,
       existing.type === "external" && license ? license : null,
+      existing.type === "external" ? stars : null,
       id,
     )
     .run();

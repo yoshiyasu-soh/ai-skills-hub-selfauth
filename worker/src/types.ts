@@ -81,6 +81,7 @@ export interface ItemRow {
   source_url: string | null;
   source_author: string | null;
   license: string | null;
+  stars: number | null;
 }
 
 export interface TagRow {

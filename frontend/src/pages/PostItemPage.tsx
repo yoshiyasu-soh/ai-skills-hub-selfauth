@@ -183,6 +183,7 @@ export default function PostItemPage() {
           sourceUrl: sourceUrl.trim(),
           sourceAuthor,
           license,
+          stars: fetchedStars ?? undefined,
           tagIds: JSON.stringify(selectedTagIds),
         });
       } else {

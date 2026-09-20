@@ -42,6 +42,7 @@ export interface Item {
   sourceUrl: string | null;
   sourceAuthor: string | null;
   license: string | null;
+  stars: number | null;
 }
 
 export interface GitHubMetadata {

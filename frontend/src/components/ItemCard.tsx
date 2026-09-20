@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { formatCompactNumber } from "../lib/formatNumber";
 import type { Item } from "../lib/types";
 import { BoxIcon, DownloadIcon, ExternalLinkIcon, SparkleIcon, StarIcon } from "./icons";
 
@@ -30,7 +31,16 @@ export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
           </div>
           <div className="flex flex-col leading-tight">
             <span className={`text-[11px] font-semibold uppercase tracking-wide ${accentText}`}>{label}</span>
-            {item.type !== "external" && <span className="font-mono text-[11px] text-slate-400">v{item.version}</span>}
+            {item.type === "external" ? (
+              item.stars !== null && (
+                <span className="flex items-center gap-0.5 font-mono text-[11px] text-slate-400">
+                  <StarIcon filled className="h-2.5 w-2.5 text-amber-400" />
+                  {formatCompactNumber(item.stars)}
+                </span>
+              )
+            ) : (
+              <span className="font-mono text-[11px] text-slate-400">v{item.version}</span>
+            )}
           </div>
         </div>
         <button

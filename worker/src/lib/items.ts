@@ -24,6 +24,7 @@ export interface ItemDTO {
   sourceUrl: string | null;
   sourceAuthor: string | null;
   license: string | null;
+  stars: number | null;
 }
 
 type RowWithAuthor = ItemRow & { author_display_name?: string };
@@ -99,6 +100,7 @@ export async function toItemDTOs(
     sourceUrl: r.source_url,
     sourceAuthor: r.source_author,
     license: r.license,
+    stars: r.stars,
   }));
 }
 

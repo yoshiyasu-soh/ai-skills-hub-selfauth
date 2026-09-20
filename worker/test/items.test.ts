@@ -97,7 +97,7 @@ describe("POST /api/items バリデーション", () => {
     expect(data.item.title).toBe("テストプロンプト");
   });
 
-  it("正しいexternalは201で作成できる", async () => {
+  it("正しいexternalは201で作成できる(GitHubスター数も保存される)", async () => {
     const res = await SELF.fetch("https://example.com/api/items", {
       method: "POST",
       headers: await authHeaders(OWNER),
@@ -107,13 +107,28 @@ describe("POST /api/items バリデーション", () => {
         sourceUrl: "https://github.com/example/repo",
         sourceAuthor: "example",
         license: "MIT",
+        stars: 1234,
       }),
     });
     expect(res.status).toBe(201);
-    const data = await res.json<{ item: { sourceUrl: string; sourceAuthor: string; license: string } }>();
+    const data = await res.json<{
+      item: { sourceUrl: string; sourceAuthor: string; license: string; stars: number | null };
+    }>();
     expect(data.item.sourceUrl).toBe("https://github.com/example/repo");
     expect(data.item.sourceAuthor).toBe("example");
     expect(data.item.license).toBe("MIT");
+    expect(data.item.stars).toBe(1234);
+  });
+
+  it("type=promptにstarsを送っても保存されない(external専用)", async () => {
+    const res = await SELF.fetch("https://example.com/api/items", {
+      method: "POST",
+      headers: await authHeaders(OWNER),
+      body: JSON.stringify({ type: "prompt", title: "プロンプト", body: "本文", stars: 999 }),
+    });
+    expect(res.status).toBe(201);
+    const data = await res.json<{ item: { stars: number | null } }>();
+    expect(data.item.stars).toBeNull();
   });
 });
 

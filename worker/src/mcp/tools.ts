@@ -123,6 +123,7 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
         body.sourceUrl = item.sourceUrl;
         body.sourceAuthor = item.sourceAuthor;
         body.license = item.license;
+        body.stars = item.stars;
         body.note = "これは第三者が公開しているOSS等の紹介です。著作権は元の作者に帰属します。";
       } else {
         body.usageNote = item.body || null;
