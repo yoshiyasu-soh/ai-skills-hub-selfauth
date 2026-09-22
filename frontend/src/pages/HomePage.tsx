@@ -191,7 +191,7 @@ export default function HomePage() {
               SKILLとは？
               <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-skill" />
             </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">Claudeに特定の作業をさせるための再利用可能な機能。</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-500">Claudeに特定の作業をさせるための再利用可能な機能。</p>
           </Link>
           <Link
             to="/guide/prompts"
@@ -204,7 +204,7 @@ export default function HomePage() {
               PROMPTとは？
               <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-prompt" />
             </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">Claudeにそのままコピーして使える指示文。</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-500">Claudeにそのままコピーして使える指示文。</p>
           </Link>
           <Link
             to="/guide/external"
@@ -217,7 +217,7 @@ export default function HomePage() {
               OSS紹介とは？
               <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-amber-600" />
             </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">既に公開されているOSSをリンクで紹介する投稿。</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-500">既に公開されているOSSをリンクで紹介する投稿。</p>
           </Link>
         </div>
       </div>
@@ -230,6 +230,7 @@ export default function HomePage() {
                 key={v}
                 type="button"
                 onClick={() => handleTypeChange(v)}
+                aria-pressed={type === v}
                 className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                   type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
                 }`}
@@ -242,6 +243,7 @@ export default function HomePage() {
           <button
             type="button"
             onClick={toggleMine}
+            aria-pressed={mine}
             className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
               mine
                 ? "border-brand-600 bg-brand-600 text-white"
@@ -281,9 +283,9 @@ export default function HomePage() {
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-400">読み込み中...</p>
+        <p className="text-sm text-slate-500">読み込み中...</p>
       ) : items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-400">
+        <p className="rounded-xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-500">
           {mine ? "まだ投稿がありません。" : "該当する投稿が見つかりませんでした。"}
         </p>
       ) : (

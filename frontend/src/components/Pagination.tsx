@@ -41,7 +41,7 @@ export default function Pagination({ page, totalPages, onChange }: PaginationPro
 
       {entries.map((entry, i) =>
         entry === "ellipsis-start" || entry === "ellipsis-end" ? (
-          <span key={entry + i} className="flex h-8 w-8 items-center justify-center text-slate-400">
+          <span key={entry + i} className="flex h-8 w-8 items-center justify-center text-slate-500">
             …
           </span>
         ) : (
