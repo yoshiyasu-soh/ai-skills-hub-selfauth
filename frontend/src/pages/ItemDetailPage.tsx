@@ -182,26 +182,26 @@ export default function ItemDetailPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-slate-400">読み込み中...</p>;
+  if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
   if (error) return <p className="text-sm text-red-500">{error}</p>;
-  if (!item) return <p className="text-sm text-slate-400">見つかりませんでした。</p>;
+  if (!item) return <p className="text-sm text-ink-secondary">見つかりませんでした。</p>;
 
   const isSkill = item.type === "skill";
   const isExternal = item.type === "external";
-  const accentText = isSkill ? "text-skill" : isExternal ? "text-amber-600" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-amber-500" : "bg-prompt";
+  const accentText = isSkill ? "text-skill" : isExternal ? "text-external" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-external" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
-      <Link to={backTo} className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
+      <Link to={backTo} className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink">
         <ArrowLeftIcon className="h-4 w-4" />
         一覧に戻る
       </Link>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-border bg-surface p-6 shadow-card">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white ${accentBg}`}>
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-onaccent ${accentBg}`}>
               {isSkill ? (
                 <BoxIcon className="h-5 w-5" />
               ) : isExternal ? (
@@ -212,35 +212,35 @@ export default function ItemDetailPage() {
             </div>
             <div>
               <span className="flex items-center gap-1.5 text-xs">
-                <span className={`font-semibold uppercase tracking-wide ${accentText}`}>
+                <span className={`font-display font-semibold uppercase tracking-wide ${accentText}`}>
                   {isSkill ? "Skill" : isExternal ? "OSS紹介" : "Prompt"}
                 </span>
                 {isExternal ? (
                   item.stars !== null && (
-                    <span className="flex items-center gap-1 font-mono text-slate-400">
-                      <StarIcon filled className="h-3.5 w-3.5 text-amber-400" />
+                    <span className="flex items-center gap-1 font-mono text-ink-secondary">
+                      <StarIcon filled className="h-3.5 w-3.5 text-external" />
                       {formatCompactNumber(item.stars)}
                     </span>
                   )
                 ) : (
-                  <span className="font-mono text-slate-400">v{item.version}</span>
+                  <span className="font-mono text-ink-secondary">v{item.version}</span>
                 )}
               </span>
-              <h1 className="text-2xl font-bold leading-tight text-slate-900">{item.title}</h1>
+              <h1 className="font-display text-2xl font-bold leading-tight text-ink">{item.title}</h1>
             </div>
           </div>
           {item.isOwner && (
             <div className="flex shrink-0 gap-2">
               <Link
                 to={`/items/${item.id}/edit`}
-                className="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-ink-secondary hover:bg-surface-2"
               >
                 編集
               </Link>
               <button
                 type="button"
                 onClick={() => void handleDelete()}
-                className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                className="rounded-md border border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-500/10"
               >
                 削除
               </button>
@@ -248,20 +248,20 @@ export default function ItemDetailPage() {
           )}
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-secondary">
           <span className="flex items-center gap-1 tabular-nums">
-            <UserIcon className="h-4 w-4 text-slate-400" />
+            <UserIcon className="h-4 w-4 text-ink-secondary" />
             {item.usageCount} users
           </span>
           <span className="flex items-center gap-1 tabular-nums">
-            <StarIcon filled={item.isFavorited} className={`h-4 w-4 ${item.isFavorited ? "text-amber-400" : "text-slate-300"}`} />
+            <StarIcon filled={item.isFavorited} className={`h-4 w-4 ${item.isFavorited ? "text-external" : "text-ink-muted"}`} />
             {item.favoriteCount}
           </span>
           <Link
             to={`/users/${encodeURIComponent(item.authorEmail)}`}
             className="flex items-center gap-1.5 hover:underline"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-600">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-2 text-[10px] font-semibold text-ink-secondary">
               {item.authorName.slice(0, 1)}
             </span>
             {item.authorName}
@@ -270,7 +270,7 @@ export default function ItemDetailPage() {
         </div>
 
         {item.hasUpdate && (
-          <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
+          <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-500">
             前回ご覧になってからバージョンが更新されています(v{item.version})。
           </div>
         )}
@@ -278,7 +278,7 @@ export default function ItemDetailPage() {
         {item.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {item.tags.map((tag) => (
-              <span key={tag.id} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+              <span key={tag.id} className="rounded-full bg-surface-2 px-2.5 py-1 font-mono text-xs font-medium text-ink-secondary">
                 #{tag.label}
               </span>
             ))}
@@ -289,7 +289,7 @@ export default function ItemDetailPage() {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
         <div className="flex min-w-0 flex-col gap-6">
           {item.summary && (
-            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-card">
+            <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-ink-secondary shadow-card">
               {item.summary}
             </div>
           )}
@@ -309,16 +309,16 @@ export default function ItemDetailPage() {
             const activeTab = availableTabs.includes(contentTab) ? contentTab : availableTabs[0];
 
             return (
-              <section className="rounded-xl border border-slate-200 bg-white shadow-card">
-                <div className="flex border-b border-slate-200 px-2">
+              <section className="rounded-xl border border-border bg-surface shadow-card">
+                <div className="flex border-b border-border px-2">
                   {hasDescription && (
                     <button
                       type="button"
                       onClick={() => setContentTab("description")}
                       className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                         activeTab === "description"
-                          ? "border-b-2 border-brand-600 text-brand-700"
-                          : "border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                          ? "border-b-2 border-signal text-ink"
+                          : "border-b-2 border-transparent text-ink-secondary hover:text-ink"
                       }`}
                     >
                       説明
@@ -330,8 +330,8 @@ export default function ItemDetailPage() {
                       onClick={() => setContentTab("body")}
                       className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                         activeTab === "body"
-                          ? "border-b-2 border-brand-600 text-brand-700"
-                          : "border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                          ? "border-b-2 border-signal text-ink"
+                          : "border-b-2 border-transparent text-ink-secondary hover:text-ink"
                       }`}
                     >
                       使い方メモ
@@ -342,8 +342,8 @@ export default function ItemDetailPage() {
                     onClick={() => setContentTab("comments")}
                     className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                       activeTab === "comments"
-                        ? "border-b-2 border-brand-600 text-brand-700"
-                        : "border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                        ? "border-b-2 border-signal text-ink"
+                        : "border-b-2 border-transparent text-ink-secondary hover:text-ink"
                     }`}
                   >
                     コメント{commentCount > 0 && ` (${commentCount})`}
@@ -354,8 +354,8 @@ export default function ItemDetailPage() {
                       onClick={() => setContentTab("history")}
                       className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                         activeTab === "history"
-                          ? "border-b-2 border-brand-600 text-brand-700"
-                          : "border-b-2 border-transparent text-slate-400 hover:text-slate-600"
+                          ? "border-b-2 border-signal text-ink"
+                          : "border-b-2 border-transparent text-ink-secondary hover:text-ink"
                       }`}
                     >
                       バージョン履歴{versionCount > 0 && ` (${versionCount})`}
@@ -370,7 +370,7 @@ export default function ItemDetailPage() {
                     />
                   )}
                   {hasBody && activeTab === "body" && (
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{item.body}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink">{item.body}</p>
                   )}
                   <div className={activeTab === "comments" ? "" : "hidden"}>
                     <CommentSection itemId={item.id} onCountChange={setCommentCount} />
@@ -387,8 +387,9 @@ export default function ItemDetailPage() {
 
           {item.type === "prompt" && (
             <section>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">プロンプト本文</h2>
-              <pre className="whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-900 p-4 font-mono text-sm leading-relaxed text-slate-100 shadow-card">
+              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">プロンプト本文</h2>
+              {/* ターミナル風の見た目はページのテーマに関わらず常にダーク固定にしている */}
+              <pre className="whitespace-pre-wrap rounded-xl border border-border bg-[#14171c] p-4 font-mono text-sm leading-relaxed text-white/90 shadow-card">
                 {item.body}
               </pre>
             </section>
@@ -396,12 +397,12 @@ export default function ItemDetailPage() {
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20">
-          <div className="flex flex-col gap-2.5 rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+          <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-surface p-5 shadow-card">
             {isSkill ? (
               <a
                 href={api.items.downloadUrl(item.id)}
                 onClick={handleDownloadClick}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-skill px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-skill/90"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-skill px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:bg-skill/90"
               >
                 <DownloadIcon className="h-4 w-4" />
                 ダウンロード
@@ -410,7 +411,7 @@ export default function ItemDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleVisit()}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-external px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:bg-external/90"
               >
                 <ExternalLinkIcon className="h-4 w-4" />
                 紹介元を見る
@@ -420,7 +421,7 @@ export default function ItemDetailPage() {
                 <button
                   type="button"
                   onClick={() => void handleCopy()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-prompt px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-prompt/90"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-prompt px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:bg-prompt/90"
                 >
                   <CopyIcon className="h-4 w-4" />
                   クリップボードにコピー
@@ -439,33 +440,33 @@ export default function ItemDetailPage() {
             <button
               type="button"
               onClick={() => void handleToggleFavorite()}
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-amber-50 hover:text-amber-600"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-ink-secondary hover:bg-external-dim hover:text-external"
             >
-              <StarIcon filled={item.isFavorited} className={`h-4 w-4 ${item.isFavorited ? "text-amber-400" : "text-slate-300"}`} />
+              <StarIcon filled={item.isFavorited} className={`h-4 w-4 ${item.isFavorited ? "text-external" : "text-ink-muted"}`} />
               {item.isFavorited ? "お気に入り済み" : "お気に入りに追加"}
             </button>
           </div>
 
           {isSkill && item.fileName && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">ファイル</p>
-              <div className="flex items-center gap-2 text-sm text-slate-700">
-                <FileIcon className="h-4 w-4 shrink-0 text-slate-400" />
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">ファイル</p>
+              <div className="flex items-center gap-2 text-sm text-ink-secondary">
+                <FileIcon className="h-4 w-4 shrink-0 text-ink-secondary" />
                 <span className="truncate font-mono">{item.fileName}</span>
               </div>
-              <p className="mt-1 text-xs text-slate-400">{formatBytes(item.fileSize)}</p>
+              <p className="mt-1 text-xs text-ink-secondary">{formatBytes(item.fileSize)}</p>
             </div>
           )}
 
           {isSkill && item.fileName && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">インストールコマンド</p>
-              <div className="mb-2 inline-flex rounded-md border border-slate-200 p-0.5 text-xs">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">インストールコマンド</p>
+              <div className="mb-2 inline-flex rounded-md border border-border p-0.5 text-xs">
                 <button
                   type="button"
                   onClick={() => setInstallOs("unix")}
                   className={`whitespace-nowrap rounded px-2 py-1 font-medium transition-colors ${
-                    installOs === "unix" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-700"
+                    installOs === "unix" ? "bg-active text-active-text" : "text-ink-secondary hover:text-ink"
                   }`}
                 >
                   macOS / Linux
@@ -474,29 +475,30 @@ export default function ItemDetailPage() {
                   type="button"
                   onClick={() => setInstallOs("windows")}
                   className={`whitespace-nowrap rounded px-2 py-1 font-medium transition-colors ${
-                    installOs === "windows" ? "bg-slate-900 text-white" : "text-slate-500 hover:text-slate-700"
+                    installOs === "windows" ? "bg-active text-active-text" : "text-ink-secondary hover:text-ink"
                   }`}
                 >
                   Windows
                 </button>
               </div>
-              <div className="flex items-start gap-2 rounded-lg bg-slate-900 px-3.5 py-2.5">
-                <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-slate-100">
+              {/* ターミナル風の見た目はページのテーマに関わらず常にダーク固定にしている */}
+              <div className="flex items-start gap-2 rounded-lg bg-[#14171c] px-3.5 py-2.5">
+                <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-white/90">
                   {buildInstallCommand(item, installOs)}
                 </code>
                 <button
                   type="button"
                   onClick={() => void handleCopyInstallCommand()}
-                  className="shrink-0 rounded-md border border-slate-700 px-2 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800"
+                  className="shrink-0 rounded-md border border-white/15 px-2 py-1 text-xs font-medium text-white/70 transition-colors hover:bg-white/10"
                 >
                   {installCommandCopied ? "コピーしました" : "コピー"}
                 </button>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+              <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
                 {installOs === "windows" ? (
                   <>
                     <code className="font-mono">$env:AI_SKILLS_HUB_TOKEN</code> に自分の
-                    <Link to="/settings/tokens" className="text-brand-600 hover:underline">
+                    <Link to="/settings/tokens" className="text-ink hover:underline">
                       アクセストークン
                     </Link>
                     を設定してからPowerShellで実行すると、Claude Codeの
@@ -506,7 +508,7 @@ export default function ItemDetailPage() {
                 ) : (
                   <>
                     <code className="font-mono">$AI_SKILLS_HUB_TOKEN</code> に自分の
-                    <Link to="/settings/tokens" className="text-brand-600 hover:underline">
+                    <Link to="/settings/tokens" className="text-ink hover:underline">
                       アクセストークン
                     </Link>
                     を設定してから実行すると、Claude Codeの<code className="font-mono">~/.claude/skills/</code>
@@ -518,39 +520,39 @@ export default function ItemDetailPage() {
           )}
 
           {isExternal && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">紹介元情報</p>
-              <dl className="flex flex-col gap-2 text-sm text-slate-700">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">紹介元情報</p>
+              <dl className="flex flex-col gap-2 text-sm text-ink-secondary">
                 {item.sourceAuthor && (
                   <div>
-                    <dt className="text-xs text-slate-400">元の作者/組織</dt>
+                    <dt className="text-xs text-ink-secondary">元の作者/組織</dt>
                     <dd>{item.sourceAuthor}</dd>
                   </div>
                 )}
                 {item.license && (
                   <div>
-                    <dt className="text-xs text-slate-400">ライセンス</dt>
+                    <dt className="text-xs text-ink-secondary">ライセンス</dt>
                     <dd>{item.license}</dd>
                   </div>
                 )}
                 {item.stars !== null && (
                   <div>
-                    <dt className="text-xs text-slate-400">GitHub Stars</dt>
+                    <dt className="text-xs text-ink-secondary">GitHub Stars</dt>
                     <dd className="flex items-center gap-1">
-                      <StarIcon filled className="h-3.5 w-3.5 text-amber-400" />
+                      <StarIcon filled className="h-3.5 w-3.5 text-external" />
                       {item.stars.toLocaleString()}
                     </dd>
                   </div>
                 )}
                 {item.sourceUrl && (
                   <div>
-                    <dt className="text-xs text-slate-400">紹介先URL</dt>
+                    <dt className="text-xs text-ink-secondary">紹介先URL</dt>
                     <dd className="truncate">
                       <a
                         href={item.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-700 hover:underline"
+                        className="text-ink hover:underline"
                       >
                         {item.sourceUrl}
                       </a>
@@ -558,7 +560,7 @@ export default function ItemDetailPage() {
                   </div>
                 )}
               </dl>
-              <p className="mt-3 text-xs leading-relaxed text-slate-400">
+              <p className="mt-3 text-xs leading-relaxed text-ink-secondary">
                 これは第三者が公開しているOSS等の紹介です。著作権・ライセンスは紹介元の作者に帰属します。
               </p>
             </div>

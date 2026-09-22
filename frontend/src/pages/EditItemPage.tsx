@@ -8,8 +8,8 @@ import { parseSkillMd } from "../lib/parseSkillMd";
 import type { Item, Tag } from "../lib/types";
 
 const inputClass =
-  "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal";
+const labelClass = "mb-1.5 block text-sm font-medium text-ink-secondary";
 
 const TIPS = [
   "プロンプト本文・添付ファイルを実際に更新すると、自動的にバージョンが上がり、DL・コピー・お気に入り登録済みのユーザーに更新が通知されます(タグ・説明文だけの変更ではバージョンは変わりません)",
@@ -170,19 +170,19 @@ export default function EditItemPage() {
     }
   }
 
-  if (loading) return <p className="text-sm text-slate-400">読み込み中...</p>;
+  if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
   if (loadError) return <p className="text-sm text-red-500">{loadError}</p>;
   if (!item) return null;
 
   const isSkill = item.type === "skill";
   const isExternal = item.type === "external";
-  const accentText = isSkill ? "text-skill" : isExternal ? "text-amber-600" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-amber-500" : "bg-prompt";
+  const accentText = isSkill ? "text-skill" : isExternal ? "text-external" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-external" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-6 flex items-center gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${accentBg}`}>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-onaccent ${accentBg}`}>
           {isSkill ? (
             <BoxIcon className="h-4.5 w-4.5" />
           ) : isExternal ? (
@@ -192,16 +192,16 @@ export default function EditItemPage() {
           )}
         </div>
         <div>
-          <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>編集</p>
-          <h1 className="text-xl font-bold text-slate-900">{item.title}</h1>
+          <p className={`font-display text-xs font-semibold uppercase tracking-wide ${accentText}`}>編集</p>
+          <h1 className="font-display text-xl font-bold text-ink">{item.title}</h1>
         </div>
       </div>
 
       <form onSubmit={(e) => void handleSubmit(e)}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+          <div className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6 shadow-card">
             {isExternal && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4">
+              <div className="rounded-lg border border-warn-border bg-warn-bg p-4">
                 <label className={labelClass}>紹介先URL(GitHub等) *</label>
                 <input
                   type="url"
@@ -233,7 +233,7 @@ export default function EditItemPage() {
                     />
                   </div>
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                <p className="mt-3 text-xs leading-relaxed text-ink-secondary">
                   これは第三者が公開しているOSS等の紹介投稿です。著作権・ライセンスは紹介元の作者に帰属します。
                 </p>
               </div>
@@ -264,7 +264,7 @@ export default function EditItemPage() {
 
             <div>
               <label className={labelClass}>
-                詳細説明 <span className="font-normal text-slate-400">(Markdown対応)</span>
+                詳細説明 <span className="font-normal text-ink-secondary">(Markdown対応)</span>
               </label>
               <MarkdownEditor
                 value={description}
@@ -277,9 +277,9 @@ export default function EditItemPage() {
             {!isExternal && (
               <div>
                 <label className={labelClass}>バージョン</label>
-                <p className="font-mono text-sm text-slate-600">
+                <p className="font-mono text-sm text-ink-secondary">
                   v{item.version}
-                  <span className="ml-2 font-sans text-xs text-slate-400">
+                  <span className="ml-2 font-sans text-xs text-ink-secondary">
                     ({isSkill ? "添付ファイル" : "本文"}を更新すると自動的に上がります)
                   </span>
                 </p>
@@ -294,10 +294,10 @@ export default function EditItemPage() {
                     type="file"
                     accept=".zip,.md"
                     onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
                   />
                   {item.fileName && (
-                    <p className="mt-1.5 text-xs text-slate-400">
+                    <p className="mt-1.5 text-xs text-ink-secondary">
                       現在のファイル: <span className="font-mono">{item.fileName}</span>
                     </p>
                   )}
@@ -328,11 +328,11 @@ export default function EditItemPage() {
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-5">
+            <div className="flex justify-end gap-2 border-t border-border pt-5">
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-md bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
+                className="rounded-md bg-cta px-5 py-2 text-sm font-semibold text-cta-text shadow-sm hover:bg-cta-hover disabled:opacity-50"
               >
                 {submitting ? "保存中..." : "保存する"}
               </button>
@@ -340,23 +340,23 @@ export default function EditItemPage() {
           </div>
 
           <aside className="flex flex-col gap-4 lg:sticky lg:top-20">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                 <InfoIcon className="h-3.5 w-3.5" />
                 編集のヒント
               </p>
               <ul className="flex flex-col gap-2.5">
                 {(isExternal ? EXTERNAL_TIPS : TIPS).map((tip) => (
-                  <li key={tip} className="flex gap-2 text-xs leading-relaxed text-slate-600">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+                  <li key={tip} className="flex gap-2 text-xs leading-relaxed text-ink-secondary">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-muted" />
                     {tip}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                 <TagIcon className="h-3.5 w-3.5" />
                 タグ
               </p>

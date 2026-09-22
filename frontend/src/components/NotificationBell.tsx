@@ -61,7 +61,7 @@ export default function NotificationBell() {
         type="button"
         onClick={handleToggle}
         aria-label="更新通知"
-        className="relative flex h-9 w-9 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
+        className="relative flex h-9 w-9 items-center justify-center rounded-md text-ink-secondary hover:bg-surface-2"
       >
         <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
           <path
@@ -80,15 +80,15 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 animate-fade-in rounded-xl border border-slate-200 bg-white shadow-popover">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-2.5">
-            <span className="text-sm font-semibold text-slate-700">更新通知</span>
+        <div className="absolute right-0 z-50 mt-2 w-80 animate-fade-in rounded-xl border border-border bg-surface shadow-popover">
+          <div className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
+            <span className="text-sm font-semibold text-ink font-display">更新通知</span>
             {notifications.length > 0 && (
               <button
                 type="button"
                 onClick={() => void handleReadAll()}
                 disabled={loading}
-                className="text-xs font-medium text-brand-600 hover:underline disabled:opacity-50"
+                className="text-xs font-medium text-ink-secondary hover:text-ink hover:underline disabled:opacity-50"
               >
                 すべて既読にする
               </button>
@@ -96,7 +96,7 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="px-3.5 py-8 text-center text-sm text-slate-400">
+              <p className="px-3.5 py-8 text-center text-sm text-ink-secondary">
                 お気に入り・DL・コピー済みの項目に更新はありません
               </p>
             ) : (
@@ -105,10 +105,10 @@ export default function NotificationBell() {
                   key={n.itemId}
                   to={`/items/${n.itemId}`}
                   onClick={() => handleItemClick(n.itemId)}
-                  className="block border-b border-slate-50 px-3.5 py-2.5 last:border-0 hover:bg-slate-50"
+                  className="block border-b border-border px-3.5 py-2.5 last:border-0 hover:bg-surface-2"
                 >
-                  <p className="line-clamp-1 text-sm font-medium text-slate-800">{n.title}</p>
-                  <p className="mt-0.5 font-mono text-xs text-slate-400">
+                  <p className="line-clamp-1 text-sm font-medium text-ink">{n.title}</p>
+                  <p className="mt-0.5 font-mono text-xs text-ink-secondary">
                     v{n.previousVersion} → v{n.currentVersion}
                   </p>
                 </Link>

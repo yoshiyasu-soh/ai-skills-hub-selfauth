@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import Pagination from "../components/Pagination";
 import TagFilterBar from "../components/TagFilterBar";
-import { BoxIcon, ChevronRightIcon, ExternalLinkIcon, SearchIcon, SparkleIcon } from "../components/icons";
+import { BoxIcon, ExternalLinkIcon, SearchIcon, SparkleIcon } from "../components/icons";
 import { api } from "../lib/api";
 import type { Item, SortOption, Tag } from "../lib/types";
 
@@ -172,67 +172,52 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-6">
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">みんなのAIスキル・プロンプトを見つけよう</h1>
-          <p className="mt-1.5 text-sm text-slate-500">
+      <div className="flex flex-wrap items-start justify-between gap-3.5">
+        <div>
+          <h1 className="font-display text-[1.875rem] font-bold tracking-tight text-ink">
+            みんなのAIスキル・プロンプトを見つけよう
+          </h1>
+          <p className="mt-2 whitespace-nowrap text-sm text-ink-secondary">
             実務で使えるAIスキルやプロンプトを共有・発見できます。あなたの知識・ノウハウも、ぜひシェアしてください。
           </p>
         </div>
-        <div className="grid shrink-0 grid-cols-3 gap-3 sm:w-[36rem]">
+
+        <div className="flex flex-wrap gap-2">
           <Link
             to="/guide/skills"
-            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-card transition hover:border-skill/40 hover:shadow-card-hover"
+            className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink-secondary transition-colors hover:border-skill hover:text-skill"
           >
-            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-skill/10 text-skill">
-              <BoxIcon className="h-4 w-4" />
-            </div>
-            <p className="flex items-center gap-1 text-sm font-semibold text-slate-800">
-              SKILLとは？
-              <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-skill" />
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-500">Claudeに特定の作業をさせるための再利用可能な機能。</p>
+            <BoxIcon className="h-3.5 w-3.5 shrink-0" />
+            SKILLとは？
           </Link>
           <Link
             to="/guide/prompts"
-            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-card transition hover:border-prompt/40 hover:shadow-card-hover"
+            className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink-secondary transition-colors hover:border-prompt hover:text-prompt"
           >
-            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-prompt/10 text-prompt">
-              <SparkleIcon className="h-4 w-4" />
-            </div>
-            <p className="flex items-center gap-1 text-sm font-semibold text-slate-800">
-              PROMPTとは？
-              <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-prompt" />
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-500">Claudeにそのままコピーして使える指示文。</p>
+            <SparkleIcon className="h-3.5 w-3.5 shrink-0" />
+            PROMPTとは？
           </Link>
           <Link
             to="/guide/external"
-            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-card transition hover:border-amber-400/40 hover:shadow-card-hover"
+            className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink-secondary transition-colors hover:border-external hover:text-external"
           >
-            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
-              <ExternalLinkIcon className="h-4 w-4" />
-            </div>
-            <p className="flex items-center gap-1 text-sm font-semibold text-slate-800">
-              OSS紹介とは？
-              <ChevronRightIcon className="h-3.5 w-3.5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-amber-600" />
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-500">既に公開されているOSSをリンクで紹介する投稿。</p>
+            <ExternalLinkIcon className="h-3.5 w-3.5 shrink-0" />
+            OSS紹介とは？
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-card">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-3 shadow-card">
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex overflow-hidden rounded-lg border border-slate-200">
+          <div className="flex overflow-hidden rounded-lg border border-border">
             {TYPE_VALUES.map((v) => (
               <button
                 key={v}
                 type="button"
                 onClick={() => handleTypeChange(v)}
                 aria-pressed={type === v}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+                className={`px-3 py-1.5 text-sm font-semibold font-display transition-colors ${
+                  type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
                 }`}
               >
                 {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : "OSS紹介"}
@@ -244,30 +229,30 @@ export default function HomePage() {
             type="button"
             onClick={toggleMine}
             aria-pressed={mine}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
               mine
-                ? "border-brand-600 bg-brand-600 text-white"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                ? "border-active bg-active text-active-text"
+                : "border-border bg-surface text-ink-secondary hover:bg-surface-2"
             }`}
           >
             自分の投稿のみ
           </button>
 
           <div className="relative min-w-[220px] flex-1">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
             <input
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="タイトル・説明文を検索"
-              className="w-full rounded-lg border border-slate-200 py-1.5 pl-9 pr-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              className="w-full rounded-lg border border-border bg-surface py-1.5 pl-9 pr-3 text-sm text-ink focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
             />
           </div>
 
           <select
             value={sort}
             onChange={(e) => handleSortChange(e.target.value as SortOption)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-ink-secondary focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -283,9 +268,9 @@ export default function HomePage() {
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-500">読み込み中...</p>
+        <p className="text-sm text-ink-secondary">読み込み中...</p>
       ) : items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-border bg-surface py-10 text-center text-sm text-ink-secondary">
           {mine ? "まだ投稿がありません。" : "該当する投稿が見つかりませんでした。"}
         </p>
       ) : (

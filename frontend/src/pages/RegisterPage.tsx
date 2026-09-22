@@ -34,11 +34,11 @@ export default function RegisterPage() {
     return (
       <div className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-4 py-12 text-center">
         <LogoMark className="mb-4 h-10 w-10" />
-        <h1 className="mb-2 text-lg font-bold text-slate-900">確認メールを送信しました</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="mb-2 font-display text-lg font-bold text-ink">確認メールを送信しました</h1>
+        <p className="text-sm text-ink-secondary">
           {email} 宛にメールを送信しました。メール内のリンクから登録を完了してください。
         </p>
-        <Link to="/login" className="mt-6 text-sm font-medium text-brand-600 hover:text-brand-700">
+        <Link to="/login" className="mt-6 text-sm font-medium text-ink hover:underline">
           ログイン画面へ
         </Link>
       </div>
@@ -49,22 +49,22 @@ export default function RegisterPage() {
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4 py-12">
       <div className="mb-8 flex flex-col items-center gap-2">
         <LogoMark className="h-10 w-10" />
-        <h1 className="text-xl font-bold text-slate-900">AI Skills Hub に登録</h1>
+        <h1 className="font-display text-xl font-bold text-ink">AI Skills Hub に登録</h1>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">メールアドレス</span>
+          <span className="font-medium text-ink-secondary">メールアドレス</span>
           <input
             type="email"
             required
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">パスワード(8文字以上)</span>
+          <span className="font-medium text-ink-secondary">パスワード(8文字以上)</span>
           <input
             type="password"
             required
@@ -72,21 +72,21 @@ export default function RegisterPage() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
           />
         </label>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+          className="rounded-md bg-cta px-3.5 py-2 text-sm font-semibold text-cta-text shadow-sm transition-colors hover:bg-cta-hover disabled:opacity-50"
         >
           {submitting ? "登録中..." : "登録する"}
         </button>
       </form>
-      <p className="mt-4 text-center text-sm text-slate-500">
+      <p className="mt-4 text-center text-sm text-ink-secondary">
         すでにアカウントをお持ちですか?{" "}
-        <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700">
+        <Link to="/login" className="font-medium text-ink hover:underline">
           ログイン
         </Link>
       </p>

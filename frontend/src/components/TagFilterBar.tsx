@@ -26,10 +26,10 @@ export default function TagFilterBar({ tags, selected, onChange }: Props) {
             key={tag.id}
             type="button"
             onClick={() => toggle(tag.id)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+            className={`rounded-full border px-3 py-1 font-mono text-xs font-medium transition ${
               active
-                ? "border-brand-600 bg-brand-600 text-white"
-                : "border-slate-200 bg-slate-50 text-slate-600 hover:border-brand-300 hover:bg-white"
+                ? "border-active bg-active text-active-text"
+                : "border-border bg-surface-2 text-ink-secondary hover:border-border-hover hover:bg-surface"
             }`}
           >
             #{tag.label}
@@ -41,7 +41,7 @@ export default function TagFilterBar({ tags, selected, onChange }: Props) {
         <button
           type="button"
           onClick={() => onChange([])}
-          className="rounded-full px-3 py-1 text-xs text-slate-400 underline hover:text-slate-600"
+          className="rounded-full px-3 py-1 text-xs text-ink-muted underline hover:text-ink-secondary"
         >
           タグ選択をクリア
         </button>

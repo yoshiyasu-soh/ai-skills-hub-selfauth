@@ -2,21 +2,24 @@ import { NavLink } from "react-router-dom";
 import { useUser } from "../lib/UserContext";
 import LogoMark from "./LogoMark";
 import NotificationBell from "./NotificationBell";
+import ThemeToggle from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-    isActive ? "bg-brand-50 text-brand-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+  `rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+    isActive
+      ? "text-ink shadow-[inset_0_-2px_0_theme(colors.signal)]"
+      : "text-ink-secondary hover:bg-surface-2 hover:text-ink"
   }`;
 
 export default function Header() {
   const { user } = useUser();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border bg-header backdrop-blur-md">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-10">
         <div className="flex items-center gap-4 sm:gap-6">
-          <NavLink to="/" className="flex items-center gap-2 text-[15px] font-bold tracking-tight text-slate-900">
+          <NavLink to="/" className="flex items-center gap-2 text-[15px] font-bold tracking-tight text-ink font-display">
             <LogoMark className="h-7 w-7 shrink-0" />
             <span className="hidden sm:inline">AI Skills Hub</span>
           </NavLink>
@@ -38,16 +41,19 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <NavLink
             to="/post"
-            className="rounded-md bg-brand-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+            className="rounded-md bg-cta px-3.5 py-1.5 text-sm font-semibold text-cta-text shadow-sm transition-colors hover:bg-cta-hover font-display"
           >
             + 投稿する
           </NavLink>
-          {user && (
-            <div className="flex items-center gap-1 border-l border-slate-200 pl-3 text-sm text-slate-600">
-              <NotificationBell />
-              <UserMenu />
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 border-l border-border pl-3">
+            <ThemeToggle />
+            {user && (
+              <div className="flex items-center gap-1 text-sm text-ink-secondary">
+                <NotificationBell />
+                <UserMenu />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

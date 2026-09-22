@@ -67,14 +67,14 @@ export default function TagPicker({ tags, selected, onChange, onTagCreated, onTa
           return (
             <span
               key={tag.id}
-              className={`inline-flex items-center overflow-hidden rounded-full border text-xs font-medium transition ${
-                active ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-slate-50 text-slate-600"
+              className={`inline-flex items-center overflow-hidden rounded-full border font-mono text-xs font-medium transition ${
+                active ? "border-active bg-active text-active-text" : "border-border bg-surface-2 text-ink-secondary"
               }`}
             >
               <button
                 type="button"
                 onClick={() => toggle(tag.id)}
-                className={`px-3 py-1 ${active ? "" : "hover:border-brand-300"}`}
+                className={`px-3 py-1 ${active ? "" : "hover:border-border-hover"}`}
               >
                 #{tag.label}
               </button>
@@ -86,7 +86,7 @@ export default function TagPicker({ tags, selected, onChange, onTagCreated, onTa
                   aria-label={`タグ「${tag.label}」を削除`}
                   title="このタグを削除(未使用のタグのみ削除できます)"
                   className={`px-2 py-1 ${
-                    active ? "text-brand-100 hover:text-white" : "text-slate-400 hover:text-red-500"
+                    active ? "text-active-text/70 hover:text-active-text" : "text-ink-muted hover:text-red-500"
                   } disabled:opacity-50`}
                 >
                   ×
@@ -109,19 +109,19 @@ export default function TagPicker({ tags, selected, onChange, onTagCreated, onTa
           }}
           placeholder="新しいタグを追加"
           maxLength={30}
-          className="w-48 rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          className="w-48 rounded-md border border-border bg-surface px-2 py-1 text-sm text-ink focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
         />
         <button
           type="button"
           onClick={() => void handleCreate()}
           disabled={creating || !newTagName.trim()}
-          className="rounded-md bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-50"
+          className="rounded-md bg-surface-2 px-3 py-1 text-sm font-medium text-ink-secondary hover:bg-border disabled:opacity-50"
         >
           追加
         </button>
       </div>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-ink-muted">
         自分が追加したタグで、まだどの投稿にも使われていないものだけ「×」で削除できます。
       </p>
     </div>

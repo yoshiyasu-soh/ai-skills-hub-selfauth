@@ -2,13 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* ベース */
+  --bg: 255 255 255;
+  --surface: 255 255 255;
+  --surface-2: 245 245 244;
+  --border: 228 228 231;
+  --border-hover: 200 203 209;
+  --text: 20 22 26;
+  --text-secondary: 86 95 107;
+  --text-muted: 128 134 143;
+
+  /* ブランド差し色(アクセントとしてのみ使用。大面積の塗りには使わない) */
+  --signal: 200 255 77;
+  --signal-ring: rgba(140, 199, 25, 0.35);
+
+  /* 種別アクセント */
+  --skill: 37 99 235;
+  --skill-dim: rgba(37, 99, 235, 0.08);
+  --prompt: 124 58 237;
+  --prompt-dim: rgba(124, 58, 237, 0.08);
+  --external: 180 83 9;
+  --external-dim: rgba(180, 83, 9, 0.08);
+  --warn-bg: rgba(180, 83, 9, 0.06);
+  --warn-border: rgba(180, 83, 9, 0.25);
+  /* skill/prompt/external を塗りにしたボタン等の上に乗せる文字色。
+     ダークモードのアクセントは明るいパステルになるため白文字だと読めない。 */
+  --on-accent: 255 255 255;
+
+  /* 役割ベースの意味的トークン(ライト/ダークで構造ごと入れ替える) */
+  --header-bg: rgba(255, 255, 255, 0.86);
+  --footer-bg: 245 245 244;
+  --cta-bg: 20 22 26;
+  --cta-bg-hover: 40 43 49;
+  --cta-text: 255 255 255;
+  --logo-bg: 20 22 26;
+  --logo-fg: 200 255 77;
+  --avatar-bg: 20 22 26;
+  --avatar-fg: 200 255 77;
+  --avatar-border: 20 22 26;
+  --active-bg: 20 22 26;
+  --active-text: 255 255 255;
+  --item-shadow-hover: 0 16px 32px -18px rgba(20, 22, 26, 0.22);
+  --guide-shadow-hover: 0 6px 16px -10px rgba(20, 22, 26, 0.35);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 12px rgba(15, 23, 42, 0.03);
+  --shadow-card-hover: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-popover: 0 12px 32px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
+  --selection-bg: 200 255 77;
+  --selection-text: 20 22 26;
+}
+
+:root[data-theme="dark"] {
+  --bg: 11 13 16;
+  --surface: 20 23 28;
+  --surface-2: 26 30 36;
+  --border: 38 43 51;
+  --border-hover: 58 64 73;
+  --text: 244 245 247;
+  --text-secondary: 154 163 173;
+  --text-muted: 92 100 112;
+
+  --signal-ring: rgba(200, 255, 77, 0.24);
+
+  --skill: 79 209 255;
+  --skill-dim: rgba(79, 209, 255, 0.12);
+  --prompt: 185 139 255;
+  --prompt-dim: rgba(185, 139, 255, 0.12);
+  --external: 255 180 84;
+  --external-dim: rgba(255, 180, 84, 0.12);
+  --warn-bg: rgba(255, 180, 84, 0.08);
+  --warn-border: rgba(255, 180, 84, 0.3);
+  --on-accent: 11 13 16;
+
+  --header-bg: rgba(11, 13, 16, 0.86);
+  --footer-bg: 20 23 28;
+  --cta-bg: 200 255 77;
+  --cta-bg-hover: 217 255 122;
+  --cta-text: 11 13 16;
+  --logo-bg: 200 255 77;
+  --logo-fg: 11 13 16;
+  --avatar-bg: 26 30 36;
+  --avatar-fg: 200 255 77;
+  --avatar-border: 38 43 51;
+  --active-bg: 200 255 77;
+  --active-text: 11 13 16;
+  --item-shadow-hover: 0 10px 30px -12px rgba(0, 0, 0, 0.7);
+  --guide-shadow-hover: none;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --selection-text: 11 13 16;
+}
+
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-bg text-ink antialiased;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 ::selection {
-  @apply bg-brand-200 text-brand-900;
+  @apply bg-signal text-selection-text;
 }
 
 /* 数字を揃えて表示したい場所(DL数・バージョン等)で使う */

@@ -29,17 +29,17 @@ export default function FavoritesPage() {
   return (
     <div>
       <div className="mb-6 flex items-center gap-2.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-500">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-external-dim text-external">
           <StarIcon filled className="h-4 w-4" />
         </div>
-        <h1 className="text-xl font-bold text-slate-900">お気に入り</h1>
+        <h1 className="font-display text-xl font-bold text-ink">お気に入り</h1>
       </div>
       {loading ? (
-        <p className="text-sm text-slate-400">読み込み中...</p>
+        <p className="text-sm text-ink-secondary">読み込み中...</p>
       ) : error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-400">
+        <p className="rounded-xl border border-dashed border-border bg-surface py-10 text-center text-sm text-ink-secondary">
           お気に入りに登録した投稿はまだありません。
         </p>
       ) : (

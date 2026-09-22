@@ -13,7 +13,7 @@ interface Props {
 export default function MarkdownContent({ content, className = "" }: Props) {
   return (
     <div
-      className={`prose prose-sm prose-slate max-w-none prose-headings:font-semibold prose-a:text-brand-600 prose-a:no-underline hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none prose-code:rounded prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:text-[0.85em] prose-code:font-normal prose-pre:bg-slate-900 prose-img:rounded-lg [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-slate-100 ${className}`}
+      className={`prose prose-sm max-w-none prose-headings:font-display prose-headings:font-semibold prose-headings:text-ink prose-p:text-ink-secondary prose-strong:text-ink prose-a:text-ink prose-a:decoration-signal prose-a:decoration-2 prose-a:underline-offset-2 prose-code:before:content-none prose-code:after:content-none prose-code:rounded prose-code:bg-surface-2 prose-code:px-1 prose-code:py-0.5 prose-code:text-[0.85em] prose-code:font-normal prose-code:text-ink prose-pre:border prose-pre:border-border prose-pre:bg-surface-2 prose-blockquote:border-border prose-blockquote:text-ink-secondary prose-hr:border-border prose-th:text-ink prose-td:text-ink-secondary prose-li:text-ink-secondary prose-img:rounded-lg [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-ink ${className}`}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>

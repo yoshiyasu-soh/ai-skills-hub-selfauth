@@ -14,7 +14,7 @@ import LogoMark from "../components/LogoMark";
 
 function StepNumber({ n }: { n: number }) {
   return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cta text-sm font-bold text-cta-text">
       {n}
     </span>
   );
@@ -80,7 +80,7 @@ const FAQ = [
     q: "MCP経由でうまく接続できません。",
     a: (
       <>
-        <Link to="/guide/mcp" className="font-medium text-brand-600 hover:text-brand-700">
+        <Link to="/guide/mcp" className="font-medium text-ink hover:underline">
           MCP連携ガイド
         </Link>
         の「うまくつながらないとき」を確認してください。多くの場合、アクセストークンの入力ミスや失効が原因です。
@@ -107,12 +107,12 @@ export default function DocsPage() {
       <div className="mb-8 flex items-center gap-3">
         <LogoMark className="h-11 w-11" />
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">ドキュメント</p>
-          <h1 className="text-xl font-bold text-slate-900">使い方ガイド</h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">ドキュメント</p>
+          <h1 className="font-display text-xl font-bold text-ink">使い方ガイド</h1>
         </div>
       </div>
 
-      <p className="mb-10 text-sm leading-relaxed text-slate-600">
+      <p className="mb-10 text-sm leading-relaxed text-ink-secondary">
         AI Skills Hub は、Claude Code のスキル・プロンプトを共有するためのサイトです。
         <span className="whitespace-nowrap">このページでは、</span>
         サイト全体の機能と基本的な使い方をまとめています。
@@ -120,16 +120,16 @@ export default function DocsPage() {
 
       {/* できること */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">できること</h2>
+        <h2 className="mb-4 font-display text-lg font-bold text-ink">できること</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {FEATURES.map((f) => (
-            <div key={f.title} className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <div key={f.title} className="flex gap-3 rounded-xl border border-border bg-surface p-4 shadow-card">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-signal/15 text-ink">
                 <f.icon className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-sm font-semibold text-slate-900">{f.title}</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{f.body}</p>
+                <p className="text-sm font-semibold text-ink">{f.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-ink-secondary">{f.body}</p>
               </div>
             </div>
           ))}
@@ -138,13 +138,13 @@ export default function DocsPage() {
 
       {/* 基本の使い方 */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">基本の使い方</h2>
+        <h2 className="mb-4 font-display text-lg font-bold text-ink">基本の使い方</h2>
         <div className="flex flex-col gap-4">
           <div className="flex gap-3">
             <StepNumber n={1} />
             <div className="flex-1">
-              <p className="mb-1 text-sm font-semibold text-slate-900">会員登録・ログインする</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="mb-1 text-sm font-semibold text-ink">会員登録・ログインする</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">
                 メールアドレスとパスワードで登録し、届いた確認メールのリンクからログインできるようになります。
               </p>
             </div>
@@ -152,8 +152,8 @@ export default function DocsPage() {
           <div className="flex gap-3">
             <StepNumber n={2} />
             <div className="flex-1">
-              <p className="mb-1 text-sm font-semibold text-slate-900">一覧から探す</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="mb-1 text-sm font-semibold text-ink">一覧から探す</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">
                 キーワード検索・タグ絞り込み・並び替えを使って、目的のスキル・プロンプトを見つけます。
               </p>
             </div>
@@ -161,8 +161,8 @@ export default function DocsPage() {
           <div className="flex gap-3">
             <StepNumber n={3} />
             <div className="flex-1">
-              <p className="mb-1 text-sm font-semibold text-slate-900">お気に入り登録・利用する</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="mb-1 text-sm font-semibold text-ink">お気に入り登録・利用する</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">
                 スキルはダウンロード、プロンプトはコピーまたはclaude.aiへの受け渡しで利用します。気に入ったものはお気に入り登録しておくと後から見返せます。
               </p>
             </div>
@@ -170,18 +170,18 @@ export default function DocsPage() {
           <div className="flex gap-3">
             <StepNumber n={4} />
             <div className="flex-1">
-              <p className="mb-1 text-sm font-semibold text-slate-900">自分のスキル・プロンプトを投稿する</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="mb-1 text-sm font-semibold text-ink">自分のスキル・プロンプトを投稿する</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">
                 ヘッダーの「+ 投稿する」から投稿できます。詳しい書き方は
-                <Link to="/guide/skills" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+                <Link to="/guide/skills" className="mx-1 font-medium text-ink hover:underline">
                   SKILLとは?
                 </Link>
                 /
-                <Link to="/guide/prompts" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+                <Link to="/guide/prompts" className="mx-1 font-medium text-ink hover:underline">
                   プロンプトとは?
                 </Link>
                 /
-                <Link to="/guide/external" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+                <Link to="/guide/external" className="mx-1 font-medium text-ink hover:underline">
                   OSS紹介とは?
                 </Link>
                 を参照してください。
@@ -191,10 +191,10 @@ export default function DocsPage() {
           <div className="flex gap-3">
             <StepNumber n={5} />
             <div className="flex-1">
-              <p className="mb-1 text-sm font-semibold text-slate-900">Claudeに話しかけて使う(MCP連携)</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="mb-1 text-sm font-semibold text-ink">Claudeに話しかけて使う(MCP連携)</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">
                 Claude Code / Claude Desktopから直接検索・参照できます。詳しくは
-                <Link to="/guide/mcp" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+                <Link to="/guide/mcp" className="mx-1 font-medium text-ink hover:underline">
                   MCP連携ガイド
                 </Link>
                 を参照してください。
@@ -206,23 +206,23 @@ export default function DocsPage() {
 
       {/* アカウント */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">アカウント</h2>
+        <h2 className="mb-4 font-display text-lg font-bold text-ink">アカウント</h2>
         <div className="flex flex-col gap-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-card">
-            <p className="mb-1 text-sm font-semibold text-slate-900">プロフィール編集</p>
-            <p className="text-sm leading-relaxed text-slate-600">
+          <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
+            <p className="mb-1 text-sm font-semibold text-ink">プロフィール編集</p>
+            <p className="text-sm leading-relaxed text-ink-secondary">
               表示名・姓名・会社名・役職・部署・従業員の種類を、
-              <Link to="/settings/profile" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+              <Link to="/settings/profile" className="mx-1 font-medium text-ink hover:underline">
                 プロフィール編集画面
               </Link>
               からいつでも変更できます。表示名は投稿者名など、サイト内の各所に表示されます。
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-card">
-            <p className="mb-1 text-sm font-semibold text-slate-900">MCP用アクセストークン</p>
-            <p className="text-sm leading-relaxed text-slate-600">
+          <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
+            <p className="mb-1 text-sm font-semibold text-ink">MCP用アクセストークン</p>
+            <p className="text-sm leading-relaxed text-ink-secondary">
               MCPクライアントから接続するためのトークンを、
-              <Link to="/settings/tokens" className="mx-1 font-medium text-brand-600 hover:text-brand-700">
+              <Link to="/settings/tokens" className="mx-1 font-medium text-ink hover:underline">
                 アクセストークン管理画面
               </Link>
               で発行・失効できます。
@@ -233,12 +233,12 @@ export default function DocsPage() {
 
       {/* よくある質問 */}
       <section id="faq" className="mb-10 scroll-mt-20">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">よくある質問</h2>
+        <h2 className="mb-4 font-display text-lg font-bold text-ink">よくある質問</h2>
         <div className="flex flex-col gap-3">
           {FAQ.map((item) => (
-            <div key={item.q} className="rounded-xl border border-slate-200 bg-white p-4 shadow-card">
-              <p className="mb-1.5 text-sm font-semibold text-slate-900">Q. {item.q}</p>
-              <p className="text-sm leading-relaxed text-slate-600">A. {item.a}</p>
+            <div key={item.q} className="rounded-xl border border-border bg-surface p-4 shadow-card">
+              <p className="mb-1.5 text-sm font-semibold text-ink">Q. {item.q}</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">A. {item.a}</p>
             </div>
           ))}
         </div>
@@ -247,13 +247,13 @@ export default function DocsPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          className="inline-flex items-center gap-1.5 rounded-md bg-cta px-4 py-2 text-sm font-semibold text-cta-text hover:bg-cta-hover"
         >
           一覧を見る
         </Link>
         <Link
           to="/guide/mcp"
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-ink-secondary hover:bg-surface-2"
         >
           MCP連携ガイドを見る
         </Link>

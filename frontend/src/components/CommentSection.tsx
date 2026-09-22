@@ -64,33 +64,33 @@ export default function CommentSection({ itemId, onCountChange }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {loading ? (
-        <p className="text-sm text-slate-400">読み込み中...</p>
+        <p className="text-sm text-ink-secondary">読み込み中...</p>
       ) : comments.length === 0 ? (
-        <p className="text-sm text-slate-400">まだコメントはありません。</p>
+        <p className="text-sm text-ink-secondary">まだコメントはありません。</p>
       ) : (
         <ul className="flex flex-col gap-4">
           {comments.map((comment) => (
             <li key={comment.id} className="flex gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-600">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-[11px] font-semibold text-ink-secondary">
                 {comment.authorName.slice(0, 1)}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <Link
                     to={`/users/${encodeURIComponent(comment.authorEmail)}`}
-                    className="text-sm font-semibold text-slate-800 hover:underline"
+                    className="text-sm font-semibold text-ink hover:underline"
                   >
                     {comment.authorName}
                   </Link>
-                  <span className="text-xs text-slate-400">{formatDateTime(comment.createdAt)}</span>
+                  <span className="text-xs text-ink-muted">{formatDateTime(comment.createdAt)}</span>
                 </div>
-                <p className="mt-0.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{comment.body}</p>
+                <p className="mt-0.5 whitespace-pre-wrap text-sm leading-relaxed text-ink-secondary">{comment.body}</p>
               </div>
               {comment.canDelete && (
                 <button
                   type="button"
                   onClick={() => void handleDelete(comment.id)}
-                  className="shrink-0 self-start text-xs text-slate-400 hover:text-red-600"
+                  className="shrink-0 self-start text-xs text-ink-muted hover:text-red-500"
                 >
                   削除
                 </button>
@@ -100,19 +100,19 @@ export default function CommentSection({ itemId, onCountChange }: Props) {
         </ul>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 border-t border-slate-100 pt-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2 border-t border-border pt-4">
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           maxLength={MAX_COMMENT_LENGTH}
           rows={3}
           placeholder="コメントを入力..."
-          className="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="w-full resize-y rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
         />
         <button
           type="submit"
           disabled={submitting || !body.trim()}
-          className="self-end rounded-md bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+          className="self-end rounded-md bg-cta px-4 py-1.5 text-sm font-semibold text-cta-text shadow-sm transition-colors hover:bg-cta-hover disabled:opacity-50"
         >
           {submitting ? "投稿中..." : "コメントする"}
         </button>

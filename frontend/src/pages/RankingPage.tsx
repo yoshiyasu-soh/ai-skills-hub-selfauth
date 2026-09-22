@@ -57,35 +57,35 @@ export default function RankingPage() {
   return (
     <div>
       <div className="mb-6 flex items-center gap-2.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-signal/15 text-ink">
           <BarsIcon className="h-4 w-4" />
         </div>
-        <h1 className="text-xl font-bold text-slate-900">ランキング</h1>
+        <h1 className="font-display text-xl font-bold text-ink">ランキング</h1>
       </div>
 
-      <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-card">
-        <div className="flex overflow-hidden rounded-lg border border-slate-200">
+      <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-card">
+        <div className="flex overflow-hidden rounded-lg border border-border">
           {TYPE_VALUES.map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => updateParams({ type: v === "all" ? undefined : v })}
-              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+              className={`px-3 py-1.5 text-sm font-semibold font-display transition-colors ${
+                type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
               }`}
             >
               {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : "OSS紹介"}
             </button>
           ))}
         </div>
-        <div className="flex overflow-hidden rounded-lg border border-slate-200">
+        <div className="flex overflow-hidden rounded-lg border border-border">
           {PERIODS.map((p) => (
             <button
               key={p.value}
               type="button"
               onClick={() => updateParams({ period: p.value === "all" ? undefined : p.value })}
-              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                period === p.value ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+              className={`px-3 py-1.5 text-sm font-semibold font-display transition-colors ${
+                period === p.value ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
               }`}
             >
               {p.label}
@@ -95,11 +95,11 @@ export default function RankingPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-400">読み込み中...</p>
+        <p className="text-sm text-ink-secondary">読み込み中...</p>
       ) : error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-400">
+        <p className="rounded-xl border border-dashed border-border bg-surface py-10 text-center text-sm text-ink-secondary">
           この期間の実績はまだありません。
         </p>
       ) : (

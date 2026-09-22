@@ -3,32 +3,78 @@ import typography from "@tailwindcss/typography";
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  darkMode: ["selector", '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
-        skill: "#2563eb",
-        prompt: "#7c3aed",
-        brand: {
-          50: "#eef1ff",
-          100: "#e0e4ff",
-          200: "#c6cbff",
-          300: "#a3a8fd",
-          400: "#8281f7",
-          500: "#6a5eec",
-          600: "#5a3fdc",
-          700: "#4c31bd",
-          800: "#402a98",
-          900: "#37277a",
+        bg: "rgb(var(--bg) / <alpha-value>)",
+        surface: "rgb(var(--surface) / <alpha-value>)",
+        "surface-2": "rgb(var(--surface-2) / <alpha-value>)",
+        header: "var(--header-bg)",
+        footer: "rgb(var(--footer-bg) / <alpha-value>)",
+        border: {
+          DEFAULT: "rgb(var(--border) / <alpha-value>)",
+          hover: "rgb(var(--border-hover) / <alpha-value>)",
+        },
+        ink: {
+          DEFAULT: "rgb(var(--text) / <alpha-value>)",
+          secondary: "rgb(var(--text-secondary) / <alpha-value>)",
+          muted: "rgb(var(--text-muted) / <alpha-value>)",
+        },
+        signal: "rgb(var(--signal) / <alpha-value>)",
+        skill: {
+          DEFAULT: "rgb(var(--skill) / <alpha-value>)",
+          dim: "var(--skill-dim)",
+        },
+        prompt: {
+          DEFAULT: "rgb(var(--prompt) / <alpha-value>)",
+          dim: "var(--prompt-dim)",
+        },
+        external: {
+          DEFAULT: "rgb(var(--external) / <alpha-value>)",
+          dim: "var(--external-dim)",
+        },
+        warn: {
+          bg: "var(--warn-bg)",
+          border: "var(--warn-border)",
+        },
+        onaccent: "rgb(var(--on-accent) / <alpha-value>)",
+        cta: {
+          DEFAULT: "rgb(var(--cta-bg) / <alpha-value>)",
+          hover: "rgb(var(--cta-bg-hover) / <alpha-value>)",
+          text: "rgb(var(--cta-text) / <alpha-value>)",
+        },
+        logo: {
+          bg: "rgb(var(--logo-bg) / <alpha-value>)",
+          fg: "rgb(var(--logo-fg) / <alpha-value>)",
+        },
+        avatar: {
+          bg: "rgb(var(--avatar-bg) / <alpha-value>)",
+          fg: "rgb(var(--avatar-fg) / <alpha-value>)",
+          border: "rgb(var(--avatar-border) / <alpha-value>)",
+        },
+        active: {
+          DEFAULT: "rgb(var(--active-bg) / <alpha-value>)",
+          text: "rgb(var(--active-text) / <alpha-value>)",
+        },
+        selection: {
+          text: "rgb(var(--selection-text) / <alpha-value>)",
         },
       },
       fontFamily: {
-        sans: ["Inter", "Hiragino Sans", "Yu Gothic", "sans-serif"],
+        sans: ["Manrope", "Hiragino Sans", "Yu Gothic", "sans-serif"],
+        display: ["Space Grotesk", "Hiragino Sans", "Yu Gothic", "sans-serif"],
         mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 12px rgba(15, 23, 42, 0.03)",
-        "card-hover": "0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)",
-        popover: "0 12px 32px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06)",
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+        popover: "var(--shadow-popover)",
+        "item-hover": "var(--item-shadow-hover)",
+        "guide-hover": "var(--guide-shadow-hover)",
+      },
+      ringColor: {
+        signal: "var(--signal-ring)",
       },
       keyframes: {
         "fade-in": {

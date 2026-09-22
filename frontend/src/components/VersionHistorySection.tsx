@@ -46,53 +46,53 @@ export default function VersionHistorySection({ item, onCountChange }: Props) {
     }
   }
 
-  if (loading) return <p className="text-sm text-slate-400">読み込み中...</p>;
+  if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
 
   // 新しい順(現在 → 過去)に並べる
   const past = [...versions].reverse();
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-lg border border-brand-200 bg-brand-50 p-3.5">
+      <div className="rounded-lg border border-signal/30 bg-signal/10 p-3.5">
         <div className="mb-1.5 flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-brand-600 px-2 py-0.5 font-mono text-xs font-semibold text-white">
+          <span className="rounded-full bg-active px-2 py-0.5 font-mono text-xs font-semibold text-active-text">
             v{item.version}
           </span>
-          <span className="text-xs font-semibold text-brand-700">現在のバージョン</span>
-          <span className="text-xs text-slate-400">更新: {formatDateTime(item.updatedAt)}</span>
+          <span className="text-xs font-semibold text-ink font-display">現在のバージョン</span>
+          <span className="text-xs text-ink-secondary">更新: {formatDateTime(item.updatedAt)}</span>
         </div>
         {item.type === "prompt" ? (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{item.body}</p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-secondary">{item.body}</p>
         ) : (
           item.fileName && (
-            <p className="text-sm text-slate-700">
+            <p className="text-sm text-ink-secondary">
               {item.fileName}
-              <span className="ml-1.5 text-xs text-slate-400">({formatBytes(item.fileSize)})</span>
+              <span className="ml-1.5 text-xs text-ink-muted">({formatBytes(item.fileSize)})</span>
             </p>
           )
         )}
       </div>
 
       {past.length === 0 ? (
-        <p className="text-sm text-slate-400">まだ過去バージョンはありません。</p>
+        <p className="text-sm text-ink-secondary">まだ過去バージョンはありません。</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {past.map((v) => (
-            <li key={v.id} className="rounded-lg border border-slate-200 p-3.5">
+            <li key={v.id} className="rounded-lg border border-border p-3.5">
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-slate-200 px-2 py-0.5 font-mono text-xs font-semibold text-slate-600">
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 font-mono text-xs font-semibold text-ink-secondary">
                   v{v.version}
                 </span>
-                <span className="text-xs text-slate-400">置き換え: {formatDateTime(v.createdAt)}</span>
+                <span className="text-xs text-ink-secondary">置き換え: {formatDateTime(v.createdAt)}</span>
               </div>
               {item.type === "prompt" ? (
                 <div className="flex items-start justify-between gap-2">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{v.body}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-secondary">{v.body}</p>
                   <button
                     type="button"
                     onClick={() => void handleCopy(v.body)}
                     aria-label="このバージョンの本文をコピー"
-                    className="shrink-0 rounded-md border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50"
+                    className="shrink-0 rounded-md border border-border p-1.5 text-ink-secondary hover:bg-surface-2"
                   >
                     <CopyIcon className="h-3.5 w-3.5" />
                   </button>
@@ -101,11 +101,11 @@ export default function VersionHistorySection({ item, onCountChange }: Props) {
                 v.fileName && (
                   <a
                     href={api.items.versions.downloadUrl(item.id, v.id)}
-                    className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:underline"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-ink decoration-signal decoration-2 underline-offset-2 hover:underline"
                   >
                     <DownloadIcon className="h-3.5 w-3.5" />
                     {v.fileName}
-                    <span className="text-xs text-slate-400">({formatBytes(v.fileSize)})</span>
+                    <span className="text-xs text-ink-muted">({formatBytes(v.fileSize)})</span>
                   </a>
                 )
               )}

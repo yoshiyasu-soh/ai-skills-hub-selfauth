@@ -1,23 +1,23 @@
 import { Link } from "react-router-dom";
 import LogoMark from "./LogoMark";
 
-const linkClass = "text-sm text-slate-600 transition-colors hover:text-brand-600";
+const linkClass = "text-sm text-ink-secondary transition-colors hover:text-ink";
 
 export default function Footer() {
   return (
-    <footer className="mt-10 border-t border-slate-200 bg-slate-50">
+    <footer className="mt-10 border-t border-border bg-footer">
       <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-[1.3fr,1fr,1fr] sm:px-6 lg:px-10">
         <div>
-          <div className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
+          <div className="flex items-center gap-2 text-[15px] font-bold text-ink font-display">
             <LogoMark className="h-6 w-6" />
             <span>AI Skills Hub</span>
           </div>
-          <p className="mt-3 max-w-xs text-xs leading-relaxed text-slate-500">
+          <p className="mt-3 max-w-xs text-xs leading-relaxed text-ink-secondary">
             Claude Code のスキル・プロンプトを共有するためのサイトです。
           </p>
         </div>
         <div>
-          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">ドキュメント</p>
+          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">ドキュメント</p>
           <ul className="flex flex-col gap-2">
             <li>
               <Link to="/guide" className={linkClass}>
@@ -37,7 +37,7 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">アカウント</p>
+          <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">アカウント</p>
           <ul className="flex flex-col gap-2">
             <li>
               <Link to="/settings/profile" className={linkClass}>
@@ -52,7 +52,7 @@ export default function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-400 sm:px-6 lg:px-10">
+      <div className="border-t border-border px-4 py-4 text-center text-xs text-ink-muted sm:px-6 lg:px-10">
         &copy; {new Date().getFullYear()} AI Skills Hub
       </div>
     </footer>

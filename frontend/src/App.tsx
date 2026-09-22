@@ -27,19 +27,19 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-3">
+      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-bg">
         <LogoMark className="h-9 w-9 animate-pulse" />
-        <p className="text-sm text-slate-400">読み込み中...</p>
+        <p className="text-sm text-ink-secondary">読み込み中...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-bg px-4 text-center">
         <LogoMark className="mb-2 h-9 w-9 opacity-60" />
-        <p className="text-lg font-semibold text-slate-900">認証情報の取得に失敗しました</p>
-        <p className="text-sm text-slate-500">{error}</p>
+        <p className="text-lg font-semibold text-ink font-display">認証情報の取得に失敗しました</p>
+        <p className="text-sm text-ink-secondary">{error}</p>
       </div>
     );
   }
@@ -61,11 +61,11 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-bg">
       <ScrollToTop />
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-cta focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-cta-text"
       >
         本文へスキップ
       </a>

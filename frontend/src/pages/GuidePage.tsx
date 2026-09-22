@@ -55,7 +55,7 @@ const TOPIC_META = {
     label: "Skill",
     accentBg: "bg-skill",
     accentText: "text-skill",
-    accentBgSoft: "bg-skill/10",
+    accentBgSoft: "bg-skill-dim",
     Icon: BoxIcon,
     title: "SKILLとは？",
     intro:
@@ -67,7 +67,7 @@ const TOPIC_META = {
     label: "Prompt",
     accentBg: "bg-prompt",
     accentText: "text-prompt",
-    accentBgSoft: "bg-prompt/10",
+    accentBgSoft: "bg-prompt-dim",
     Icon: SparkleIcon,
     title: "プロンプトとは？",
     intro:
@@ -77,9 +77,9 @@ const TOPIC_META = {
   },
   external: {
     label: "OSS紹介",
-    accentBg: "bg-amber-500",
-    accentText: "text-amber-600",
-    accentBgSoft: "bg-amber-500/10",
+    accentBg: "bg-external",
+    accentText: "text-external",
+    accentBgSoft: "bg-external-dim",
     Icon: ExternalLinkIcon,
     title: "OSS紹介とは？",
     intro:
@@ -95,46 +95,46 @@ export default function GuidePage({ topic }: GuidePageProps) {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link to="/" className="mb-5 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
+      <Link to="/" className="mb-5 inline-flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink">
         <ArrowLeftIcon className="h-4 w-4" />
         一覧に戻る
       </Link>
 
       <div className="mb-6 flex items-center gap-3">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-white ${accentBg}`}>
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-onaccent ${accentBg}`}>
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>{label}</p>
-          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+          <p className={`font-display text-xs font-semibold uppercase tracking-wide ${accentText}`}>{label}</p>
+          <h1 className="font-display text-xl font-bold text-ink">{title}</h1>
         </div>
       </div>
 
-      <p className="mb-8 text-sm leading-relaxed text-slate-600">{intro}</p>
+      <p className="mb-8 text-sm leading-relaxed text-ink-secondary">{intro}</p>
 
       <div className="mb-8 flex flex-col gap-4">
         {points.map((p) => (
-          <div key={p.title} className="flex gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card">
+          <div key={p.title} className="flex gap-3 rounded-xl border border-border bg-surface p-4 shadow-card">
             <span
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${accentBgSoft} ${accentText}`}
             >
               <CheckIcon className="h-3 w-3" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-slate-900">{p.title}</p>
-              <p className="mt-1 text-sm leading-relaxed text-slate-600">{p.body}</p>
+              <p className="text-sm font-semibold text-ink">{p.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-ink-secondary">{p.body}</p>
             </div>
           </div>
         ))}
       </div>
 
       {topic === "skill" ? (
-        <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">
+          <p className="mb-2 flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             <CodeIcon className="h-3.5 w-3.5" />
             SKILL.md の例
           </p>
-          <pre className="overflow-x-auto rounded-lg bg-slate-900 p-3 font-mono text-xs leading-relaxed text-slate-100">
+          <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-3 font-mono text-xs leading-relaxed text-ink">
 {`---
 name: pr-review-checklist
 description: プルリクエストのレビュー依頼を受けたときに使う。観点ごとにコメントを分類する。
@@ -148,26 +148,26 @@ description: プルリクエストのレビュー依頼を受けたときに使�
           </pre>
         </div>
       ) : topic === "prompt" ? (
-        <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">
+          <p className="mb-2 flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             <CopyIcon className="h-3.5 w-3.5" />
             使い方の流れ
           </p>
-          <ol className="flex flex-col gap-2 text-sm text-slate-700">
+          <ol className="flex flex-col gap-2 text-sm text-ink-secondary">
             <li className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-prompt/10 text-xs font-semibold text-prompt">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-prompt-dim text-xs font-semibold text-prompt">
                 1
               </span>
               一覧からプロンプトを探す(タグ・検索・ランキングを活用)
             </li>
             <li className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-prompt/10 text-xs font-semibold text-prompt">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-prompt-dim text-xs font-semibold text-prompt">
                 2
               </span>
               「クリップボードにコピー」または「claude.aiで新規チャットを開く」を押す
             </li>
             <li className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-prompt/10 text-xs font-semibold text-prompt">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-prompt-dim text-xs font-semibold text-prompt">
                 3
               </span>
               必要に応じて自分の状況に合わせて文面を調整してから送信する
@@ -175,26 +175,26 @@ description: プルリクエストのレビュー依頼を受けたときに使�
           </ol>
         </div>
       ) : (
-        <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">
+          <p className="mb-2 flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             <ExternalLinkIcon className="h-3.5 w-3.5" />
             登録の流れ
           </p>
-          <ol className="flex flex-col gap-2 text-sm text-slate-700">
+          <ol className="flex flex-col gap-2 text-sm text-ink-secondary">
             <li className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-xs font-semibold text-amber-600">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-external-dim text-xs font-semibold text-external">
                 1
               </span>
               投稿画面で種別「OSS紹介」を選び、紹介先のGitHub URLを入力する
             </li>
             <li className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-xs font-semibold text-amber-600">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-external-dim text-xs font-semibold text-external">
                 2
               </span>
               「自動取得」を押すと、タイトル・概要・作者・ライセンスが自動入力される(空欄の項目のみ)
             </li>
             <li className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-xs font-semibold text-amber-600">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-external-dim text-xs font-semibold text-external">
                 3
               </span>
               内容を確認・補足して投稿すると、一覧・詳細ページから「紹介元を見る」で参照できるようになる
@@ -206,13 +206,13 @@ description: プルリクエストのレビュー依頼を受けたときに使�
       <div className="flex flex-wrap items-center gap-3">
         <Link
           to="/post"
-          className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white ${accentBg} hover:opacity-90`}
+          className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-onaccent ${accentBg} hover:opacity-90`}
         >
           {postLabel}
         </Link>
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-ink-secondary hover:bg-surface-2"
         >
           一覧を見る
         </Link>
@@ -220,7 +220,7 @@ description: プルリクエストのレビュー依頼を受けたときに使�
           href="https://docs.claude.com/"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600"
+          className="inline-flex items-center gap-1 text-sm text-ink-secondary hover:text-ink"
         >
           Claude公式ドキュメント
           <ExternalLinkIcon className="h-3.5 w-3.5" />

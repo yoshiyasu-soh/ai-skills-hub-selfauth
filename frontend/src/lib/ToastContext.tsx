@@ -30,7 +30,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="animate-fade-in rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-popover"
+            // トースト自体はページのテーマに関わらず常にダーク固定の「浮遊チップ」にしている
+            className="animate-fade-in rounded-lg bg-[#14171c] px-4 py-2.5 text-sm font-medium text-white/90 shadow-popover"
           >
             {t.message}
           </div>

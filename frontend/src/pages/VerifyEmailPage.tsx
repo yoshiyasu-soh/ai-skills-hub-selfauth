@@ -27,13 +27,13 @@ export default function VerifyEmailPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-4 py-12 text-center">
       <LogoMark className="mb-4 h-10 w-10" />
-      {status === "loading" && <p className="text-sm text-slate-400">確認中...</p>}
+      {status === "loading" && <p className="text-sm text-ink-secondary">確認中...</p>}
       {status === "ok" && (
         <>
-          <h1 className="mb-2 text-lg font-bold text-slate-900">メールアドレスを確認しました</h1>
+          <h1 className="mb-2 font-display text-lg font-bold text-ink">メールアドレスを確認しました</h1>
           <Link
             to="/login"
-            className="mt-4 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="mt-4 rounded-md bg-cta px-3.5 py-2 text-sm font-semibold text-cta-text hover:bg-cta-hover"
           >
             ログイン画面へ
           </Link>
@@ -41,8 +41,8 @@ export default function VerifyEmailPage() {
       )}
       {status === "error" && (
         <>
-          <h1 className="mb-2 text-lg font-bold text-slate-900">確認に失敗しました</h1>
-          <p className="text-sm text-slate-500">リンクが無効か、有効期限が切れている可能性があります。</p>
+          <h1 className="mb-2 font-display text-lg font-bold text-ink">確認に失敗しました</h1>
+          <p className="text-sm text-ink-secondary">リンクが無効か、有効期限が切れている可能性があります。</p>
         </>
       )}
     </div>

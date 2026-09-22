@@ -6,7 +6,7 @@ import { useUser } from "../lib/UserContext";
 const EMPLOYEE_TYPE_OPTIONS = ["正社員", "契約社員", "業務委託", "派遣", "アルバイト・パート", "その他"];
 
 const inputClass =
-  "rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
+  "rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal";
 
 export default function EditProfilePage() {
   const { user, refresh } = useUser();
@@ -50,14 +50,14 @@ export default function EditProfilePage() {
   return (
     <div className="mx-auto max-w-xl">
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900">プロフィールを編集</h1>
-        <Link to="/settings/tokens" className="text-sm font-medium text-brand-600 hover:text-brand-700">
+        <h1 className="font-display text-xl font-bold text-ink">プロフィールを編集</h1>
+        <Link to="/settings/tokens" className="text-sm font-medium text-ink hover:underline">
           MCP用アクセストークンの管理
         </Link>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">表示名</span>
+          <span className="font-medium text-ink-secondary">表示名</span>
           <input
             required
             maxLength={100}
@@ -68,28 +68,28 @@ export default function EditProfilePage() {
         </label>
         <div className="grid grid-cols-2 gap-4">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-slate-700">姓</span>
+            <span className="font-medium text-ink-secondary">姓</span>
             <input maxLength={100} value={surname} onChange={(e) => setSurname(e.target.value)} className={inputClass} />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-slate-700">名</span>
+            <span className="font-medium text-ink-secondary">名</span>
             <input maxLength={100} value={givenName} onChange={(e) => setGivenName(e.target.value)} className={inputClass} />
           </label>
         </div>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">会社名</span>
+          <span className="font-medium text-ink-secondary">会社名</span>
           <input maxLength={100} value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={inputClass} />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">役職</span>
+          <span className="font-medium text-ink-secondary">役職</span>
           <input maxLength={100} value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className={inputClass} />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">部署</span>
+          <span className="font-medium text-ink-secondary">部署</span>
           <input maxLength={100} value={department} onChange={(e) => setDepartment(e.target.value)} className={inputClass} />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">従業員の種類</span>
+          <span className="font-medium text-ink-secondary">従業員の種類</span>
           <select value={employeeType} onChange={(e) => setEmployeeType(e.target.value)} className={inputClass}>
             <option value="">未設定</option>
             {EMPLOYEE_TYPE_OPTIONS.map((opt) => (
@@ -104,14 +104,14 @@ export default function EditProfilePage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="rounded-md border border-slate-200 px-3.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            className="rounded-md border border-border px-3.5 py-2 text-sm font-medium text-ink-secondary hover:bg-surface-2"
           >
             キャンセル
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+            className="rounded-md bg-cta px-3.5 py-2 text-sm font-semibold text-cta-text shadow-sm transition-colors hover:bg-cta-hover disabled:opacity-50"
           >
             {submitting ? "保存中..." : "保存する"}
           </button>

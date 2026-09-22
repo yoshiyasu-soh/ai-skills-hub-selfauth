@@ -8,8 +8,8 @@ import { parseSkillMd } from "../lib/parseSkillMd";
 import type { ItemType, Tag } from "../lib/types";
 
 const inputClass =
-  "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal";
+const labelClass = "mb-1.5 block text-sm font-medium text-ink-secondary";
 
 const TIPS = [
   "概要は100字以内で簡潔に(一覧カードにそのまま表示されます)",
@@ -202,13 +202,13 @@ export default function PostItemPage() {
     }
   }
 
-  const accentText = type === "skill" ? "text-skill" : type === "prompt" ? "text-prompt" : "text-amber-600";
-  const accentBg = type === "skill" ? "bg-skill" : type === "prompt" ? "bg-prompt" : "bg-amber-500";
+  const accentText = type === "skill" ? "text-skill" : type === "prompt" ? "text-prompt" : "text-external";
+  const accentBg = type === "skill" ? "bg-skill" : type === "prompt" ? "bg-prompt" : "bg-external";
 
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-6 flex items-center gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${accentBg}`}>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-onaccent ${accentBg}`}>
           {type === "skill" ? (
             <BoxIcon className="h-4.5 w-4.5" />
           ) : type === "prompt" ? (
@@ -218,24 +218,24 @@ export default function PostItemPage() {
           )}
         </div>
         <div>
-          <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>新規投稿</p>
-          <h1 className="text-xl font-bold text-slate-900">あなたの知識・ノウハウを共有しましょう</h1>
+          <p className={`font-display text-xs font-semibold uppercase tracking-wide ${accentText}`}>新規投稿</p>
+          <h1 className="font-display text-xl font-bold text-ink">あなたの知識・ノウハウを共有しましょう</h1>
         </div>
       </div>
 
       <form onSubmit={(e) => void handleSubmit(e)}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+          <div className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6 shadow-card">
             <div>
               <label className={labelClass}>種別</label>
-              <div className="flex overflow-hidden rounded-lg border border-slate-200 w-fit">
+              <div className="flex overflow-hidden rounded-lg border border-border w-fit">
                 {(["skill", "prompt", "external"] as const).map((v) => (
                   <button
                     key={v}
                     type="button"
                     onClick={() => setType(v)}
-                    className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                      type === v ? "bg-slate-900 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+                    className={`px-4 py-1.5 text-sm font-semibold font-display transition-colors ${
+                      type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
                     }`}
                   >
                     {v === "skill" ? "スキル(再利用可能な機能)" : v === "prompt" ? "プロンプト(コピー用)" : "OSS紹介(外部リンク)"}
@@ -245,7 +245,7 @@ export default function PostItemPage() {
             </div>
 
             {type === "external" && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-4">
+              <div className="rounded-lg border border-warn-border bg-warn-bg p-4">
                 <label className={labelClass}>紹介先URL(GitHub等) *</label>
                 <div className="flex gap-2">
                   <input
@@ -263,12 +263,12 @@ export default function PostItemPage() {
                     type="button"
                     onClick={() => void handleAutoFetch()}
                     disabled={fetchingMeta || !sourceUrl.trim()}
-                    className="shrink-0 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+                    className="shrink-0 rounded-md border border-external/40 bg-surface px-3 py-2 text-sm font-medium text-external hover:bg-external-dim disabled:opacity-50"
                   >
                     {fetchingMeta ? "取得中..." : "自動取得"}
                   </button>
                 </div>
-                <p className="mt-1.5 text-xs text-slate-500">
+                <p className="mt-1.5 text-xs text-ink-secondary">
                   GitHubのURLを入力して自動取得を押すと、タイトル・概要・作者・ライセンスを取得できます(現在はGitHubのみ対応)。
                 </p>
                 {fetchMetaError && <p className="mt-1.5 text-xs text-red-500">{fetchMetaError}</p>}
@@ -301,7 +301,7 @@ export default function PostItemPage() {
                     />
                   </div>
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                <p className="mt-3 text-xs leading-relaxed text-ink-secondary">
                   これは第三者が公開しているOSS等の紹介投稿です。著作権・ライセンスは紹介元の作者に帰属します。
                 </p>
               </div>
@@ -334,7 +334,7 @@ export default function PostItemPage() {
 
             <div>
               <label className={labelClass}>
-                詳細説明 <span className="font-normal text-slate-400">(Markdown対応)</span>
+                詳細説明 <span className="font-normal text-ink-secondary">(Markdown対応)</span>
               </label>
               <MarkdownEditor
                 value={description}
@@ -352,9 +352,9 @@ export default function PostItemPage() {
                     type="file"
                     accept=".zip,.md"
                     onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
                   />
-                  <p className="mt-1.5 text-xs text-slate-400">
+                  <p className="mt-1.5 text-xs text-ink-secondary">
                     最大25MBまで。ZIP一式でもSKILL.md単体でも投稿できます。npx skills add 互換の配布は将来対応予定です。
                   </p>
                   {autoFilled && (
@@ -384,11 +384,11 @@ export default function PostItemPage() {
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-5">
+            <div className="flex justify-end gap-2 border-t border-border pt-5">
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-md bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
+                className="rounded-md bg-cta px-5 py-2 text-sm font-semibold text-cta-text shadow-sm hover:bg-cta-hover disabled:opacity-50"
               >
                 {submitting ? "投稿中..." : "投稿する"}
               </button>
@@ -396,23 +396,23 @@ export default function PostItemPage() {
           </div>
 
           <aside className="flex flex-col gap-4 lg:sticky lg:top-20">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                 <InfoIcon className="h-3.5 w-3.5" />
                 入力のヒント
               </p>
               <ul className="flex flex-col gap-2.5">
                 {(type === "external" ? EXTERNAL_TIPS : TIPS).map((tip) => (
-                  <li key={tip} className="flex gap-2 text-xs leading-relaxed text-slate-600">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+                  <li key={tip} className="flex gap-2 text-xs leading-relaxed text-ink-secondary">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-muted" />
                     {tip}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                 <TagIcon className="h-3.5 w-3.5" />
                 タグ
               </p>

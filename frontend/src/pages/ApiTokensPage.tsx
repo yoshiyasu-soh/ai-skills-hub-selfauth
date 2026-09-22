@@ -79,34 +79,35 @@ export default function ApiTokensPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-1 text-xl font-bold text-slate-900">MCP用アクセストークン</h1>
-      <p className="mb-5 text-sm text-slate-500">
+      <h1 className="mb-1 font-display text-xl font-bold text-ink">MCP用アクセストークン</h1>
+      <p className="mb-5 text-sm text-ink-secondary">
         Claude Code / Claude Desktop などのMCPクライアントからAI Skills Hubに接続する際の認証に使います。
         接続手順は{" "}
-        <Link to="/guide/mcp" className="font-medium text-brand-600 hover:text-brand-700">
+        <Link to="/guide/mcp" className="font-medium text-ink hover:underline">
           MCP連携ガイド
         </Link>{" "}
         を参照してください。
       </p>
 
       {newToken && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="mb-2 text-sm font-semibold text-amber-900">
+        <div className="mb-6 rounded-xl border border-warn-border bg-warn-bg p-4">
+          <p className="mb-2 text-sm font-semibold text-external">
             トークンを発行しました。この値は今しか表示されません。必ずコピーして安全な場所に保管してください。
           </p>
-          <div className="flex items-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2.5">
-            <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-[13px] leading-relaxed text-slate-100">
+          {/* ターミナル風の見た目はページのテーマに関わらず常にダーク固定にしている */}
+          <div className="flex items-center gap-2 rounded-lg bg-[#14171c] px-3.5 py-2.5">
+            <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-[13px] leading-relaxed text-white/90">
               {newToken.token}
             </code>
             <button
               type="button"
               onClick={() => void handleCopy()}
-              className="shrink-0 rounded-md border border-slate-700 px-2 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800"
+              className="shrink-0 rounded-md border border-white/15 px-2 py-1 text-xs font-medium text-white/70 transition-colors hover:bg-white/10"
             >
               {copied ? "コピーしました" : "コピー"}
             </button>
           </div>
-          <p className="mt-2 text-xs text-amber-800">
+          <p className="mt-2 text-xs text-ink-secondary">
             有効期限: {newToken.expiresAt ? formatDateTime(newToken.expiresAt) : "無期限"}
           </p>
         </div>
@@ -114,23 +115,23 @@ export default function ApiTokensPage() {
 
       <form
         onSubmit={handleCreate}
-        className="mb-2 flex flex-wrap items-end gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
+        className="mb-2 flex flex-wrap items-end gap-2 rounded-2xl border border-border bg-surface p-4 shadow-card"
       >
         <label className="flex flex-1 flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">ラベル(任意、例: Claude Code)</span>
+          <span className="font-medium text-ink-secondary">ラベル(任意、例: Claude Code)</span>
           <input
             maxLength={100}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-700">有効期限</span>
+          <span className="font-medium text-ink-secondary">有効期限</span>
           <select
             value={expiresInDays}
             onChange={(e) => setExpiresInDays(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
           >
             {EXPIRY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -142,20 +143,20 @@ export default function ApiTokensPage() {
         <button
           type="submit"
           disabled={creating}
-          className="rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+          className="rounded-md bg-cta px-3.5 py-2 text-sm font-semibold text-cta-text shadow-sm transition-colors hover:bg-cta-hover disabled:opacity-50"
         >
           {creating ? "発行中..." : "新しいトークンを発行"}
         </button>
       </form>
-      <p className="mb-6 text-xs text-slate-400">
+      <p className="mb-6 text-xs text-ink-secondary">
         漏洩リスクを抑えるため、長期間使わない予定の接続には有効期限を設定することをおすすめします。
         期限切れのトークンはこの画面から確認・失効できます。
       </p>
 
       {loading ? (
-        <p className="text-sm text-slate-400">読み込み中...</p>
+        <p className="text-sm text-ink-secondary">読み込み中...</p>
       ) : tokens.length === 0 ? (
-        <p className="text-sm text-slate-400">発行済みのトークンはありません。</p>
+        <p className="text-sm text-ink-secondary">発行済みのトークンはありません。</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {tokens.map((t) => {
@@ -163,28 +164,28 @@ export default function ApiTokensPage() {
             return (
               <li
                 key={t.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4 shadow-card"
               >
                 <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink">
                     {t.label || "(ラベルなし)"}
                     {expired && (
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-600">
+                      <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-500">
                         期限切れ
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-ink-secondary">
                     発行日: {formatDateTime(t.createdAt)} / 最終利用: {formatDateTime(t.lastUsedAt)}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-ink-secondary">
                     有効期限: {t.expiresAt ? formatDateTime(t.expiresAt) : "無期限"}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => void handleRevoke(t.id)}
-                  className="shrink-0 rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                  className="shrink-0 rounded-md border border-red-500/30 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/10"
                 >
                   失効する
                 </button>
