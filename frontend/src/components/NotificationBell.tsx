@@ -73,7 +73,7 @@ export default function NotificationBell() {
           <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         {notifications.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-notice px-1 text-[10px] font-bold text-white">
             {notifications.length > 9 ? "9+" : notifications.length}
           </span>
         )}

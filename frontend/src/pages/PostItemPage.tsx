@@ -271,9 +271,9 @@ export default function PostItemPage() {
                 <p className="mt-1.5 text-xs text-ink-secondary">
                   GitHubのURLを入力して自動取得を押すと、タイトル・概要・作者・ライセンスを取得できます(現在はGitHubのみ対応)。
                 </p>
-                {fetchMetaError && <p className="mt-1.5 text-xs text-red-500">{fetchMetaError}</p>}
+                {fetchMetaError && <p className="mt-1.5 text-xs text-danger">{fetchMetaError}</p>}
                 {fetchedStars !== null && !fetchMetaError && (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                  <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-success">
                     <StarIcon filled className="h-3.5 w-3.5" />
                     取得成功(★{fetchedStars.toLocaleString()})。空欄だった項目に自動入力しました。
                   </p>
@@ -358,7 +358,7 @@ export default function PostItemPage() {
                     最大25MBまで。ZIP一式でもSKILL.md単体でも投稿できます。npx skills add 互換の配布は将来対応予定です。
                   </p>
                   {autoFilled && (
-                    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-success">
                       <CheckIcon className="h-3.5 w-3.5" />
                       SKILL.mdの内容からタイトル・概要等を自動入力しました(空欄だった項目のみ)。
                     </p>
@@ -382,7 +382,7 @@ export default function PostItemPage() {
               </div>
             ) : null}
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
 
             <div className="flex justify-end gap-2 border-t border-border pt-5">
               <button

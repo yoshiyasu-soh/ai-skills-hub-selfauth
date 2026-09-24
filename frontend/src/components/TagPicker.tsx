@@ -86,7 +86,7 @@ export default function TagPicker({ tags, selected, onChange, onTagCreated, onTa
                   aria-label={`タグ「${tag.label}」を削除`}
                   title="このタグを削除(未使用のタグのみ削除できます)"
                   className={`px-2 py-1 ${
-                    active ? "text-active-text/70 hover:text-active-text" : "text-ink-muted hover:text-red-500"
+                    active ? "text-active-text/70 hover:text-active-text" : "text-ink-muted hover:text-danger"
                   } disabled:opacity-50`}
                 >
                   ×
@@ -120,7 +120,7 @@ export default function TagPicker({ tags, selected, onChange, onTagCreated, onTa
           追加
         </button>
       </div>
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
       <p className="mt-1 text-xs text-ink-muted">
         自分が追加したタグで、まだどの投稿にも使われていないものだけ「×」で削除できます。
       </p>

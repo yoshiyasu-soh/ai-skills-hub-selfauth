@@ -38,6 +38,18 @@ export default {
           bg: "var(--warn-bg)",
           border: "var(--warn-border)",
         },
+        danger: {
+          DEFAULT: "rgb(var(--danger) / <alpha-value>)",
+          dim: "var(--danger-dim)",
+        },
+        success: {
+          DEFAULT: "rgb(var(--success) / <alpha-value>)",
+          dim: "var(--success-dim)",
+        },
+        notice: {
+          DEFAULT: "rgb(var(--notice) / <alpha-value>)",
+          dim: "var(--notice-dim)",
+        },
         onaccent: "rgb(var(--on-accent) / <alpha-value>)",
         cta: {
           DEFAULT: "rgb(var(--cta-bg) / <alpha-value>)",

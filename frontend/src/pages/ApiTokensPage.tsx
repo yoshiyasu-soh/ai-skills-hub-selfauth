@@ -170,7 +170,7 @@ export default function ApiTokensPage() {
                   <p className="flex items-center gap-2 text-sm font-semibold text-ink">
                     {t.label || "(ラベルなし)"}
                     {expired && (
-                      <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-500">
+                      <span className="rounded-full bg-danger-dim px-2 py-0.5 text-[11px] font-semibold text-danger">
                         期限切れ
                       </span>
                     )}
@@ -185,7 +185,7 @@ export default function ApiTokensPage() {
                 <button
                   type="button"
                   onClick={() => void handleRevoke(t.id)}
-                  className="shrink-0 rounded-md border border-red-500/30 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/10"
+                  className="shrink-0 rounded-md border border-danger/30 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger-dim"
                 >
                   失効する
                 </button>

@@ -11,7 +11,7 @@
   --border-hover: 200 203 209;
   --text: 20 22 26;
   --text-secondary: 86 95 107;
-  --text-muted: 128 134 143;
+  --text-muted: 100 105 110;
 
   /* ブランド差し色(アクセントとしてのみ使用。大面積の塗りには使わない) */
   --signal: 200 255 77;
@@ -26,6 +26,13 @@
   --external-dim: rgba(180, 83, 9, 0.08);
   --warn-bg: rgba(180, 83, 9, 0.06);
   --warn-border: rgba(180, 83, 9, 0.25);
+  /* ステータス系トークン(AA 4.5:1をこの背景色に対して満たす値に調整済み) */
+  --danger: 221 50 50;
+  --danger-dim: rgba(221, 50, 50, 0.08);
+  --success: 0 134 89;
+  --success-dim: rgba(0, 134, 89, 0.08);
+  --notice: 224 43 74;
+  --notice-dim: rgba(224, 43, 74, 0.08);
   /* skill/prompt/external を塗りにしたボタン等の上に乗せる文字色。
      ダークモードのアクセントは明るいパステルになるため白文字だと読めない。 */
   --on-accent: 255 255 255;
@@ -60,7 +67,7 @@
   --border-hover: 58 64 73;
   --text: 244 245 247;
   --text-secondary: 154 163 173;
-  --text-muted: 92 100 112;
+  --text-muted: 140 147 153;
 
   --signal-ring: rgba(200, 255, 77, 0.24);
 
@@ -73,6 +80,13 @@
   --warn-bg: rgba(255, 180, 84, 0.08);
   --warn-border: rgba(255, 180, 84, 0.3);
   --on-accent: 11 13 16;
+
+  --danger: 239 68 68;
+  --danger-dim: rgba(239, 68, 68, 0.12);
+  --success: 5 150 105;
+  --success-dim: rgba(5, 150, 105, 0.12);
+  --notice: 244 63 94;
+  --notice-dim: rgba(244, 63, 94, 0.12);
 
   --header-bg: rgba(11, 13, 16, 0.86);
   --footer-bg: 20 23 28;

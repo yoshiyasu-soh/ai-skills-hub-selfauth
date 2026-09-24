@@ -15,8 +15,10 @@ const TYPE_META = {
   external: { label: "OSS紹介", accent: "text-external", accentBg: "bg-external-dim", Icon: ExternalLinkIcon },
 } as const;
 
+const FALLBACK_TYPE_META = { label: "不明", accent: "text-ink-secondary", accentBg: "bg-surface-2", Icon: BoxIcon };
+
 export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
-  const { label, accent, accentBg, Icon } = TYPE_META[item.type];
+  const { label, accent, accentBg, Icon } = TYPE_META[item.type] ?? FALLBACK_TYPE_META;
   const location = useLocation();
   // 一覧側の絞り込み・ソート・ページ(現在のURL)を渡しておき、詳細ページの
   // 「一覧に戻る」がここへ戻れるようにする。
@@ -55,7 +57,7 @@ export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
         <button
           type="button"
           onClick={() => onToggleFavorite?.(item)}
-          className="relative z-10 flex items-center gap-1 rounded-md px-1.5 py-1 text-sm text-ink-secondary hover:bg-surface-2 hover:text-external"
+          className="relative z-10 flex items-center gap-1 rounded-md px-2 py-3 text-sm text-ink-secondary hover:bg-surface-2 hover:text-external"
           aria-label="お気に入り切り替え"
         >
           <StarIcon filled={item.isFavorited} className={`h-4 w-4 ${item.isFavorited ? "text-external" : ""}`} />
@@ -69,7 +71,7 @@ export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
       </p>
 
       {item.hasUpdate && (
-        <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-semibold text-rose-500">
+        <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-notice-dim px-2 py-0.5 text-[11px] font-semibold text-notice">
           更新あり
         </span>
       )}

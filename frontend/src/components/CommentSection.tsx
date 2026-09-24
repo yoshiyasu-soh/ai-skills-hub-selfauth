@@ -90,7 +90,7 @@ export default function CommentSection({ itemId, onCountChange }: Props) {
                 <button
                   type="button"
                   onClick={() => void handleDelete(comment.id)}
-                  className="shrink-0 self-start text-xs text-ink-muted hover:text-red-500"
+                  className="shrink-0 self-start text-xs text-ink-muted hover:text-danger"
                 >
                   削除
                 </button>

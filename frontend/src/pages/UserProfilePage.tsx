@@ -33,7 +33,7 @@ export default function UserProfilePage() {
   }, [email]);
 
   if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
-  if (error) return <p className="text-sm text-red-500">{error}</p>;
+  if (error) return <p className="text-sm text-danger">{error}</p>;
   if (!profile) return null;
 
   const isSelf = currentUser?.email === profile.email;

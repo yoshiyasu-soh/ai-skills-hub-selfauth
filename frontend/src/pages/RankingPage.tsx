@@ -97,7 +97,7 @@ export default function RankingPage() {
       {loading ? (
         <p className="text-sm text-ink-secondary">読み込み中...</p>
       ) : error ? (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-danger">{error}</p>
       ) : items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border bg-surface py-10 text-center text-sm text-ink-secondary">
           この期間の実績はまだありません。

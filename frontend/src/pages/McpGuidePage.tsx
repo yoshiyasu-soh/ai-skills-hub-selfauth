@@ -43,7 +43,7 @@ function CopyableCommand({ command }: { command: string }) {
       >
         {copied ? (
           <>
-            <CheckIcon className="h-3 w-3 text-emerald-400" />
+            <CheckIcon className="h-3 w-3 text-success" />
             コピーしました
           </>
         ) : (

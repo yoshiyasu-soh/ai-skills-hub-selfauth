@@ -177,7 +177,7 @@ export default function HomePage() {
           <h1 className="font-display text-[1.875rem] font-bold tracking-tight text-ink">
             みんなのAIスキル・プロンプトを見つけよう
           </h1>
-          <p className="mt-2 whitespace-nowrap text-sm text-ink-secondary">
+          <p className="mt-2 text-sm text-ink-secondary">
             実務で使えるAIスキルやプロンプトを共有・発見できます。あなたの知識・ノウハウも、ぜひシェアしてください。
           </p>
         </div>
@@ -265,7 +265,7 @@ export default function HomePage() {
         <TagFilterBar tags={tags} selected={selectedTagIds} onChange={handleTagsChange} />
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       {loading ? (
         <p className="text-sm text-ink-secondary">読み込み中...</p>

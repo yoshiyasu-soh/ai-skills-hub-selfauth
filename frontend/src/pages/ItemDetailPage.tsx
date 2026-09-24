@@ -183,7 +183,7 @@ export default function ItemDetailPage() {
   }
 
   if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
-  if (error) return <p className="text-sm text-red-500">{error}</p>;
+  if (error) return <p className="text-sm text-danger">{error}</p>;
   if (!item) return <p className="text-sm text-ink-secondary">見つかりませんでした。</p>;
 
   const isSkill = item.type === "skill";
@@ -240,7 +240,7 @@ export default function ItemDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleDelete()}
-                className="rounded-md border border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-500/10"
+                className="rounded-md border border-danger/30 px-3 py-1.5 text-sm font-medium text-danger hover:bg-danger-dim"
               >
                 削除
               </button>
@@ -270,7 +270,7 @@ export default function ItemDetailPage() {
         </div>
 
         {item.hasUpdate && (
-          <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-500">
+          <div className="mb-4 rounded-lg border border-notice/30 bg-notice-dim px-3 py-2 text-sm font-medium text-notice">
             前回ご覧になってからバージョンが更新されています(v{item.version})。
           </div>
         )}
@@ -399,14 +399,20 @@ export default function ItemDetailPage() {
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20">
           <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-surface p-5 shadow-card">
             {isSkill ? (
-              <a
-                href={api.items.downloadUrl(item.id)}
-                onClick={handleDownloadClick}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-skill px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:bg-skill/90"
-              >
-                <DownloadIcon className="h-4 w-4" />
-                ダウンロード
-              </a>
+              item.fileName ? (
+                <a
+                  href={api.items.downloadUrl(item.id)}
+                  onClick={handleDownloadClick}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-skill px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:bg-skill/90"
+                >
+                  <DownloadIcon className="h-4 w-4" />
+                  ダウンロード
+                </a>
+              ) : (
+                <p className="rounded-md border border-border bg-surface-2 px-4 py-2.5 text-center text-sm text-ink-secondary">
+                  ダウンロード可能なファイルがまだありません
+                </p>
+              )
             ) : isExternal ? (
               <button
                 type="button"

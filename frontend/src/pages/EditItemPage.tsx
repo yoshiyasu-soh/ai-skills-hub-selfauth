@@ -171,7 +171,7 @@ export default function EditItemPage() {
   }
 
   if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
-  if (loadError) return <p className="text-sm text-red-500">{loadError}</p>;
+  if (loadError) return <p className="text-sm text-danger">{loadError}</p>;
   if (!item) return null;
 
   const isSkill = item.type === "skill";
@@ -302,7 +302,7 @@ export default function EditItemPage() {
                     </p>
                   )}
                   {autoFilled && (
-                    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-success">
                       <CheckIcon className="h-3.5 w-3.5" />
                       SKILL.mdの内容から空欄の項目を自動入力しました。
                     </p>
@@ -326,7 +326,7 @@ export default function EditItemPage() {
               </div>
             )}
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
 
             <div className="flex justify-end gap-2 border-t border-border pt-5">
               <button
