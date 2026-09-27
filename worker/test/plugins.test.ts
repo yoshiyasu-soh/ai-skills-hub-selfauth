@@ -2,8 +2,10 @@ import { unzipSync, strFromU8, zipSync, strToU8 } from "fflate";
 import { env, SELF } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vitest";
 import { generateToken, hashToken } from "../src/lib/auth/tokens";
+import { pluginIdentifier } from "../src/lib/pluginArchive";
 
 const OWNER = "owner@example.com";
+const SKILL_TITLE = "テストスキル";
 
 async function seedUser(email: string) {
   await env.DB.prepare(
@@ -28,7 +30,7 @@ async function createSkillItem(
 ): Promise<{ id: string; version: string }> {
   const form = new FormData();
   form.set("type", "skill");
-  form.set("title", "テストスキル");
+  form.set("title", SKILL_TITLE);
   form.set("file", file);
   const res = await SELF.fetch("https://example.com/api/items", {
     method: "POST",
@@ -66,7 +68,7 @@ describe("GET /api/plugins/marketplace.json", () => {
     expect(res.status).toBe(200);
     const body = await res.json<{ plugins: { name: string; source: { url: string; sha256: string } }[] }>();
     expect(body.plugins).toHaveLength(1);
-    expect(body.plugins[0].name).toBe(item.id);
+    expect(body.plugins[0].name).toBe(pluginIdentifier({ id: item.id, title: SKILL_TITLE }));
     expect(body.plugins[0].source.url).toContain(`/api/plugins/${item.id}/archive.zip`);
     expect(body.plugins[0].source.sha256).toMatch(/^[0-9a-f]{64}$/);
   });
@@ -111,10 +113,11 @@ describe("GET /api/plugins/:id/archive.zip", () => {
     const entries = unzipSync(buf);
 
     const pluginJson = JSON.parse(strFromU8(entries[".claude-plugin/plugin.json"]));
-    expect(pluginJson.name).toBe(item.id);
+    const identifier = pluginIdentifier({ id: item.id, title: SKILL_TITLE });
+    expect(pluginJson.name).toBe(identifier);
     expect(pluginJson.version).toBe("1.0.0");
 
-    const skillMd = strFromU8(entries[`skills/${item.id}/SKILL.md`]);
+    const skillMd = strFromU8(entries[`skills/${identifier}/SKILL.md`]);
     expect(skillMd).toContain("動作確認用スキル");
   });
 
@@ -125,13 +128,14 @@ describe("GET /api/plugins/:id/archive.zip", () => {
       "my-skill/resource.txt": strToU8("補足資料"),
     });
     const item = await createSkillItem(headers, new File([original], "skill.zip", { type: "application/zip" }));
+    const identifier = pluginIdentifier({ id: item.id, title: SKILL_TITLE });
 
     const res = await SELF.fetch(`https://example.com/api/plugins/${item.id}/archive.zip`, { headers });
     expect(res.status).toBe(200);
 
     const entries = unzipSync(new Uint8Array(await res.arrayBuffer()));
-    expect(strFromU8(entries[`skills/${item.id}/SKILL.md`])).toContain("ネストされたスキル");
-    expect(strFromU8(entries[`skills/${item.id}/resource.txt`])).toBe("補足資料");
+    expect(strFromU8(entries[`skills/${identifier}/SKILL.md`])).toContain("ネストされたスキル");
+    expect(strFromU8(entries[`skills/${identifier}/resource.txt`])).toBe("補足資料");
   });
 
   it("ZIP内のパストラバーサルを含むエントリは展開結果から除外される(Zip Slip対策)", async () => {
@@ -142,16 +146,34 @@ describe("GET /api/plugins/:id/archive.zip", () => {
       "../../../etc/cron.d/evil": strToU8("escaped2"),
     });
     const item = await createSkillItem(headers, new File([original], "skill.zip", { type: "application/zip" }));
+    const identifier = pluginIdentifier({ id: item.id, title: SKILL_TITLE });
 
     const res = await SELF.fetch(`https://example.com/api/plugins/${item.id}/archive.zip`, { headers });
     expect(res.status).toBe(200);
 
     const entries = unzipSync(new Uint8Array(await res.arrayBuffer()));
-    expect(strFromU8(entries[`skills/${item.id}/SKILL.md`])).toContain("通常のスキル");
+    expect(strFromU8(entries[`skills/${identifier}/SKILL.md`])).toContain("通常のスキル");
     for (const path of Object.keys(entries)) {
-      expect(path.startsWith(`skills/${item.id}/`) || path === ".claude-plugin/plugin.json").toBe(true);
+      expect(path.startsWith(`skills/${identifier}/`) || path === ".claude-plugin/plugin.json").toBe(true);
       expect(path).not.toContain("..");
     }
+  });
+
+  it("ASCIIタイトルの場合、プラグイン名がUUIDではなく読める識別子になる", async () => {
+    const headers = await apiTokenHeaders(OWNER);
+    const form = new FormData();
+    form.set("type", "skill");
+    form.set("title", "release-notes-generator");
+    form.set("file", new File(["# リリースノート生成"], "SKILL.md", { type: "text/markdown" }));
+    const createRes = await SELF.fetch("https://example.com/api/items", { method: "POST", headers, body: form });
+    const { item } = await createRes.json<{ item: { id: string } }>();
+
+    const res = await SELF.fetch(`https://example.com/api/plugins/${item.id}/archive.zip`, { headers });
+    const entries = unzipSync(new Uint8Array(await res.arrayBuffer()));
+    const pluginJson = JSON.parse(strFromU8(entries[".claude-plugin/plugin.json"]));
+
+    expect(pluginJson.name).toBe(`release-notes-generator-${item.id.slice(0, 8)}`);
+    expect(pluginJson.name).not.toBe(item.id);
   });
 
   it("存在しないIDは404", async () => {
@@ -163,6 +185,7 @@ describe("GET /api/plugins/:id/archive.zip", () => {
   it("ファイルを更新するとキャッシュが再構築され内容も追従する", async () => {
     const headers = await apiTokenHeaders(OWNER);
     const item = await createSkillItem(headers, new File(["v1の内容"], "SKILL.md", { type: "text/markdown" }));
+    const identifier = pluginIdentifier({ id: item.id, title: SKILL_TITLE });
 
     const marketRes1 = await SELF.fetch("https://example.com/api/plugins/marketplace.json", { headers });
     const market1 = await marketRes1.json<{ plugins: { source: { sha256: string } }[] }>();
@@ -178,7 +201,7 @@ describe("GET /api/plugins/:id/archive.zip", () => {
 
     const archiveRes = await SELF.fetch(`https://example.com/api/plugins/${item.id}/archive.zip`, { headers });
     const entries = unzipSync(new Uint8Array(await archiveRes.arrayBuffer()));
-    expect(strFromU8(entries[`skills/${item.id}/SKILL.md`])).toBe("v2の内容");
+    expect(strFromU8(entries[`skills/${identifier}/SKILL.md`])).toBe("v2の内容");
 
     const marketRes2 = await SELF.fetch("https://example.com/api/plugins/marketplace.json", { headers });
     const market2 = await marketRes2.json<{ plugins: { source: { sha256: string } }[] }>();

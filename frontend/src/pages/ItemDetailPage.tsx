@@ -17,7 +17,7 @@ import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
 import { formatCompactNumber } from "../lib/formatNumber";
-import { installDirName } from "../lib/installName";
+import { installDirName, pluginIdentifier } from "../lib/installName";
 import { useToast } from "../lib/ToastContext";
 import type { Item } from "../lib/types";
 
@@ -174,7 +174,7 @@ export default function ItemDetailPage() {
   async function handleCopyPluginCommand() {
     if (!item) return;
     try {
-      await navigator.clipboard.writeText(`claude plugin install ${item.id}@ai-skills-hub`);
+      await navigator.clipboard.writeText(`claude plugin install ${pluginIdentifier(item.title, item.id)}@ai-skills-hub`);
       setPluginCommandCopied(true);
       setTimeout(() => setPluginCommandCopied(false), 1500);
     } catch {
@@ -549,7 +549,7 @@ export default function ItemDetailPage() {
                 </p>
                 <div className="flex items-start gap-2 rounded-lg bg-[#14171c] px-3.5 py-2.5">
                   <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-white/90">
-                    claude plugin install {item.id}@ai-skills-hub
+                    claude plugin install {pluginIdentifier(item.title, item.id)}@ai-skills-hub
                   </code>
                   <button
                     type="button"

@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
-import { getOrBuildPluginPackage } from "../lib/pluginArchive";
+import { getOrBuildPluginPackage, pluginIdentifier } from "../lib/pluginArchive";
 import type { AuthUser, Env, ItemRow } from "../types";
 
 type AppContext = Context<{ Bindings: Env; Variables: { user: AuthUser } }>;
@@ -33,7 +33,7 @@ plugins.get("/marketplace.json", async (c) => {
     if (!pkg) continue;
 
     entries.push({
-      name: item.id,
+      name: pluginIdentifier(item),
       description: item.summary || item.title,
       displayName: item.title,
       version: item.version,

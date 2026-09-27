@@ -29,11 +29,29 @@ function findSkillMdPath(entries: Record<string, Uint8Array>): string | null {
   return candidates[0];
 }
 
+/**
+ * Claude Codeのプラグイン名(plugin.json の name / marketplace.jsonのplugins[].name)として使う
+ * 識別子をタイトルから組み立てる。プラグイン名は非ASCII文字を許容しないため、日本語タイトルの
+ * 場合は空になり得る(その場合は id 由来のフォールバックを使う)。一意性は id の先頭8文字を
+ * 末尾に付与して担保する。
+ * フロントエンド側(frontend/src/lib/installName.ts の pluginIdentifier)で同じロジックを
+ * 再現して表示用インストールコマンドを組み立てているため、変更する場合は両方を揃えること。
+ */
+export function pluginIdentifier(item: Pick<ItemRow, "id" | "title">): string {
+  const base = item.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+  const suffix = item.id.slice(0, 8);
+  return base ? `${base}-${suffix}` : `skill-${suffix}`;
+}
+
 function buildPluginJson(item: ItemRow, authorName: string): Uint8Array {
   return strToU8(
     JSON.stringify(
       {
-        name: item.id,
+        name: pluginIdentifier(item),
         version: item.version,
         description: item.summary || item.title,
         displayName: item.title,
@@ -68,13 +86,14 @@ export async function buildAndCachePluginPackage(
   const obj = await env.ASSETS_BUCKET.get(item.r2_key);
   if (!obj) return null;
 
+  const identifier = pluginIdentifier(item);
   const files: Record<string, Uint8Array> = {
     ".claude-plugin/plugin.json": buildPluginJson(item, authorName),
   };
 
   if (item.file_name.toLowerCase().endsWith(".md")) {
     const text = await obj.text();
-    files[`skills/${item.id}/SKILL.md`] = strToU8(text);
+    files[`skills/${identifier}/SKILL.md`] = strToU8(text);
   } else {
     const buf = new Uint8Array(await obj.arrayBuffer());
     const entries = unzipSync(buf);
@@ -86,7 +105,7 @@ export async function buildAndCachePluginPackage(
       if (path.endsWith("/") || !path.startsWith(skillRoot)) continue;
       const relative = path.slice(skillRoot.length);
       if (!isSafeRelativePath(relative)) continue;
-      files[`skills/${item.id}/${relative}`] = data;
+      files[`skills/${identifier}/${relative}`] = data;
     }
   }
 
