@@ -75,6 +75,7 @@ export default function ItemDetailPage() {
     navigator.userAgent.includes("Windows") ? "windows" : "unix",
   );
   const [installCommandCopied, setInstallCommandCopied] = useState(false);
+  const [pluginCommandCopied, setPluginCommandCopied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -165,6 +166,17 @@ export default function ItemDetailPage() {
       await navigator.clipboard.writeText(buildInstallCommand(item, installOs));
       setInstallCommandCopied(true);
       setTimeout(() => setInstallCommandCopied(false), 1500);
+    } catch {
+      showToast("クリップボードへのコピーに失敗しました");
+    }
+  }
+
+  async function handleCopyPluginCommand() {
+    if (!item) return;
+    try {
+      await navigator.clipboard.writeText(`claude plugin install ${item.id}@ai-skills-hub`);
+      setPluginCommandCopied(true);
+      setTimeout(() => setPluginCommandCopied(false), 1500);
     } catch {
       showToast("クリップボードへのコピーに失敗しました");
     }
@@ -522,6 +534,39 @@ export default function ItemDetailPage() {
                   </>
                 )}
               </p>
+
+              <div className="mt-4 border-t border-border pt-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+                  Claude Codeプラグイン連携を設定済みの場合
+                </p>
+                <p className="mb-2 text-xs leading-relaxed text-ink-secondary">
+                  上記のコマンドを使わなくても、<code className="font-mono">/plugin</code>{" "}
+                  コマンドでブラウズしてこのスキルを選ぶだけでインストールできます。マーケットプレイス名を
+                  <Link to="/guide/claude-plugin" className="mx-1 text-ink hover:underline">
+                    ガイド
+                  </Link>
+                  の通り設定していれば、以下のコマンドで直接指定してインストールすることもできます。
+                </p>
+                <div className="flex items-start gap-2 rounded-lg bg-[#14171c] px-3.5 py-2.5">
+                  <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-white/90">
+                    claude plugin install {item.id}@ai-skills-hub
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyPluginCommand()}
+                    className="shrink-0 rounded-md border border-white/15 px-2 py-1 text-xs font-medium text-white/70 transition-colors hover:bg-white/10"
+                  >
+                    {pluginCommandCopied ? "コピーしました" : "コピー"}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                  まだ設定していない場合は、
+                  <Link to="/guide/claude-plugin" className="mx-1 text-ink hover:underline">
+                    Claude Codeプラグイン連携ガイド
+                  </Link>
+                  を参照してください。
+                </p>
+              </div>
             </div>
           )}
 
