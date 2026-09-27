@@ -271,22 +271,26 @@ export default function ClaudePluginGuidePage() {
         <ul className="flex flex-col gap-2 text-sm leading-relaxed text-ink-secondary">
           <li className="flex gap-2">
             <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-muted" />
-            プラグイン化されるのは <strong className="font-medium text-ink-secondary">type=skill</strong> の投稿のみです。
-            プロンプト・OSS紹介はマーケットプレイスの一覧には出てきません。
+            <span>
+              プラグイン化されるのは <strong className="font-medium text-ink-secondary">type=skill</strong> の投稿のみです。
+              プロンプト・OSS紹介はマーケットプレイスの一覧には出てきません。
+            </span>
           </li>
           <li className="flex gap-2">
             <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-muted" />
-            SKILL.md単体形式の投稿は、そのままプラグインとして配信されます。
+            <span>SKILL.md単体形式の投稿は、そのままプラグインとして配信されます。</span>
           </li>
           <li className="flex gap-2">
             <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-muted" />
-            ZIP形式の投稿は、中に <strong className="font-medium text-ink-secondary">SKILL.md</strong> というファイルが
-            含まれている場合のみ変換できます。見つからない場合、エラーにはなりませんが、
-            マーケットプレイスの一覧には表示されません。
+            <span>
+              ZIP形式の投稿は、中に <strong className="font-medium text-ink-secondary">SKILL.md</strong> というファイルが
+              含まれている場合のみ変換できます。見つからない場合、エラーにはなりませんが、
+              マーケットプレイスの一覧には表示されません。
+            </span>
           </li>
           <li className="flex gap-2">
             <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ink-muted" />
-            スキルを更新(ファイル差し替え)すると、インストール済みの利用者にも自動的に新しい内容が反映されます。
+            <span>スキルを更新(ファイル差し替え)すると、インストール済みの利用者にも自動的に新しい内容が反映されます。</span>
           </li>
         </ul>
       </section>
