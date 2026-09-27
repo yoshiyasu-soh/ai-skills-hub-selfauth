@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import LogoMark from "./components/LogoMark";
 import ScrollToTop from "./components/ScrollToTop";
 import ApiTokensPage from "./pages/ApiTokensPage";
+import ClaudePluginGuidePage from "./pages/ClaudePluginGuidePage";
 import DocsPage from "./pages/DocsPage";
 import EditItemPage from "./pages/EditItemPage";
 import EditProfilePage from "./pages/EditProfilePage";
@@ -86,6 +87,7 @@ export default function App() {
           <Route path="/guide/prompts" element={<GuidePage topic="prompt" />} />
           <Route path="/guide/external" element={<GuidePage topic="external" />} />
           <Route path="/guide/mcp" element={<McpGuidePage />} />
+          <Route path="/guide/claude-plugin" element={<ClaudePluginGuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

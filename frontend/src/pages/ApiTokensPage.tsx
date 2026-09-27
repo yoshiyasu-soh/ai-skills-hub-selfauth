@@ -79,12 +79,17 @@ export default function ApiTokensPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-1 font-display text-xl font-bold text-ink">MCP用アクセストークン</h1>
+      <h1 className="mb-1 font-display text-xl font-bold text-ink">アクセストークン</h1>
       <p className="mb-5 text-sm text-ink-secondary">
-        Claude Code / Claude Desktop などのMCPクライアントからAI Skills Hubに接続する際の認証に使います。
-        接続手順は{" "}
+        Claude Code / Claude Desktop などのMCPクライアントからAI Skills Hubに接続する際、および
+        投稿されたスキルをClaude Codeのプラグインとしてインストールする際の認証に使います
+        (同じトークンをどちらにも使えます)。接続手順は{" "}
         <Link to="/guide/mcp" className="font-medium text-ink hover:underline">
           MCP連携ガイド
+        </Link>{" "}
+        、プラグインとしてのインストール手順は{" "}
+        <Link to="/guide/claude-plugin" className="font-medium text-ink hover:underline">
+          Claude Codeプラグイン連携ガイド
         </Link>{" "}
         を参照してください。
       </p>

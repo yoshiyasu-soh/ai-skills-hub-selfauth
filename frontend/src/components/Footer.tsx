@@ -30,6 +30,11 @@ export default function Footer() {
               </Link>
             </li>
             <li>
+              <Link to="/guide/claude-plugin" className={linkClass}>
+                Claude Codeプラグイン連携
+              </Link>
+            </li>
+            <li>
               <Link to="/guide#faq" className={linkClass}>
                 よくある質問
               </Link>

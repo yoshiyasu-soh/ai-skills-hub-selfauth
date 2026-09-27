@@ -25,6 +25,11 @@ Cloudflare Workers + D1 + R2 + React(Vite) で構築し、認証はWorker自身�
   クライアントでスキル・プロンプト・OSS紹介の検索・参照に加え、新規投稿・編集・お気に入り登録も
   可能。認証は個人アクセストークン(`/settings/tokens` で発行)を使用
   (詳細は [`docs/setup-mcp.md`](docs/setup-mcp.md))
+- Claude Codeプラグインマーケットプレイス: 投稿されたスキル(type=skill)を、投稿と同時に
+  自動的にClaude Codeのプラグインとしても配信。登録者が別途「マーケットプレイス登録」を
+  行う必要はなく、通常の投稿操作だけで反映される。認証はMCPと同じ個人アクセストークンを使用
+  (詳細は [`docs/setup-claude-code-plugin.md`](docs/setup-claude-code-plugin.md)、
+  エンドユーザー向け手順はサイト内の `/guide/claude-plugin`)
 - OSS紹介投稿: 自作物ではなく既に公開されているOSS等を紹介する投稿種別。GitHubのURLを入力すると
   タイトル・概要・作者・ライセンスを自動取得可能(GitHub APIのレート制限緩和には
   `GITHUB_TOKEN` の設定を推奨。[`docs/setup-cloudflare.md`](docs/setup-cloudflare.md) 参照)

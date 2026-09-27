@@ -453,6 +453,14 @@ export default function McpGuidePage() {
             アイテムの種類(SKILL.md単体 / ZIP)を確認できます。
           </p>
         </div>
+        <p className="mt-3 text-xs leading-relaxed text-ink-secondary">
+          ※ これは「頼んだときだけ」その場でインストールする方法です。投稿されたスキルを
+          常に一覧から選んでインストールできるようにしたい場合は、
+          <Link to="/guide/claude-plugin" className="mx-1 font-medium text-ink hover:underline">
+            Claude Codeプラグイン連携
+          </Link>
+          の設定をおすすめします。
+        </p>
       </section>
 
       {/* できないこと */}

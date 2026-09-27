@@ -8,6 +8,7 @@ import {
   SearchIcon,
   SparkleIcon,
   StarIcon,
+  TerminalIcon,
   UserIcon,
 } from "../components/icons";
 import LogoMark from "../components/LogoMark";
@@ -57,6 +58,11 @@ const FEATURES = [
     body: "Claude Code / Claude Desktopから直接、検索・参照ができます。",
   },
   {
+    icon: TerminalIcon,
+    title: "Claude Codeプラグイン連携",
+    body: "投稿されたスキルは自動的にClaude Codeのプラグインとしても配信され、/pluginでそのままインストールできます。",
+  },
+  {
     icon: UserIcon,
     title: "プロフィール",
     body: "表示名・姓名・会社名・役職・部署・従業員の種類を自分で編集できます。",
@@ -84,6 +90,17 @@ const FAQ = [
           MCP連携ガイド
         </Link>
         の「うまくつながらないとき」を確認してください。多くの場合、アクセストークンの入力ミスや失効が原因です。
+      </>
+    ),
+  },
+  {
+    q: "投稿したスキルがClaude Codeのプラグイン一覧に出てきません。",
+    a: (
+      <>
+        <Link to="/guide/claude-plugin" className="font-medium text-ink hover:underline">
+          Claude Codeプラグイン連携ガイド
+        </Link>
+        を確認してください。ZIP形式で投稿したスキルの場合、中にSKILL.mdが含まれていないと変換できず一覧に表示されません。
       </>
     ),
   },
@@ -201,6 +218,19 @@ export default function DocsPage() {
               </p>
             </div>
           </div>
+          <div className="flex gap-3">
+            <StepNumber n={6} />
+            <div className="flex-1">
+              <p className="mb-1 text-sm font-semibold text-ink">Claude Codeのプラグインとしてインストールする</p>
+              <p className="text-sm leading-relaxed text-ink-secondary">
+                投稿されたスキルは自動的にプラグインマーケットプレイスとしても配信されます。設定方法は
+                <Link to="/guide/claude-plugin" className="mx-1 font-medium text-ink hover:underline">
+                  Claude Codeプラグイン連携ガイド
+                </Link>
+                を参照してください。
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -256,6 +286,12 @@ export default function DocsPage() {
           className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-ink-secondary hover:bg-surface-2"
         >
           MCP連携ガイドを見る
+        </Link>
+        <Link
+          to="/guide/claude-plugin"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-ink-secondary hover:bg-surface-2"
+        >
+          Claude Codeプラグイン連携ガイドを見る
         </Link>
       </div>
     </div>
