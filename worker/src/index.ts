@@ -6,6 +6,7 @@ import itemsRoute from "./routes/items";
 import mcpRoute from "./routes/mcp";
 import meRoute from "./routes/me";
 import notificationsRoute from "./routes/notifications";
+import pluginsRoute from "./routes/plugins";
 import rankingRoute from "./routes/ranking";
 import tagsRoute from "./routes/tags";
 import usersRoute from "./routes/users";
@@ -32,6 +33,7 @@ app.route("/api/ranking", rankingRoute);
 app.route("/api/me", meRoute);
 app.route("/api/users", usersRoute);
 app.route("/api/notifications", notificationsRoute);
+app.route("/api/plugins", pluginsRoute);
 app.route("/api/mcp", mcpRoute);
 
 app.onError((err, c) => {

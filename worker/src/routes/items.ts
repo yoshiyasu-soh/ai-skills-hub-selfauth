@@ -377,6 +377,9 @@ items.delete("/:id", async (c) => {
   if (existing.r2_key) {
     await c.env.ASSETS_BUCKET.delete(existing.r2_key);
   }
+  if (existing.plugin_archive_r2_key) {
+    await c.env.ASSETS_BUCKET.delete(existing.plugin_archive_r2_key);
+  }
   const { results: oldVersionFiles } = await c.env.DB.prepare(
     "SELECT r2_key FROM item_versions WHERE item_id = ? AND r2_key IS NOT NULL",
   )

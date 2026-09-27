@@ -82,6 +82,10 @@ export interface ItemRow {
   source_author: string | null;
   license: string | null;
   stars: number | null;
+  // Claude Codeプラグイン形式への変換結果のキャッシュ(type=skillのみ使用)。詳細はlib/pluginArchive.ts参照。
+  plugin_archive_r2_key: string | null;
+  plugin_archive_sha256: string | null;
+  plugin_archive_source_r2_key: string | null;
 }
 
 export interface TagRow {
