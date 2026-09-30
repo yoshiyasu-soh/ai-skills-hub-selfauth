@@ -29,10 +29,20 @@ export default function TagPicker({ tags, selected, onChange, onTagCreated, onTa
   async function handleCreate() {
     const name = newTagName.trim();
     if (!name) return;
+    const key = name.toLowerCase();
+    if (tags.some((t) => t.name === key || t.label.toLowerCase() === key)) {
+      setError(`タグ「${name}」は既に存在します`);
+      return;
+    }
     setCreating(true);
     setError(null);
     try {
       const res = await api.tags.create(name);
+      // サーバーは同名タグが既にあれば新規作成せず既存タグを返す(一覧が古い場合の保険)
+      if (tags.some((t) => t.id === res.tag.id)) {
+        setError(`タグ「${name}」は既に存在します`);
+        return;
+      }
       onTagCreated(res.tag);
       onChange([...selected, res.tag.id]);
       setNewTagName("");
