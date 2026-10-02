@@ -1,4 +1,15 @@
-import type { ItemRow, SortOption } from "../types";
+import type { ItemRow, ItemType, SortOption } from "../types";
+
+export const ITEM_TYPES: readonly ItemType[] = ["skill", "prompt", "agent", "external"];
+
+export function isItemType(value: unknown): value is ItemType {
+  return ITEM_TYPES.includes(value as ItemType);
+}
+
+/** R2に添付ファイルを持つ種別(スキル: .zip/.md、エージェント: .md) */
+export function isFileItemType(type: string): type is "skill" | "agent" {
+  return type === "skill" || type === "agent";
+}
 
 export interface ItemDTO {
   id: string;
@@ -105,7 +116,7 @@ export async function toItemDTOs(
 }
 
 export interface SearchItemsParams {
-  type?: "skill" | "prompt" | "external";
+  type?: ItemType;
   q?: string;
   tagIds?: number[];
   /** "me" ではなく、呼び出し側で解決済みの実メールアドレスを渡すこと */
@@ -130,7 +141,7 @@ export async function searchItems(
   const conditions: string[] = [];
   const values: unknown[] = [];
 
-  if (params.type === "skill" || params.type === "prompt" || params.type === "external") {
+  if (isItemType(params.type)) {
     conditions.push("i.type = ?");
     values.push(params.type);
   }

@@ -86,6 +86,49 @@ describe("POST /api/items バリデーション", () => {
     expect(res.status).toBe(400);
   });
 
+  it("type=agentでfile未指定は400", async () => {
+    const res = await SELF.fetch("https://example.com/api/items", {
+      method: "POST",
+      headers: await authHeaders(OWNER),
+      body: JSON.stringify({ type: "agent", title: "テスト" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("type=agentで.md以外のファイルは400", async () => {
+    const form = new FormData();
+    form.set("type", "agent");
+    form.set("title", "テストエージェント");
+    form.set("file", new File(["zip"], "agent.zip", { type: "application/zip" }));
+    const res = await SELF.fetch("https://example.com/api/items", {
+      method: "POST",
+      headers: { Cookie: (await authHeaders(OWNER)).Cookie },
+      body: form,
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("正しいagentは201で作成でき、ダウンロードと種別絞り込みができる", async () => {
+    const form = new FormData();
+    form.set("type", "agent");
+    form.set("title", "テストエージェント");
+    form.set("file", new File(["---\nname: test\n---\n本文"], "reviewer.md", { type: "text/markdown" }));
+    const headers = { Cookie: (await authHeaders(OWNER)).Cookie };
+    const res = await SELF.fetch("https://example.com/api/items", { method: "POST", headers, body: form });
+    expect(res.status).toBe(201);
+    const data = await res.json<{ item: { id: string; type: string; fileName: string } }>();
+    expect(data.item.type).toBe("agent");
+    expect(data.item.fileName).toBe("reviewer.md");
+
+    const dl = await SELF.fetch(`https://example.com/api/items/${data.item.id}/download`, { headers });
+    expect(dl.status).toBe(200);
+    expect(await dl.text()).toContain("name: test");
+
+    const list = await SELF.fetch("https://example.com/api/items?type=agent", { headers });
+    const listed = await list.json<{ items: { id: string }[] }>();
+    expect(listed.items.map((i) => i.id)).toEqual([data.item.id]);
+  });
+
   it("正しいpromptは201で作成できる", async () => {
     const res = await SELF.fetch("https://example.com/api/items", {
       method: "POST",

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
-import { BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, SparkleIcon, StarIcon, TagIcon } from "../components/icons";
+import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, SparkleIcon, StarIcon, TagIcon } from "../components/icons";
 import { api, ApiError } from "../lib/api";
 import { parseSkillMd } from "../lib/parseSkillMd";
 import type { ItemType, Tag } from "../lib/types";
@@ -23,6 +23,20 @@ const EXTERNAL_TIPS = [
   "自作物ではなく、既に公開されているOSS等を紹介する投稿です",
   "著作権・ライセンスは紹介元の作者に帰属します。詳細説明に使い方や注目ポイントを書くと伝わりやすくなります",
 ];
+
+const TYPE_ACCENT: Record<ItemType, { text: string; bg: string }> = {
+  skill: { text: "text-skill", bg: "bg-skill" },
+  prompt: { text: "text-prompt", bg: "bg-prompt" },
+  agent: { text: "text-agent", bg: "bg-agent" },
+  external: { text: "text-external", bg: "bg-external" },
+};
+
+const TYPE_OPTION_LABEL: Record<ItemType, string> = {
+  skill: "スキル(再利用可能な機能)",
+  prompt: "プロンプト(コピー用)",
+  agent: "エージェント(サブエージェント定義)",
+  external: "OSS紹介(外部リンク)",
+};
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -154,6 +168,10 @@ export default function PostItemPage() {
       setError("スキル資産のファイル(.zip または SKILL.md)を選択してください");
       return;
     }
+    if (type === "agent" && !file) {
+      setError("エージェント定義のファイル(.md)を選択してください");
+      return;
+    }
     if (type === "external" && !isHttpUrl(sourceUrl.trim())) {
       setError("有効な紹介先URLを入力してください");
       return;
@@ -162,7 +180,7 @@ export default function PostItemPage() {
     setSubmitting(true);
     try {
       let created;
-      if (type === "skill") {
+      if (type === "skill" || type === "agent") {
         const fd = new FormData();
         fd.set("type", type);
         fd.set("title", title);
@@ -202,8 +220,7 @@ export default function PostItemPage() {
     }
   }
 
-  const accentText = type === "skill" ? "text-skill" : type === "prompt" ? "text-prompt" : "text-external";
-  const accentBg = type === "skill" ? "bg-skill" : type === "prompt" ? "bg-prompt" : "bg-external";
+  const { text: accentText, bg: accentBg } = TYPE_ACCENT[type];
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -213,6 +230,8 @@ export default function PostItemPage() {
             <BoxIcon className="h-4.5 w-4.5" />
           ) : type === "prompt" ? (
             <SparkleIcon className="h-4 w-4" />
+          ) : type === "agent" ? (
+            <BotIcon className="h-4 w-4" />
           ) : (
             <ExternalLinkIcon className="h-4 w-4" />
           )}
@@ -229,7 +248,7 @@ export default function PostItemPage() {
             <div>
               <label className={labelClass}>種別</label>
               <div className="flex overflow-hidden rounded-lg border border-border w-fit">
-                {(["skill", "prompt", "external"] as const).map((v) => (
+                {(["skill", "prompt", "agent", "external"] as const).map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -238,7 +257,7 @@ export default function PostItemPage() {
                       type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
                     }`}
                   >
-                    {v === "skill" ? "スキル(再利用可能な機能)" : v === "prompt" ? "プロンプト(コピー用)" : "OSS紹介(外部リンク)"}
+                    {TYPE_OPTION_LABEL[v]}
                   </button>
                 ))}
               </div>
@@ -360,7 +379,33 @@ export default function PostItemPage() {
                   {autoFilled && (
                     <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-success">
                       <CheckIcon className="h-3.5 w-3.5" />
-                      SKILL.mdの内容からタイトル・概要等を自動入力しました(空欄だった項目のみ)。
+                      ファイルの内容からタイトル・概要等を自動入力しました(空欄だった項目のみ)。
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className={labelClass}>使い方メモ(任意)</label>
+                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
+                </div>
+              </>
+            ) : type === "agent" ? (
+              <>
+                <div>
+                  <label className={labelClass}>エージェント定義(.md) *</label>
+                  <input
+                    type="file"
+                    accept=".md"
+                    onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
+                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
+                  />
+                  <p className="mt-1.5 text-xs text-ink-secondary">
+                    最大25MBまで。冒頭のフロントマター(name / description)からタイトル・概要が自動入力されます。
+                    利用者は .claude/agents/ に置いて使います。
+                  </p>
+                  {autoFilled && (
+                    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-success">
+                      <CheckIcon className="h-3.5 w-3.5" />
+                      ファイルの内容からタイトル・概要等を自動入力しました(空欄だった項目のみ)。
                     </p>
                   )}
                 </div>

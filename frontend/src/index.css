@@ -22,6 +22,8 @@
   --skill-dim: rgba(37, 99, 235, 0.08);
   --prompt: 124 58 237;
   --prompt-dim: rgba(124, 58, 237, 0.08);
+  --agent: 15 118 110;
+  --agent-dim: rgba(15, 118, 110, 0.08);
   --external: 180 83 9;
   --external-dim: rgba(180, 83, 9, 0.08);
   --warn-bg: rgba(180, 83, 9, 0.06);
@@ -75,6 +77,8 @@
   --skill-dim: rgba(79, 209, 255, 0.12);
   --prompt: 185 139 255;
   --prompt-dim: rgba(185, 139, 255, 0.12);
+  --agent: 94 234 212;
+  --agent-dim: rgba(94, 234, 212, 0.12);
   --external: 255 180 84;
   --external-dim: rgba(255, 180, 84, 0.12);
   --warn-bg: rgba(255, 180, 84, 0.08);

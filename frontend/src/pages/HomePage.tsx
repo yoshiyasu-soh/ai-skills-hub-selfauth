@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import Pagination from "../components/Pagination";
 import TagFilterBar from "../components/TagFilterBar";
-import { BoxIcon, ExternalLinkIcon, SearchIcon, SparkleIcon } from "../components/icons";
+import { BotIcon, BoxIcon, ExternalLinkIcon, SearchIcon, SparkleIcon } from "../components/icons";
 import { api } from "../lib/api";
 import type { Item, SortOption, Tag } from "../lib/types";
 
@@ -16,7 +16,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ];
 const SORT_VALUES = SORT_OPTIONS.map((o) => o.value) as readonly string[];
 
-const TYPE_VALUES = ["all", "skill", "prompt", "external"] as const;
+const TYPE_VALUES = ["all", "skill", "prompt", "agent", "external"] as const;
 type TypeFilter = (typeof TYPE_VALUES)[number];
 
 const PAGE_SIZE = 20;
@@ -198,6 +198,13 @@ export default function HomePage() {
             PROMPTとは？
           </Link>
           <Link
+            to="/guide/agents"
+            className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink-secondary transition-colors hover:border-agent hover:text-agent"
+          >
+            <BotIcon className="h-3.5 w-3.5 shrink-0" />
+            AGENTとは？
+          </Link>
+          <Link
             to="/guide/external"
             className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink-secondary transition-colors hover:border-external hover:text-external"
           >
@@ -220,7 +227,7 @@ export default function HomePage() {
                   type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
                 }`}
               >
-                {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : "OSS紹介"}
+                {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : v === "agent" ? "エージェント" : "OSS紹介"}
               </button>
             ))}
           </div>

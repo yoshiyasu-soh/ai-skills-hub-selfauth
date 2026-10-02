@@ -3,6 +3,7 @@ import type {
   Comment,
   GitHubMetadata,
   Item,
+  ItemType,
   ItemVersion,
   NewApiToken,
   ProfileUpdatePayload,
@@ -61,7 +62,7 @@ function buildQuery(params: Record<string, unknown>): string {
 }
 
 export interface ListItemsParams {
-  type?: "skill" | "prompt" | "external";
+  type?: ItemType;
   q?: string;
   tags?: number[];
   sort?: SortOption;
@@ -167,7 +168,7 @@ export const api = {
   },
 
   ranking: {
-    list: (params: { type?: "skill" | "prompt" | "external"; period?: RankingPeriod; limit?: number }) =>
+    list: (params: { type?: ItemType; period?: RankingPeriod; limit?: number }) =>
       request<{ items: Item[]; period: string; type: string }>(
         `/ranking?${buildQuery(params as Record<string, unknown>)}`,
       ),

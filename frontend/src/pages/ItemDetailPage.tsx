@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeftIcon,
+  BotIcon,
   BoxIcon,
   CopyIcon,
   DownloadIcon,
@@ -37,6 +38,16 @@ function buildInstallCommand(item: Item, os: InstallOs): string {
   const url = `${window.location.origin}${api.items.downloadUrl(item.id)}`;
   const name = installDirName(item.title, item.id.slice(0, 8));
   const isMd = (item.fileName ?? "").toLowerCase().endsWith(".md");
+
+  // エージェント定義は単一の .md を ~/.claude/agents/<name>.md に置くだけで認識される。
+  if (item.type === "agent") {
+    if (os === "windows") {
+      const dir = `$env:USERPROFILE\\.claude\\agents`;
+      const headers = `@{ Authorization = "Bearer $env:AI_SKILLS_HUB_TOKEN" }`;
+      return `New-Item -ItemType Directory -Force -Path "${dir}" | Out-Null; Invoke-WebRequest -Uri "${url}" -Headers ${headers} -OutFile "${dir}\\${name}.md"`;
+    }
+    return `mkdir -p ~/.claude/agents && curl -fsSL -H "Authorization: Bearer $AI_SKILLS_HUB_TOKEN" "${url}" -o ~/.claude/agents/${name}.md`;
+  }
 
   if (os === "windows") {
     const dir = `$env:USERPROFILE\\.claude\\skills\\${name}`;
@@ -199,9 +210,11 @@ export default function ItemDetailPage() {
   if (!item) return <p className="text-sm text-ink-secondary">見つかりませんでした。</p>;
 
   const isSkill = item.type === "skill";
+  const isAgent = item.type === "agent";
+  const hasFile = isSkill || isAgent;
   const isExternal = item.type === "external";
-  const accentText = isSkill ? "text-skill" : isExternal ? "text-external" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : isExternal ? "bg-external" : "bg-prompt";
+  const accentText = isSkill ? "text-skill" : isAgent ? "text-agent" : isExternal ? "text-external" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isAgent ? "bg-agent" : isExternal ? "bg-external" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -216,6 +229,8 @@ export default function ItemDetailPage() {
             <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-onaccent ${accentBg}`}>
               {isSkill ? (
                 <BoxIcon className="h-5 w-5" />
+              ) : isAgent ? (
+                <BotIcon className="h-5 w-5" />
               ) : isExternal ? (
                 <ExternalLinkIcon className="h-5 w-5" />
               ) : (
@@ -225,7 +240,7 @@ export default function ItemDetailPage() {
             <div>
               <span className="flex items-center gap-1.5 text-xs">
                 <span className={`font-display font-semibold uppercase tracking-wide ${accentText}`}>
-                  {isSkill ? "Skill" : isExternal ? "OSS紹介" : "Prompt"}
+                  {isSkill ? "Skill" : isAgent ? "Agent" : isExternal ? "OSS紹介" : "Prompt"}
                 </span>
                 {isExternal ? (
                   item.stars !== null && (
@@ -308,7 +323,7 @@ export default function ItemDetailPage() {
 
           {(() => {
             const hasDescription = Boolean(item.description);
-            const hasBody = isSkill && Boolean(item.body);
+            const hasBody = hasFile && Boolean(item.body);
             // コメントタブは常に存在する。バージョン履歴タブは外部紹介(OSS紹介)以外の
             // 全種別に存在する(外部紹介にはバージョンの概念自体を適用していないため)。
             // 選択中のタブが実際に表示可能かをここで検証する。
@@ -410,12 +425,12 @@ export default function ItemDetailPage() {
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20">
           <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-surface p-5 shadow-card">
-            {isSkill ? (
+            {hasFile ? (
               item.fileName ? (
                 <a
                   href={api.items.downloadUrl(item.id)}
                   onClick={handleDownloadClick}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-skill px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:bg-skill/90"
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-onaccent shadow-sm hover:opacity-90 ${accentBg}`}
                 >
                   <DownloadIcon className="h-4 w-4" />
                   ダウンロード
@@ -465,7 +480,7 @@ export default function ItemDetailPage() {
             </button>
           </div>
 
-          {isSkill && item.fileName && (
+          {hasFile && item.fileName && (
             <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">ファイル</p>
               <div className="flex items-center gap-2 text-sm text-ink-secondary">
@@ -476,7 +491,7 @@ export default function ItemDetailPage() {
             </div>
           )}
 
-          {isSkill && item.fileName && (
+          {hasFile && item.fileName && (
             <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">インストールコマンド</p>
               <div className="mb-2 inline-flex rounded-md border border-border p-0.5 text-xs">
@@ -520,8 +535,8 @@ export default function ItemDetailPage() {
                       アクセストークン
                     </Link>
                     を設定してからPowerShellで実行すると、Claude Codeの
-                    <code className="font-mono">%USERPROFILE%\.claude\skills\</code>
-                    以下にこのスキルを直接取得できます(コマンドプロンプトではなくPowerShellで実行してください)。
+                    <code className="font-mono">{isAgent ? "%USERPROFILE%\\.claude\\agents\\" : "%USERPROFILE%\\.claude\\skills\\"}</code>
+                    以下にこの{isAgent ? "エージェント" : "スキル"}を直接取得できます(コマンドプロンプトではなくPowerShellで実行してください)。
                   </>
                 ) : (
                   <>
@@ -529,12 +544,14 @@ export default function ItemDetailPage() {
                     <Link to="/settings/tokens" className="text-ink hover:underline">
                       アクセストークン
                     </Link>
-                    を設定してから実行すると、Claude Codeの<code className="font-mono">~/.claude/skills/</code>
-                    以下にこのスキルを直接取得できます。
+                    を設定してから実行すると、Claude Codeの
+                    <code className="font-mono">{isAgent ? "~/.claude/agents/" : "~/.claude/skills/"}</code>
+                    以下にこの{isAgent ? "エージェント" : "スキル"}を直接取得できます。
                   </>
                 )}
               </p>
 
+              {isSkill && (
               <div className="mt-4 border-t border-border pt-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Claude Codeプラグイン連携を設定済みの場合
@@ -567,6 +584,7 @@ export default function ItemDetailPage() {
                   を参照してください。
                 </p>
               </div>
+              )}
             </div>
           )}
 

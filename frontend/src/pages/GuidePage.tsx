@@ -1,9 +1,33 @@
 import { Link } from "react-router-dom";
-import { ArrowLeftIcon, BoxIcon, CheckIcon, CodeIcon, CopyIcon, ExternalLinkIcon, SparkleIcon } from "../components/icons";
+import {
+  ArrowLeftIcon,
+  BotIcon,
+  BoxIcon,
+  CheckIcon,
+  CodeIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  SparkleIcon,
+} from "../components/icons";
 
 interface GuidePageProps {
-  topic: "skill" | "prompt" | "external";
+  topic: "skill" | "prompt" | "agent" | "external";
 }
+
+const AGENT_POINTS = [
+  {
+    title: "専門の役割を持つサブエージェントを定義できる",
+    body: "「コードレビュー担当」「テスト作成担当」など、特定の役割に特化したサブエージェントを1枚のMarkdownで定義します。Claude Codeは作業内容に合うサブエージェントへ処理を任せ、メインの会話を汚さずに結果だけを受け取ります。",
+  },
+  {
+    title: "定義ファイルの書き方",
+    body: "冒頭のYAMLフロントマターに name(名前)と description(どんな時に任せるか)を書き、必要に応じて tools(使えるツール)や model を指定します。その下にMarkdownで、そのエージェントへの指示(システムプロンプト)を書きます。",
+  },
+  {
+    title: "Claude Codeでの置き場所",
+    body: "プロジェクト直下の .claude/agents/<名前>.md、または個人用に ~/.claude/agents/ 配下に置くと、Claude Codeが自動的に認識します。AI Skills Hubからダウンロードした .md ファイルをそのまま置くだけで使えます。",
+  },
+];
 
 const SKILL_POINTS = [
   {
@@ -74,6 +98,18 @@ const TOPIC_META = {
       "プロンプトは、Claude(claude.ai / Claude Code)に投げる指示文をあらかじめ整えて再利用できるようにしたものです。AI Skills Hubでは、コピーしてそのまま貼り付けたり、claude.aiの新規チャットにワンクリックで差し込んだりして使えます。",
     points: PROMPT_POINTS,
     postLabel: "プロンプトを投稿する",
+  },
+  agent: {
+    label: "Agent",
+    accentBg: "bg-agent",
+    accentText: "text-agent",
+    accentBgSoft: "bg-agent-dim",
+    Icon: BotIcon,
+    title: "エージェントとは？",
+    intro:
+      "エージェント(サブエージェント)は、Claude Codeが特定の役割の作業を任せるために使う、専用の指示書です。AI Skills Hubでは、チームで育てたエージェント定義(.mdファイル)を共有し、誰でもダウンロードしてそのまま使えるようにします。",
+    points: AGENT_POINTS,
+    postLabel: "エージェントを投稿する",
   },
   external: {
     label: "OSS紹介",
@@ -173,6 +209,26 @@ description: プルリクエストのレビュー依頼を受けたときに使�
               必要に応じて自分の状況に合わせて文面を調整してから送信する
             </li>
           </ol>
+        </div>
+      ) : topic === "agent" ? (
+        <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">
+          <p className="mb-2 flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+            <CodeIcon className="h-3.5 w-3.5" />
+            エージェント定義(.md)の例
+          </p>
+          <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-3 font-mono text-xs leading-relaxed text-ink">
+{`---
+name: code-reviewer
+description: コードの変更をレビューしたいときに使う。正確性と保守性の観点で指摘する。
+tools: Read, Grep, Glob
+---
+
+あなたはシニアエンジニアとして、変更差分をレビューします。
+
+1. 変更の意図を1〜2文で要約する
+2. 「正確性」「保守性」「命名」の観点で指摘する
+3. 指摘は具体的なファイル名と行番号つきで書く`}
+          </pre>
         </div>
       ) : (
         <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">

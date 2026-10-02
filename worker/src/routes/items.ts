@@ -1,7 +1,17 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { toCommentDTO, type CommentRow } from "../lib/comments";
-import { applyTags, bumpPatchVersion, fetchItemRow, isValidHttpUrl, parseTagIds, searchItems, toItemDTOs } from "../lib/items";
+import {
+  applyTags,
+  bumpPatchVersion,
+  fetchItemRow,
+  isFileItemType,
+  isItemType,
+  isValidHttpUrl,
+  parseTagIds,
+  searchItems,
+  toItemDTOs,
+} from "../lib/items";
 import { slugify } from "../lib/slug";
 import { toVersionDTO, type VersionRow } from "../lib/versions";
 import { markItemSeen, markItemWatched } from "../lib/watches";
@@ -40,9 +50,24 @@ async function shouldCountUsage(
 
 type Fields = Record<string, unknown>;
 
-function isAllowedSkillFile(fileName: string): boolean {
+// エージェント定義は単一の .md ファイル(.claude/agents/<name>.md に配置される)のみ。
+const ALLOWED_AGENT_EXTENSIONS = [".md"];
+
+function isAllowedAssetFile(type: "skill" | "agent", fileName: string): boolean {
   const lower = fileName.toLowerCase();
-  return ALLOWED_SKILL_EXTENSIONS.some((ext) => lower.endsWith(ext));
+  const allowed = type === "agent" ? ALLOWED_AGENT_EXTENSIONS : ALLOWED_SKILL_EXTENSIONS;
+  return allowed.some((ext) => lower.endsWith(ext));
+}
+
+function assetFileErrorMessage(type: "skill" | "agent"): string {
+  return type === "agent"
+    ? "file must be an agent definition (.md) file"
+    : "file must be a .zip archive or a SKILL.md (.md) file";
+}
+
+/** R2のキー接頭辞(既存のスキル資産は skills/ のまま) */
+function r2PrefixFor(type: "skill" | "agent"): string {
+  return type === "agent" ? "agents" : "skills";
 }
 
 function contentTypeForFileName(fileName: string): string {
@@ -89,8 +114,7 @@ items.get("/", async (c) => {
   const result = await searchItems(
     c.env.DB,
     {
-      type:
-        typeParam === "skill" || typeParam === "prompt" || typeParam === "external" ? typeParam : undefined,
+      type: isItemType(typeParam) ? typeParam : undefined,
       q: c.req.query("q"),
       tagIds,
       authorEmail: authorEmailParam ? (authorEmailParam === "me" ? user.email : authorEmailParam) : undefined,
@@ -177,13 +201,14 @@ items.post("/", async (c) => {
   const license = str(fields, "license");
   const stars = nonNegativeIntOrNull(fields, "stars");
 
-  if (type !== "skill" && type !== "prompt" && type !== "external") {
-    return c.json({ error: "type must be 'skill', 'prompt' or 'external'" }, 400);
+  if (!isItemType(type)) {
+    return c.json({ error: "type must be 'skill', 'prompt', 'agent' or 'external'" }, 400);
   }
   if (!title) return c.json({ error: "title is required" }, 400);
   if (title.length > 200) return c.json({ error: "title is too long (max 200 chars)" }, 400);
   if (type === "prompt" && !bodyText) return c.json({ error: "body (prompt text) is required" }, 400);
   if (type === "skill" && !file) return c.json({ error: "file (.zip or .md) is required" }, 400);
+  if (type === "agent" && !file) return c.json({ error: "file (.md) is required" }, 400);
   if (type === "external") {
     if (!sourceUrl) return c.json({ error: "sourceUrl is required" }, 400);
     if (!isValidHttpUrl(sourceUrl)) return c.json({ error: "sourceUrl must be a valid http(s) URL" }, 400);
@@ -196,15 +221,15 @@ items.post("/", async (c) => {
   let fileName: string | null = null;
   let fileSize: number | null = null;
 
-  if (type === "skill" && file) {
-    if (!isAllowedSkillFile(file.name)) {
-      return c.json({ error: "file must be a .zip archive or a SKILL.md (.md) file" }, 400);
+  if (isFileItemType(type) && file) {
+    if (!isAllowedAssetFile(type, file.name)) {
+      return c.json({ error: assetFileErrorMessage(type) }, 400);
     }
     if (file.size > MAX_SKILL_FILE_SIZE) {
       return c.json({ error: `file too large (max ${MAX_SKILL_FILE_SIZE / 1024 / 1024}MB)` }, 400);
     }
 
-    r2Key = `skills/${id}/${file.name}`;
+    r2Key = `${r2PrefixFor(type)}/${id}/${file.name}`;
     fileName = file.name;
     fileSize = file.size;
     await c.env.ASSETS_BUCKET.put(r2Key, await file.arrayBuffer(), {
@@ -282,7 +307,7 @@ items.put("/:id", async (c) => {
   const contentChanged =
     existing.type === "prompt"
       ? bodyText !== existing.body
-      : existing.type === "skill"
+      : isFileItemType(existing.type)
         ? Boolean(file)
         : false;
   const version = contentChanged ? bumpPatchVersion(existing.version) : existing.version;
@@ -298,9 +323,9 @@ items.put("/:id", async (c) => {
   let fileName = existing.file_name;
   let fileSize = existing.file_size;
 
-  if (existing.type === "skill" && file) {
-    if (!isAllowedSkillFile(file.name)) {
-      return c.json({ error: "file must be a .zip archive or a SKILL.md (.md) file" }, 400);
+  if (isFileItemType(existing.type) && file) {
+    if (!isAllowedAssetFile(existing.type, file.name)) {
+      return c.json({ error: assetFileErrorMessage(existing.type) }, 400);
     }
     if (file.size > MAX_SKILL_FILE_SIZE) {
       return c.json({ error: `file too large (max ${MAX_SKILL_FILE_SIZE / 1024 / 1024}MB)` }, 400);
@@ -308,7 +333,7 @@ items.put("/:id", async (c) => {
 
     // バージョンごとに別オブジェクトとして保存する(過去バージョンの参照用に、同名で
     // 再アップロードしても既存のファイルを上書き・削除しない)。
-    const newKey = `skills/${id}/${Date.now()}-${file.name}`;
+    const newKey = `${r2PrefixFor(existing.type)}/${id}/${Date.now()}-${file.name}`;
     await c.env.ASSETS_BUCKET.put(newKey, await file.arrayBuffer(), {
       httpMetadata: { contentType: contentTypeForFileName(file.name) },
     });
@@ -327,9 +352,9 @@ items.put("/:id", async (c) => {
         id,
         existing.version,
         existing.type === "prompt" ? existing.body : "",
-        existing.type === "skill" ? existing.r2_key : null,
-        existing.type === "skill" ? existing.file_name : null,
-        existing.type === "skill" ? existing.file_size : null,
+        isFileItemType(existing.type) ? existing.r2_key : null,
+        isFileItemType(existing.type) ? existing.file_name : null,
+        isFileItemType(existing.type) ? existing.file_size : null,
       )
       .run();
   }
@@ -407,7 +432,7 @@ items.get("/:id/download", async (c) => {
   const id = c.req.param("id");
   const item = await fetchItemRow(c.env.DB, id);
   if (!item) return c.json({ error: "not_found" }, 404);
-  if (item.type !== "skill" || !item.r2_key) return c.json({ error: "this item has no downloadable file" }, 400);
+  if (!isFileItemType(item.type) || !item.r2_key) return c.json({ error: "this item has no downloadable file" }, 400);
 
   const obj = await c.env.ASSETS_BUCKET.get(item.r2_key);
   if (!obj) return c.json({ error: "file not found in storage" }, 404);
@@ -421,7 +446,7 @@ items.get("/:id/download", async (c) => {
   // 最新の中身を実際に受け取った操作なので、保留中の「更新あり」があれば解消する
   await markItemWatched(c.env.DB, user.email, item.author_email, id, item.version, { markSeen: true });
 
-  const fileName = item.file_name ?? "skill.zip";
+  const fileName = item.file_name ?? (item.type === "agent" ? "agent.md" : "skill.zip");
   return new Response(obj.body, {
     headers: {
       "Content-Type": contentTypeForFileName(fileName),
@@ -456,7 +481,7 @@ items.get("/:id/versions/:versionId/download", async (c) => {
 
   const item = await c.env.DB.prepare("SELECT type FROM items WHERE id = ?").bind(id).first<{ type: string }>();
   if (!item) return c.json({ error: "not_found" }, 404);
-  if (item.type !== "skill") return c.json({ error: "this item has no downloadable file" }, 400);
+  if (!isFileItemType(item.type)) return c.json({ error: "this item has no downloadable file" }, 400);
 
   const version = await c.env.DB.prepare(
     "SELECT r2_key, file_name FROM item_versions WHERE id = ? AND item_id = ?",
@@ -468,7 +493,7 @@ items.get("/:id/versions/:versionId/download", async (c) => {
   const obj = await c.env.ASSETS_BUCKET.get(version.r2_key);
   if (!obj) return c.json({ error: "file not found in storage" }, 404);
 
-  const fileName = version.file_name ?? "skill.zip";
+  const fileName = version.file_name ?? (item.type === "agent" ? "agent.md" : "skill.zip");
   return new Response(obj.body, {
     headers: {
       "Content-Type": contentTypeForFileName(fileName),

@@ -30,6 +30,10 @@ export default {
           DEFAULT: "rgb(var(--prompt) / <alpha-value>)",
           dim: "var(--prompt-dim)",
         },
+        agent: {
+          DEFAULT: "rgb(var(--agent) / <alpha-value>)",
+          dim: "var(--agent-dim)",
+        },
         external: {
           DEFAULT: "rgb(var(--external) / <alpha-value>)",
           dim: "var(--external-dim)",

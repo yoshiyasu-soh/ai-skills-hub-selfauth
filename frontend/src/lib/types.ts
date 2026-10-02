@@ -1,4 +1,4 @@
-export type ItemType = "skill" | "prompt" | "external";
+export type ItemType = "skill" | "prompt" | "agent" | "external";
 export type SortOption = "newest" | "updated" | "popular" | "favorites" | "name";
 export type RankingPeriod = "all" | "7d" | "30d";
 

@@ -136,6 +136,19 @@ export function BoxIcon(props: IconProps) {
   );
 }
 
+export function BotIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4.5" y="8" width="15" height="11" rx="2.5" />
+      <path d="M12 4.5V8" />
+      <circle cx="12" cy="4" r="1" />
+      <circle cx="9" cy="13" r="1" />
+      <circle cx="15" cy="13" r="1" />
+      <path d="M9.5 16.5h5" />
+    </svg>
+  );
+}
+
 export function TagIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
