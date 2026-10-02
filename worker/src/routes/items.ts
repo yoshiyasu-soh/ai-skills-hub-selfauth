@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { toCommentDTO, type CommentRow } from "../lib/comments";
+import { docFilesFromZip, singleDocFile } from "../lib/docFiles";
 import {
   applyTags,
   bumpPatchVersion,
@@ -454,6 +455,25 @@ items.get("/:id/download", async (c) => {
       "Content-Length": String(obj.size),
     },
   });
+});
+
+// ---- ドキュメントビューア用: スキル/エージェントの資産を展開したテキストファイル一覧(DL数はカウントしない) ----
+items.get("/:id/files", async (c) => {
+  const item = await fetchItemRow(c.env.DB, c.req.param("id"));
+  if (!item) return c.json({ error: "not_found" }, 404);
+  if (!isFileItemType(item.type) || !item.r2_key || !item.file_name) return c.json({ files: [] });
+
+  const obj = await c.env.ASSETS_BUCKET.get(item.r2_key);
+  if (!obj) return c.json({ files: [] });
+
+  if (item.file_name.toLowerCase().endsWith(".zip")) {
+    try {
+      return c.json({ files: docFilesFromZip(new Uint8Array(await obj.arrayBuffer())) });
+    } catch {
+      return c.json({ files: [] });
+    }
+  }
+  return c.json({ files: singleDocFile(item.file_name, await obj.text()) });
 });
 
 // ---- 過去バージョンの一覧(古い順)。外部紹介(OSS紹介)にはバージョン概念が無いため対象外 ----

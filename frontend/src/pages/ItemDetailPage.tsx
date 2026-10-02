@@ -14,6 +14,7 @@ import {
 } from "../components/icons";
 import CommentSection from "../components/CommentSection";
 import VersionHistorySection from "../components/VersionHistorySection";
+import ItemDocumentSection from "../components/docviewer/ItemDocumentSection";
 import MarkdownContent from "../components/MarkdownContent";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
@@ -79,7 +80,7 @@ export default function ItemDetailPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [contentTab, setContentTab] = useState<"description" | "body" | "comments" | "history">("description");
+  const [contentTab, setContentTab] = useState<"document" | "description" | "body" | "comments" | "history">("description");
   const [commentCount, setCommentCount] = useState(0);
   const [versionCount, setVersionCount] = useState(0);
   const [installOs, setInstallOs] = useState<InstallOs>(() =>
@@ -328,6 +329,7 @@ export default function ItemDetailPage() {
             // 全種別に存在する(外部紹介にはバージョンの概念自体を適用していないため)。
             // 選択中のタブが実際に表示可能かをここで検証する。
             const availableTabs = [
+              ...(hasFile ? (["document"] as const) : []),
               ...(hasDescription ? (["description"] as const) : []),
               ...(hasBody ? (["body"] as const) : []),
               "comments" as const,
@@ -338,6 +340,19 @@ export default function ItemDetailPage() {
             return (
               <section className="rounded-xl border border-border bg-surface shadow-card">
                 <div className="flex border-b border-border px-2">
+                  {hasFile && (
+                    <button
+                      type="button"
+                      onClick={() => setContentTab("document")}
+                      className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                        activeTab === "document"
+                          ? "border-b-2 border-signal text-ink"
+                          : "border-b-2 border-transparent text-ink-secondary hover:text-ink"
+                      }`}
+                    >
+                      ドキュメント
+                    </button>
+                  )}
                   {hasDescription && (
                     <button
                       type="button"
@@ -389,7 +404,8 @@ export default function ItemDetailPage() {
                     </button>
                   )}
                 </div>
-                <div className="p-5">
+                <div className={activeTab === "document" ? "p-3" : "p-5"}>
+                  {hasFile && activeTab === "document" && <ItemDocumentSection itemId={item.id} title={item.title} />}
                   {hasDescription && activeTab === "description" && (
                     <MarkdownContent
                       content={item.description}

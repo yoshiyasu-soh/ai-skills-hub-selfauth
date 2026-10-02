@@ -1,3 +1,4 @@
+import type { DocFile } from "./doc/types";
 import type {
   ApiTokenSummary,
   Comment,
@@ -138,6 +139,7 @@ export const api = {
         body: payload instanceof FormData ? payload : JSON.stringify(payload),
       }),
     remove: (id: string) => request<{ ok: true }>(`/items/${id}`, { method: "DELETE" }),
+    files: (id: string) => request<{ files: DocFile[] }>(`/items/${id}/files`),
     downloadUrl: (id: string) => `${API_BASE}/items/${id}/download`,
     copy: (id: string) => request<{ usageCount: number }>(`/items/${id}/copy`, { method: "POST" }),
     favorite: (id: string) =>

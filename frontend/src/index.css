@@ -136,3 +136,17 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ドキュメントビューアの検索ハイライト(色だけに頼らず下線を併用する) */
+::highlight(doc-search) {
+  background-color: rgb(var(--signal) / 0.5);
+  color: inherit;
+  text-decoration: underline;
+}
+.doc-mark {
+  background-color: rgb(var(--signal) / 0.5);
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
