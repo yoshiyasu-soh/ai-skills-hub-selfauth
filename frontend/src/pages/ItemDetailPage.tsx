@@ -8,6 +8,7 @@ import {
   DownloadIcon,
   ExternalLinkIcon,
   FileIcon,
+  PlugIcon,
   SparkleIcon,
   StarIcon,
   UserIcon,
@@ -16,6 +17,7 @@ import CommentSection from "../components/CommentSection";
 import VersionHistorySection from "../components/VersionHistorySection";
 import ItemDocumentSection from "../components/docviewer/ItemDocumentSection";
 import MarkdownContent from "../components/MarkdownContent";
+import ModScanPanel from "../components/ModScanPanel";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/formatDate";
 import { formatCompactNumber } from "../lib/formatNumber";
@@ -39,6 +41,18 @@ function buildInstallCommand(item: Item, os: InstallOs): string {
   const url = `${window.location.origin}${api.items.downloadUrl(item.id)}`;
   const name = installDirName(item.title, item.id.slice(0, 8));
   const isMd = (item.fileName ?? "").toLowerCase().endsWith(".md");
+
+  // Modは、サイトが整えたプラグインZIP(マーケットプレイスと同じもの)を取得して、1セッションだけ読み込んで試す。
+  // 継続して使う場合はマーケットプレイス経由のインストール(下の欄)を使う。
+  if (item.type === "mod") {
+    const archiveUrl = `${window.location.origin}/api/plugins/${item.id}/archive.zip`;
+    const zipName = pluginIdentifier(item.title, item.id, item.type);
+    if (os === "windows") {
+      const headers = `@{ Authorization = "Bearer $env:AI_SKILLS_HUB_TOKEN" }`;
+      return `Invoke-WebRequest -Uri "${archiveUrl}" -Headers ${headers} -OutFile "$env:TEMP\\${zipName}.zip"; claude --plugin-dir "$env:TEMP\\${zipName}.zip"`;
+    }
+    return `curl -fsSL -H "Authorization: Bearer $AI_SKILLS_HUB_TOKEN" "${archiveUrl}" -o /tmp/${zipName}.zip && claude --plugin-dir /tmp/${zipName}.zip`;
+  }
 
   // エージェント定義は単一の .md を ~/.claude/agents/<name>.md に置くだけで認識される。
   if (item.type === "agent") {
@@ -186,7 +200,7 @@ export default function ItemDetailPage() {
   async function handleCopyPluginCommand() {
     if (!item) return;
     try {
-      await navigator.clipboard.writeText(`claude plugin install ${pluginIdentifier(item.title, item.id)}@ai-skills-hub`);
+      await navigator.clipboard.writeText(`claude plugin install ${pluginIdentifier(item.title, item.id, item.type)}@ai-skills-hub`);
       setPluginCommandCopied(true);
       setTimeout(() => setPluginCommandCopied(false), 1500);
     } catch {
@@ -212,10 +226,11 @@ export default function ItemDetailPage() {
 
   const isSkill = item.type === "skill";
   const isAgent = item.type === "agent";
-  const hasFile = isSkill || isAgent;
+  const isMod = item.type === "mod";
+  const hasFile = isSkill || isAgent || isMod;
   const isExternal = item.type === "external";
-  const accentText = isSkill ? "text-skill" : isAgent ? "text-agent" : isExternal ? "text-external" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : isAgent ? "bg-agent" : isExternal ? "bg-external" : "bg-prompt";
+  const accentText = isSkill ? "text-skill" : isAgent ? "text-agent" : isMod ? "text-mod" : isExternal ? "text-external" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isAgent ? "bg-agent" : isMod ? "bg-mod" : isExternal ? "bg-external" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -232,6 +247,8 @@ export default function ItemDetailPage() {
                 <BoxIcon className="h-5 w-5" />
               ) : isAgent ? (
                 <BotIcon className="h-5 w-5" />
+              ) : isMod ? (
+                <PlugIcon className="h-5 w-5" />
               ) : isExternal ? (
                 <ExternalLinkIcon className="h-5 w-5" />
               ) : (
@@ -241,7 +258,7 @@ export default function ItemDetailPage() {
             <div>
               <span className="flex items-center gap-1.5 text-xs">
                 <span className={`font-display font-semibold uppercase tracking-wide ${accentText}`}>
-                  {isSkill ? "Skill" : isAgent ? "Agent" : isExternal ? "OSS紹介" : "Prompt"}
+                  {isSkill ? "Skill" : isAgent ? "Agent" : isMod ? "Mod" : isExternal ? "OSS紹介" : "Prompt"}
                 </span>
                 {isExternal ? (
                   item.stars !== null && (
@@ -321,6 +338,8 @@ export default function ItemDetailPage() {
               {item.summary}
             </div>
           )}
+
+          {isMod && <ModScanPanel itemId={item.id} />}
 
           {(() => {
             const hasDescription = Boolean(item.description);
@@ -509,7 +528,9 @@ export default function ItemDetailPage() {
 
           {hasFile && item.fileName && (
             <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">インストールコマンド</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+                {isMod ? "1セッションだけ試すコマンド" : "インストールコマンド"}
+              </p>
               <div className="mb-2 inline-flex rounded-md border border-border p-0.5 text-xs">
                 <button
                   type="button"
@@ -544,7 +565,16 @@ export default function ItemDetailPage() {
                 </button>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
-                {installOs === "windows" ? (
+                {isMod ? (
+                  <>
+                    <code className="font-mono">{installOs === "windows" ? "$env:AI_SKILLS_HUB_TOKEN" : "$AI_SKILLS_HUB_TOKEN"}</code> に自分の
+                    <Link to="/settings/tokens" className="text-ink hover:underline">
+                      アクセストークン
+                    </Link>
+                    を設定してから実行すると、このModを取得し、そのセッションだけで読み込みます(インストールはされません)。
+                    実行前に、上の「Modが行うこと」を必ず確認してください。Claude Code v2.1.287以降が必要です。
+                  </>
+                ) : installOs === "windows" ? (
                   <>
                     <code className="font-mono">$env:AI_SKILLS_HUB_TOKEN</code> に自分の
                     <Link to="/settings/tokens" className="text-ink hover:underline">
@@ -567,14 +597,14 @@ export default function ItemDetailPage() {
                 )}
               </p>
 
-              {isSkill && (
+              {(isSkill || isMod) && (
               <div className="mt-4 border-t border-border pt-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                   Claude Codeプラグイン連携を設定済みの場合
                 </p>
                 <p className="mb-2 text-xs leading-relaxed text-ink-secondary">
                   上記のコマンドを使わなくても、<code className="font-mono">/plugin</code>{" "}
-                  コマンドでブラウズしてこのスキルを選ぶだけでインストールできます。マーケットプレイス名を
+                  コマンドでブラウズしてこの{isMod ? "Mod" : "スキル"}を選ぶだけでインストールできます。マーケットプレイス名を
                   <Link to="/guide/claude-plugin" className="mx-1 text-ink hover:underline">
                     ガイド
                   </Link>
@@ -582,7 +612,7 @@ export default function ItemDetailPage() {
                 </p>
                 <div className="flex items-start gap-2 rounded-lg bg-[#14171c] px-3.5 py-2.5">
                   <code className="flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-white/90">
-                    claude plugin install {pluginIdentifier(item.title, item.id)}@ai-skills-hub
+                    claude plugin install {pluginIdentifier(item.title, item.id, item.type)}@ai-skills-hub
                   </code>
                   <button
                     type="button"

@@ -22,12 +22,12 @@ export function installDirName(title: string, fallback: string): string {
  * `installDirName` とは別に、ASCII以外を除去するロジックにしている。
  * worker/src/lib/pluginArchive.ts の pluginIdentifier と必ず同じロジックを保つこと。
  */
-export function pluginIdentifier(title: string, itemId: string): string {
+export function pluginIdentifier(title: string, itemId: string, type?: string): string {
   const base = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
   const suffix = itemId.slice(0, 8);
-  return base ? `${base}-${suffix}` : `skill-${suffix}`;
+  return base ? `${base}-${suffix}` : `${type === "mod" ? "mod" : "skill"}-${suffix}`;
 }

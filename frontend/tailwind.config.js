@@ -34,6 +34,10 @@ export default {
           DEFAULT: "rgb(var(--agent) / <alpha-value>)",
           dim: "var(--agent-dim)",
         },
+        mod: {
+          DEFAULT: "rgb(var(--mod) / <alpha-value>)",
+          dim: "var(--mod-dim)",
+        },
         external: {
           DEFAULT: "rgb(var(--external) / <alpha-value>)",
           dim: "var(--external-dim)",

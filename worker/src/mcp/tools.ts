@@ -35,9 +35,9 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
       inputSchema: z.object({
         query: z.string().optional().describe("タイトル・概要・詳細説明を対象とした部分一致検索キーワード"),
         type: z
-          .enum(["skill", "prompt", "agent", "external"])
+          .enum(["skill", "prompt", "agent", "mod", "external"])
           .optional()
-          .describe("種別で絞り込む(agentはサブエージェント定義、externalは外部OSS等の紹介。未指定なら全種別)"),
+          .describe("種別で絞り込む(agentはサブエージェント定義、modはClaude CodeのMod(プラグイン)、externalは外部OSS等の紹介。未指定なら全種別)"),
         tags: z.array(z.string()).optional().describe("タグ名で絞り込む(すべて一致するAND条件、例: ['デザイン'])"),
         sort: z.enum(SORT_VALUES).optional().describe("並び順(既定: newest=新着順)"),
         page: z.number().int().min(1).optional().describe("ページ番号(既定: 1)"),
@@ -126,6 +126,11 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
         body.license = item.license;
         body.stars = item.stars;
         body.note = "これは第三者が公開しているOSS等の紹介です。著作権は元の作者に帰属します。";
+      } else if (item.type === "mod") {
+        body.usageNote = item.body || null;
+        body.fileName = item.fileName;
+        body.note =
+          "Claude CodeのMod(ユーザー権限で動くコードを含むプラグイン)です。インストール前に詳細ページの『Modが行うこと』(静的スキャン結果)を確認してください。";
       } else if (item.type === "agent") {
         body.usageNote = item.body || null;
         body.fileName = item.fileName;

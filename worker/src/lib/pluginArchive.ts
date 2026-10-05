@@ -1,5 +1,6 @@
 import { strToU8, unzipSync, zipSync } from "fflate";
 import type { Env, ItemRow } from "../types";
+import { readModArchive, repackageMod } from "./modArchive";
 
 const SKILL_MD_FILENAME = "skill.md";
 
@@ -37,14 +38,14 @@ function findSkillMdPath(entries: Record<string, Uint8Array>): string | null {
  * フロントエンド側(frontend/src/lib/installName.ts の pluginIdentifier)で同じロジックを
  * 再現して表示用インストールコマンドを組み立てているため、変更する場合は両方を揃えること。
  */
-export function pluginIdentifier(item: Pick<ItemRow, "id" | "title">): string {
+export function pluginIdentifier(item: Pick<ItemRow, "id" | "title"> & { type?: string }): string {
   const base = item.title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
   const suffix = item.id.slice(0, 8);
-  return base ? `${base}-${suffix}` : `skill-${suffix}`;
+  return base ? `${base}-${suffix}` : `${item.type === "mod" ? "mod" : "skill"}-${suffix}`;
 }
 
 function buildPluginJson(item: ItemRow, authorName: string): Uint8Array {
@@ -81,12 +82,20 @@ export async function buildAndCachePluginPackage(
   item: ItemRow,
   authorName: string,
 ): Promise<PluginPackage | null> {
-  if (item.type !== "skill" || !item.r2_key || !item.file_name) return null;
+  if ((item.type !== "skill" && item.type !== "mod") || !item.r2_key || !item.file_name) return null;
 
   const obj = await env.ASSETS_BUCKET.get(item.r2_key);
   if (!obj) return null;
 
   const identifier = pluginIdentifier(item);
+
+  // mod は最初からプラグインなので、包み直さずにルートを揃えて name/version だけ書き換えて配信する
+  if (item.type === "mod") {
+    const parsed = readModArchive(new Uint8Array(await obj.arrayBuffer()));
+    if (!parsed.ok) return null;
+    return cachePluginZip(env, item, repackageMod(parsed.pkg, { identifier, version: item.version, title: item.title }));
+  }
+
   const files: Record<string, Uint8Array> = {
     ".claude-plugin/plugin.json": buildPluginJson(item, authorName),
   };
@@ -109,7 +118,10 @@ export async function buildAndCachePluginPackage(
     }
   }
 
-  const zipBytes = zipSync(files);
+  return cachePluginZip(env, item, zipSync(files));
+}
+
+async function cachePluginZip(env: Env, item: ItemRow, zipBytes: Uint8Array): Promise<PluginPackage> {
   const hash = await sha256Hex(zipBytes);
   const archiveKey = `plugin-archives/${item.id}.zip`;
 

@@ -12,7 +12,7 @@ const PERIODS: { value: RankingPeriod; label: string }[] = [
 ];
 const PERIOD_VALUES = PERIODS.map((p) => p.value) as readonly string[];
 
-const TYPE_VALUES = ["all", "skill", "prompt", "agent", "external"] as const;
+const TYPE_VALUES = ["all", "skill", "prompt", "agent", "mod", "external"] as const;
 type TypeFilter = (typeof TYPE_VALUES)[number];
 
 export default function RankingPage() {
@@ -74,7 +74,7 @@ export default function RankingPage() {
                 type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
               }`}
             >
-              {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : v === "agent" ? "エージェント" : "OSS紹介"}
+              {v === "all" ? "すべて" : v === "skill" ? "スキル" : v === "prompt" ? "プロンプト" : v === "agent" ? "エージェント" : v === "mod" ? "Mod" : "OSS紹介"}
             </button>
           ))}
         </div>

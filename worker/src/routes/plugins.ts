@@ -14,13 +14,13 @@ function resolveBaseUrl(c: AppContext): string {
 type SkillItemRow = ItemRow & { author_display_name: string };
 
 // ---- Claude Code の `claude plugin marketplace add` が読み込むマーケットプレイス定義 ----
-// type=skillのアイテムを都度DBから列挙して動的に生成する(静的ファイルは持たない)。
+// type=skill / mod のアイテムを都度DBから列挙して動的に生成する(静的ファイルは持たない)。
 // 認証は index.ts の authMiddleware(Authorization: Bearer <個人アクセストークン>)に委ねる。
 plugins.get("/marketplace.json", async (c) => {
   const { results } = await c.env.DB.prepare(
     `SELECT i.*, u.display_name as author_display_name
      FROM items i JOIN users u ON u.email = i.author_email
-     WHERE i.type = 'skill'
+     WHERE i.type IN ('skill', 'mod')
      ORDER BY i.created_at ASC`,
   ).all<SkillItemRow>();
 
@@ -48,7 +48,7 @@ plugins.get("/marketplace.json", async (c) => {
   return c.json({
     name: "ai-skills-hub",
     owner: { name: "AI Skills Hub" },
-    description: "AI Skills Hub に登録されたスキルのマーケットプレイス",
+    description: "AI Skills Hub に登録されたスキル・Modのマーケットプレイス",
     plugins: entries,
   });
 });
@@ -64,7 +64,7 @@ plugins.get("/:id/archive.zip", async (c) => {
     .bind(id)
     .first<SkillItemRow>();
 
-  if (!item || item.type !== "skill") return c.json({ error: "not_found" }, 404);
+  if (!item || (item.type !== "skill" && item.type !== "mod")) return c.json({ error: "not_found" }, 404);
 
   const pkg = await getOrBuildPluginPackage(c.env, item, item.author_display_name);
   if (!pkg) return c.json({ error: "not_pluginizable" }, 400);

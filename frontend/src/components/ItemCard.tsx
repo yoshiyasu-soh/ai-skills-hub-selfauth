@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { formatCompactNumber } from "../lib/formatNumber";
 import type { Item } from "../lib/types";
-import { BotIcon, BoxIcon, DownloadIcon, ExternalLinkIcon, SparkleIcon, StarIcon } from "./icons";
+import { BotIcon, BoxIcon, DownloadIcon, ExternalLinkIcon, PlugIcon, SparkleIcon, StarIcon } from "./icons";
 
 interface Props {
   item: Item;
@@ -13,6 +13,7 @@ const TYPE_META = {
   skill: { label: "Skill", accent: "text-skill", accentBg: "bg-skill-dim", Icon: BoxIcon },
   prompt: { label: "Prompt", accent: "text-prompt", accentBg: "bg-prompt-dim", Icon: SparkleIcon },
   agent: { label: "Agent", accent: "text-agent", accentBg: "bg-agent-dim", Icon: BotIcon },
+  mod: { label: "Mod", accent: "text-mod", accentBg: "bg-mod-dim", Icon: PlugIcon },
   external: { label: "OSS紹介", accent: "text-external", accentBg: "bg-external-dim", Icon: ExternalLinkIcon },
 } as const;
 

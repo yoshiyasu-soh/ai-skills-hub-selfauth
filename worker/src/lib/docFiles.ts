@@ -22,7 +22,11 @@ function toKind(path: string): "markdown" | "text" {
 
 /** SKILL.md(最も浅い階層)を先頭に、残りはパス順に並べる */
 function sortFiles(files: DocFileDTO[]): DocFileDTO[] {
-  const rank = (f: DocFileDTO) => (f.path.toLowerCase().split("/").pop() === "skill.md" ? f.path.split("/").length : 1000);
+  const rank = (f: DocFileDTO) => {
+    const name = f.path.toLowerCase().split("/").pop();
+    if (name === "skill.md") return f.path.split("/").length;
+    return name === "readme.md" ? 500 : 1000;
+  };
   return [...files].sort((a, b) => rank(a) - rank(b) || a.path.localeCompare(b.path));
 }
 
@@ -41,6 +45,7 @@ export function docFilesFromZip(buf: Uint8Array): DocFileDTO[] {
   let total = 0;
   for (const [path, data] of Object.entries(entries)) {
     if (path.startsWith("__MACOSX/") || path.split("/").pop()?.startsWith("._")) continue;
+    if (path.includes(".claude-plugin/types/")) continue; // Claude Codeが読み込み時に書き出す型定義(生成物)
     if (data.includes(0)) continue; // NUL を含むものはバイナリとみなす
     total += data.byteLength;
     if (files.length >= MAX_FILES || total > MAX_TOTAL_BYTES) break;

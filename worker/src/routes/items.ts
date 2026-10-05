@@ -2,6 +2,7 @@ import type { Context } from "hono";
 import { Hono } from "hono";
 import { toCommentDTO, type CommentRow } from "../lib/comments";
 import { docFilesFromZip, singleDocFile } from "../lib/docFiles";
+import { readModArchive, scanMod } from "../lib/modArchive";
 import {
   applyTags,
   bumpPatchVersion,
@@ -54,21 +55,27 @@ type Fields = Record<string, unknown>;
 // エージェント定義は単一の .md ファイル(.claude/agents/<name>.md に配置される)のみ。
 const ALLOWED_AGENT_EXTENSIONS = [".md"];
 
-function isAllowedAssetFile(type: "skill" | "agent", fileName: string): boolean {
+// Mod はプラグインのフォルダをZIPにしたもののみ(.claude-plugin/plugin.json と hooks/hooks.json が必要)。
+const ALLOWED_MOD_EXTENSIONS = [".zip"];
+
+type FileItemType = "skill" | "agent" | "mod";
+
+function isAllowedAssetFile(type: FileItemType, fileName: string): boolean {
   const lower = fileName.toLowerCase();
-  const allowed = type === "agent" ? ALLOWED_AGENT_EXTENSIONS : ALLOWED_SKILL_EXTENSIONS;
+  const allowed =
+    type === "agent" ? ALLOWED_AGENT_EXTENSIONS : type === "mod" ? ALLOWED_MOD_EXTENSIONS : ALLOWED_SKILL_EXTENSIONS;
   return allowed.some((ext) => lower.endsWith(ext));
 }
 
-function assetFileErrorMessage(type: "skill" | "agent"): string {
-  return type === "agent"
-    ? "file must be an agent definition (.md) file"
-    : "file must be a .zip archive or a SKILL.md (.md) file";
+function assetFileErrorMessage(type: FileItemType): string {
+  if (type === "agent") return "file must be an agent definition (.md) file";
+  if (type === "mod") return "file must be a .zip archive of the mod (plugin) folder";
+  return "file must be a .zip archive or a SKILL.md (.md) file";
 }
 
 /** R2のキー接頭辞(既存のスキル資産は skills/ のまま) */
-function r2PrefixFor(type: "skill" | "agent"): string {
-  return type === "agent" ? "agents" : "skills";
+function r2PrefixFor(type: FileItemType): string {
+  return type === "agent" ? "agents" : type === "mod" ? "mods" : "skills";
 }
 
 function contentTypeForFileName(fileName: string): string {
@@ -203,13 +210,14 @@ items.post("/", async (c) => {
   const stars = nonNegativeIntOrNull(fields, "stars");
 
   if (!isItemType(type)) {
-    return c.json({ error: "type must be 'skill', 'prompt', 'agent' or 'external'" }, 400);
+    return c.json({ error: "type must be 'skill', 'prompt', 'agent', 'mod' or 'external'" }, 400);
   }
   if (!title) return c.json({ error: "title is required" }, 400);
   if (title.length > 200) return c.json({ error: "title is too long (max 200 chars)" }, 400);
   if (type === "prompt" && !bodyText) return c.json({ error: "body (prompt text) is required" }, 400);
   if (type === "skill" && !file) return c.json({ error: "file (.zip or .md) is required" }, 400);
   if (type === "agent" && !file) return c.json({ error: "file (.md) is required" }, 400);
+  if (type === "mod" && !file) return c.json({ error: "file (.zip) is required" }, 400);
   if (type === "external") {
     if (!sourceUrl) return c.json({ error: "sourceUrl is required" }, 400);
     if (!isValidHttpUrl(sourceUrl)) return c.json({ error: "sourceUrl must be a valid http(s) URL" }, 400);
@@ -230,10 +238,16 @@ items.post("/", async (c) => {
       return c.json({ error: `file too large (max ${MAX_SKILL_FILE_SIZE / 1024 / 1024}MB)` }, 400);
     }
 
+    const bytes = await file.arrayBuffer();
+    if (type === "mod") {
+      const parsed = readModArchive(new Uint8Array(bytes));
+      if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+    }
+
     r2Key = `${r2PrefixFor(type)}/${id}/${file.name}`;
     fileName = file.name;
     fileSize = file.size;
-    await c.env.ASSETS_BUCKET.put(r2Key, await file.arrayBuffer(), {
+    await c.env.ASSETS_BUCKET.put(r2Key, bytes, {
       httpMetadata: { contentType: contentTypeForFileName(file.name) },
     });
   }
@@ -334,8 +348,13 @@ items.put("/:id", async (c) => {
 
     // バージョンごとに別オブジェクトとして保存する(過去バージョンの参照用に、同名で
     // 再アップロードしても既存のファイルを上書き・削除しない)。
+    const bytes = await file.arrayBuffer();
+    if (existing.type === "mod") {
+      const parsed = readModArchive(new Uint8Array(bytes));
+      if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+    }
     const newKey = `${r2PrefixFor(existing.type)}/${id}/${Date.now()}-${file.name}`;
-    await c.env.ASSETS_BUCKET.put(newKey, await file.arrayBuffer(), {
+    await c.env.ASSETS_BUCKET.put(newKey, bytes, {
       httpMetadata: { contentType: contentTypeForFileName(file.name) },
     });
     r2Key = newKey;
@@ -474,6 +493,20 @@ items.get("/:id/files", async (c) => {
     }
   }
   return c.json({ files: singleDocFile(item.file_name, await obj.text()) });
+});
+
+// ---- Mod用: フックモジュールの静的スキャン(イベント・mods API呼び出し・リスク)。実行はしない ----
+items.get("/:id/mod-scan", async (c) => {
+  const item = await fetchItemRow(c.env.DB, c.req.param("id"));
+  if (!item) return c.json({ error: "not_found" }, 404);
+  if (item.type !== "mod" || !item.r2_key) return c.json({ error: "not_a_mod" }, 400);
+
+  const obj = await c.env.ASSETS_BUCKET.get(item.r2_key);
+  if (!obj) return c.json({ error: "file not found in storage" }, 404);
+
+  const parsed = readModArchive(new Uint8Array(await obj.arrayBuffer()));
+  if (!parsed.ok) return c.json({ error: parsed.error }, 422);
+  return c.json({ scan: scanMod(parsed.pkg) });
 });
 
 // ---- 過去バージョンの一覧(古い順)。外部紹介(OSS紹介)にはバージョン概念が無いため対象外 ----

@@ -7,11 +7,12 @@ import {
   CodeIcon,
   CopyIcon,
   ExternalLinkIcon,
+  PlugIcon,
   SparkleIcon,
 } from "../components/icons";
 
 interface GuidePageProps {
-  topic: "skill" | "prompt" | "agent" | "external";
+  topic: "skill" | "prompt" | "agent" | "mod" | "external";
 }
 
 const AGENT_POINTS = [
@@ -26,6 +27,25 @@ const AGENT_POINTS = [
   {
     title: "Claude Codeでの置き場所",
     body: "プロジェクト直下の .claude/agents/<名前>.md、または個人用に ~/.claude/agents/ 配下に置くと、Claude Codeが自動的に認識します。AI Skills Hubからダウンロードした .md ファイルをそのまま置くだけで使えます。",
+  },
+];
+
+const MOD_POINTS = [
+  {
+    title: "Claude Codeの見た目と動作を拡張するプラグイン",
+    body: "Modは、JavaScript/TypeScriptのイベントハンドラで構成されたClaude Codeプラグインです。コンテキストの使用量を示すペイン、プロンプト上のバンド、独自の/コマンド、ツール呼び出しの監視・ガードなど、スキルやMCPではできないことをClaude Codeの内側で実現します。",
+  },
+  {
+    title: "投稿するのはプラグインのフォルダをZIPにしたもの",
+    body: ".claude-plugin/plugin.json、hooks/hooks.json(modulesにフックモジュールを指定)、hooks/register.js(または .ts)を含むフォルダをそのままZIPにして投稿します。投稿時に構成を検査し、不備があれば理由を表示します。",
+  },
+  {
+    title: "インストールは通常のプラグインと同じ",
+    body: "AI Skills Hubのマーケットプレイスから claude plugin install <名前>@ai-skills-hub でインストールできます。1セッションだけ試す場合は claude --plugin-dir にZIPを指定します。Claude Code v2.1.287以降が必要です。",
+  },
+  {
+    title: "ユーザー権限で動くコードです。信頼できるものだけを入れてください",
+    body: "Modはサンドボックス化されず、ファイルの読み書き・プログラムの起動・ネットワーク通信を、あなたの権限で行えます。詳細ページには、投稿されたコードを静的に調べた「Modが行うこと」(使うイベントとAPI呼び出し)を表示します。組織の設定でModが無効になっている環境では読み込まれません。",
   },
 ];
 
@@ -110,6 +130,18 @@ const TOPIC_META = {
       "エージェント(サブエージェント)は、Claude Codeが特定の役割の作業を任せるために使う、専用の指示書です。AI Skills Hubでは、チームで育てたエージェント定義(.mdファイル)を共有し、誰でもダウンロードしてそのまま使えるようにします。",
     points: AGENT_POINTS,
     postLabel: "エージェントを投稿する",
+  },
+  mod: {
+    label: "Mod",
+    accentBg: "bg-mod",
+    accentText: "text-mod",
+    accentBgSoft: "bg-mod-dim",
+    Icon: PlugIcon,
+    title: "Modとは？",
+    intro:
+      "Modは、Claude Codeの画面や動作を拡張するプラグインです。AI Skills Hubでは、チームで作ったModをZIPで共有し、マーケットプレイスからそのままインストールできるようにします。実行されるのはあなたの権限のコードなので、インストール前に内容を確認できるようにしています。",
+    points: MOD_POINTS,
+    postLabel: "Modを投稿する",
   },
   external: {
     label: "OSS紹介",
@@ -209,6 +241,32 @@ description: プルリクエストのレビュー依頼を受けたときに使�
               必要に応じて自分の状況に合わせて文面を調整してから送信する
             </li>
           </ol>
+        </div>
+      ) : topic === "mod" ? (
+        <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">
+          <p className="mb-2 flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+            <CodeIcon className="h-3.5 w-3.5" />
+            Modの構成と最小のコード例
+          </p>
+          <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-3 font-mono text-xs leading-relaxed text-ink">
+{`first-mod/
+├── .claude-plugin/plugin.json   {"name": "first-mod", "version": "0.1.0", ...}
+└── hooks/
+    ├── hooks.json               {"modules": ["./register.js"]}
+    └── register.js
+
+// hooks/register.js: ツール呼び出しを数え、スピナーの横に表示する
+let calls = 0
+export function register(on) {
+  on('tool.call', async ($, e, next) => {
+    calls += 1
+    $.ui.invalidate('ui.render')
+    return next(e)
+  })
+  on('ui.render', { component: 'Spinner' }, async ($, e, next) =>
+    next({ ...e, props: { ...e.props, suffix: ' · tool calls: ' + calls + '…' } }))
+}`}
+          </pre>
         </div>
       ) : topic === "agent" ? (
         <div className="mb-8 rounded-xl border border-border bg-surface-2 p-4">

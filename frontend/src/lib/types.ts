@@ -1,4 +1,22 @@
-export type ItemType = "skill" | "prompt" | "agent" | "external";
+export type ItemType = "skill" | "prompt" | "agent" | "mod" | "external";
+
+export interface ModFinding {
+  kind: "call" | "hook";
+  name: string;
+  level: "high" | "medium";
+  label: string;
+}
+
+export interface ModScan {
+  pluginName: string;
+  modules: string[];
+  hooks: string[];
+  calls: string[];
+  envReads: string[];
+  envWrites: string[];
+  findings: ModFinding[];
+  level: "high" | "medium" | "low";
+}
 export type SortOption = "newest" | "updated" | "popular" | "favorites" | "name";
 export type RankingPeriod = "all" | "7d" | "30d";
 

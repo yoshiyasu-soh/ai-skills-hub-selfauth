@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
-import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, SparkleIcon, TagIcon } from "../components/icons";
+import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, PlugIcon, SparkleIcon, TagIcon } from "../components/icons";
 import { api } from "../lib/api";
 import { parseSkillMd } from "../lib/parseSkillMd";
 import type { Item, Tag } from "../lib/types";
@@ -134,7 +134,7 @@ export default function EditItemPage() {
     setSubmitting(true);
     try {
       let updated;
-      if (item.type === "skill" || item.type === "agent") {
+      if (item.type === "skill" || item.type === "agent" || item.type === "mod") {
         const fd = new FormData();
         fd.set("title", title);
         fd.set("summary", summary);
@@ -176,10 +176,11 @@ export default function EditItemPage() {
 
   const isSkill = item.type === "skill";
   const isAgent = item.type === "agent";
-  const hasFile = isSkill || isAgent;
+  const isMod = item.type === "mod";
+  const hasFile = isSkill || isAgent || isMod;
   const isExternal = item.type === "external";
-  const accentText = isSkill ? "text-skill" : isAgent ? "text-agent" : isExternal ? "text-external" : "text-prompt";
-  const accentBg = isSkill ? "bg-skill" : isAgent ? "bg-agent" : isExternal ? "bg-external" : "bg-prompt";
+  const accentText = isSkill ? "text-skill" : isAgent ? "text-agent" : isMod ? "text-mod" : isExternal ? "text-external" : "text-prompt";
+  const accentBg = isSkill ? "bg-skill" : isAgent ? "bg-agent" : isMod ? "bg-mod" : isExternal ? "bg-external" : "bg-prompt";
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -189,6 +190,8 @@ export default function EditItemPage() {
             <BoxIcon className="h-4.5 w-4.5" />
           ) : isAgent ? (
             <BotIcon className="h-4 w-4" />
+          ) : isMod ? (
+            <PlugIcon className="h-4 w-4" />
           ) : isExternal ? (
             <ExternalLinkIcon className="h-4 w-4" />
           ) : (
@@ -294,11 +297,11 @@ export default function EditItemPage() {
               <>
                 <div>
                   <label className={labelClass}>
-                    {isAgent ? "エージェント定義(.md)" : "スキル資産(.zip または SKILL.md)"} — 差し替える場合のみ選択
+                    {isAgent ? "エージェント定義(.md)" : isMod ? "Mod(プラグインのフォルダをZIPにしたもの)" : "スキル資産(.zip または SKILL.md)"} — 差し替える場合のみ選択
                   </label>
                   <input
                     type="file"
-                    accept={isAgent ? ".md" : ".zip,.md"}
+                    accept={isAgent ? ".md" : isMod ? ".zip" : ".zip,.md"}
                     onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
                     className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
                   />

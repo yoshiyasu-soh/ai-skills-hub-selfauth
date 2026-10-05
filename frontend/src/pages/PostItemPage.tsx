@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
-import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, SparkleIcon, StarIcon, TagIcon } from "../components/icons";
+import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, PlugIcon, SparkleIcon, StarIcon, TagIcon } from "../components/icons";
 import { api, ApiError } from "../lib/api";
 import { parseSkillMd } from "../lib/parseSkillMd";
 import type { ItemType, Tag } from "../lib/types";
@@ -28,6 +28,7 @@ const TYPE_ACCENT: Record<ItemType, { text: string; bg: string }> = {
   skill: { text: "text-skill", bg: "bg-skill" },
   prompt: { text: "text-prompt", bg: "bg-prompt" },
   agent: { text: "text-agent", bg: "bg-agent" },
+  mod: { text: "text-mod", bg: "bg-mod" },
   external: { text: "text-external", bg: "bg-external" },
 };
 
@@ -35,6 +36,7 @@ const TYPE_OPTION_LABEL: Record<ItemType, string> = {
   skill: "スキル(再利用可能な機能)",
   prompt: "プロンプト(コピー用)",
   agent: "エージェント(サブエージェント定義)",
+  mod: "Mod(Claude Codeの拡張)",
   external: "OSS紹介(外部リンク)",
 };
 
@@ -172,6 +174,10 @@ export default function PostItemPage() {
       setError("エージェント定義のファイル(.md)を選択してください");
       return;
     }
+    if (type === "mod" && !file) {
+      setError("Modのフォルダを固めたZIPファイルを選択してください");
+      return;
+    }
     if (type === "external" && !isHttpUrl(sourceUrl.trim())) {
       setError("有効な紹介先URLを入力してください");
       return;
@@ -180,7 +186,7 @@ export default function PostItemPage() {
     setSubmitting(true);
     try {
       let created;
-      if (type === "skill" || type === "agent") {
+      if (type === "skill" || type === "agent" || type === "mod") {
         const fd = new FormData();
         fd.set("type", type);
         fd.set("title", title);
@@ -232,6 +238,8 @@ export default function PostItemPage() {
             <SparkleIcon className="h-4 w-4" />
           ) : type === "agent" ? (
             <BotIcon className="h-4 w-4" />
+          ) : type === "mod" ? (
+            <PlugIcon className="h-4 w-4" />
           ) : (
             <ExternalLinkIcon className="h-4 w-4" />
           )}
@@ -248,7 +256,7 @@ export default function PostItemPage() {
             <div>
               <label className={labelClass}>種別</label>
               <div className="flex overflow-hidden rounded-lg border border-border w-fit">
-                {(["skill", "prompt", "agent", "external"] as const).map((v) => (
+                {(["skill", "prompt", "agent", "mod", "external"] as const).map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -408,6 +416,30 @@ export default function PostItemPage() {
                       ファイルの内容からタイトル・概要等を自動入力しました(空欄だった項目のみ)。
                     </p>
                   )}
+                </div>
+                <div>
+                  <label className={labelClass}>使い方メモ(任意)</label>
+                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
+                </div>
+              </>
+            ) : type === "mod" ? (
+              <>
+                <div>
+                  <label className={labelClass}>Mod(プラグインのフォルダをZIPにしたもの) *</label>
+                  <input
+                    type="file"
+                    accept=".zip"
+                    onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
+                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
+                  />
+                  <p className="mt-1.5 text-xs text-ink-secondary">
+                    最大25MBまで。.claude-plugin/plugin.json と、modules を持つ hooks/hooks.json が必要です(構成はガイドを参照)。
+                    投稿時に検査し、不備があれば理由を表示します。
+                  </p>
+                  <p className="mt-1.5 text-xs text-ink-secondary">
+                    Modは利用者の権限で動くコードです。投稿されたコードは静的に調べられ、使うイベントとAPI呼び出しが詳細ページに公開されます。
+                    ファイルの読み書き・外部プログラムの実行・通信を行う場合は、その目的を詳細説明に書いてください。
+                  </p>
                 </div>
                 <div>
                   <label className={labelClass}>使い方メモ(任意)</label>

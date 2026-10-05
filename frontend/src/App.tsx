@@ -86,6 +86,7 @@ export default function App() {
           <Route path="/guide/skills" element={<GuidePage topic="skill" />} />
           <Route path="/guide/prompts" element={<GuidePage topic="prompt" />} />
           <Route path="/guide/agents" element={<GuidePage topic="agent" />} />
+          <Route path="/guide/mods" element={<GuidePage topic="mod" />} />
           <Route path="/guide/external" element={<GuidePage topic="external" />} />
           <Route path="/guide/mcp" element={<McpGuidePage />} />
           <Route path="/guide/claude-plugin" element={<ClaudePluginGuidePage />} />

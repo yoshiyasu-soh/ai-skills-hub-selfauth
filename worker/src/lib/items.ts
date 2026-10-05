@@ -1,14 +1,14 @@
 import type { ItemRow, ItemType, SortOption } from "../types";
 
-export const ITEM_TYPES: readonly ItemType[] = ["skill", "prompt", "agent", "external"];
+export const ITEM_TYPES: readonly ItemType[] = ["skill", "prompt", "agent", "mod", "external"];
 
 export function isItemType(value: unknown): value is ItemType {
   return ITEM_TYPES.includes(value as ItemType);
 }
 
-/** R2に添付ファイルを持つ種別(スキル: .zip/.md、エージェント: .md) */
-export function isFileItemType(type: string): type is "skill" | "agent" {
-  return type === "skill" || type === "agent";
+/** R2に添付ファイルを持つ種別(スキル: .zip/.md、エージェント: .md、Mod: .zip) */
+export function isFileItemType(type: string): type is "skill" | "agent" | "mod" {
+  return type === "skill" || type === "agent" || type === "mod";
 }
 
 export interface ItemDTO {
