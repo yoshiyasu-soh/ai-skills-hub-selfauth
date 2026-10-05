@@ -33,11 +33,20 @@ const TYPE_ACCENT: Record<ItemType, { text: string; bg: string }> = {
 };
 
 const TYPE_OPTION_LABEL: Record<ItemType, string> = {
-  skill: "スキル(再利用可能な機能)",
-  prompt: "プロンプト(コピー用)",
-  agent: "エージェント(サブエージェント定義)",
-  mod: "Mod(Claude Codeの拡張)",
-  external: "OSS紹介(外部リンク)",
+  skill: "スキル",
+  prompt: "プロンプト",
+  agent: "エージェント",
+  mod: "Mod",
+  external: "OSS紹介",
+};
+
+// 種別ボタンは1行に収めるため短いラベルにし、説明は選択中の種別について下に表示する
+const TYPE_OPTION_HINT: Record<ItemType, string> = {
+  skill: "再利用可能な機能(SKILL.md や ZIP 一式)",
+  prompt: "コピーして使う指示文",
+  agent: "サブエージェント定義(.md)",
+  mod: "Claude Code を拡張するプラグイン(ZIP)",
+  external: "外部に公開されているOSS等の紹介(リンク)",
 };
 
 function isHttpUrl(value: string): boolean {
@@ -255,13 +264,13 @@ export default function PostItemPage() {
           <div className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6 shadow-card">
             <div>
               <label className={labelClass}>種別</label>
-              <div className="flex overflow-hidden rounded-lg border border-border w-fit">
+              <div className="flex max-w-full overflow-x-auto rounded-lg border border-border w-fit">
                 {(["skill", "prompt", "agent", "mod", "external"] as const).map((v) => (
                   <button
                     key={v}
                     type="button"
                     onClick={() => setType(v)}
-                    className={`px-4 py-1.5 text-sm font-semibold font-display transition-colors ${
+                    className={`whitespace-nowrap px-4 py-1.5 text-sm font-semibold font-display transition-colors ${
                       type === v ? "bg-active text-active-text" : "bg-surface text-ink-secondary hover:bg-surface-2"
                     }`}
                   >
@@ -269,6 +278,7 @@ export default function PostItemPage() {
                   </button>
                 ))}
               </div>
+              <p className="mt-1.5 text-xs text-ink-secondary">{TYPE_OPTION_HINT[type]}</p>
             </div>
 
             {type === "external" && (
