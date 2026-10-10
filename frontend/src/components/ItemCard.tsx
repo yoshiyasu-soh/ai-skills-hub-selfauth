@@ -90,7 +90,7 @@ export default function ItemCard({ item, onToggleFavorite, rank }: Props) {
 
       <div className="flex items-center justify-between border-t border-border pt-2.5 text-xs text-ink-secondary">
         <Link
-          to={`/users/${encodeURIComponent(item.authorEmail)}`}
+          to={`/users/${item.authorId}`}
           className="relative z-10 flex items-center gap-1.5 hover:text-ink hover:underline"
         >
           <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-surface-2 text-[9px] font-semibold text-ink-secondary">

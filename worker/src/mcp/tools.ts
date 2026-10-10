@@ -110,7 +110,6 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
         description: item.description,
         version: item.version,
         authorName: item.authorName,
-        authorEmail: item.authorEmail,
         usageCount: item.usageCount,
         favoriteCount: item.favoriteCount,
         tags: item.tags.map((t) => t.label),

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { toCommentDTO, type CommentRow } from "../lib/comments";
 import { docFilesFromZip, singleDocFile } from "../lib/docFiles";
 import { readModArchive, scanMod } from "../lib/modArchive";
+import { unzipSkillArchive } from "../lib/pluginArchive";
 import {
   applyTags,
   bumpPatchVersion,
@@ -78,6 +79,21 @@ function r2PrefixFor(type: FileItemType): string {
   return type === "agent" ? "agents" : type === "mod" ? "mods" : "skills";
 }
 
+/**
+ * 添付ファイルの中身を検証し、問題があればエラーメッセージを返す。
+ * Modはプラグインとしての構造まで、スキルのZIPは上限付きで展開できること(壊れたZIP・ZIP爆弾でないこと)を確認する。
+ */
+function validateAssetBytes(type: FileItemType, fileName: string, bytes: Uint8Array): string | null {
+  if (type === "mod") {
+    const parsed = readModArchive(bytes);
+    return parsed.ok ? null : parsed.error;
+  }
+  if (type === "skill" && fileName.toLowerCase().endsWith(".zip") && !unzipSkillArchive(bytes)) {
+    return "ZIPを展開できません(壊れている、またはファイル数・展開後のサイズが上限を超えています)";
+  }
+  return null;
+}
+
 function contentTypeForFileName(fileName: string): string {
   return fileName.toLowerCase().endsWith(".md") ? "text/markdown; charset=utf-8" : "application/zip";
 }
@@ -112,12 +128,25 @@ items.get("/", async (c) => {
   const user = c.get("user");
   const typeParam = c.req.query("type");
   const tagsParam = c.req.query("tags");
-  const authorEmailParam = c.req.query("authorEmail");
+  // 投稿者の絞り込みは公開ID(または自分を表す "me")で受け付ける。メールアドレスでは受け付けない
+  // (受け付けると、任意のアドレスが投稿者かどうかを確かめる手段になるため)。
+  const authorIdParam = c.req.query("authorId");
 
   const tagIds = (tagsParam ?? "")
     .split(",")
     .map((v) => Number(v.trim()))
     .filter((v) => Number.isFinite(v) && v > 0);
+
+  let authorEmail: string | undefined;
+  if (authorIdParam === "me") {
+    authorEmail = user.email;
+  } else if (authorIdParam) {
+    const author = await c.env.DB.prepare("SELECT email FROM users WHERE public_id = ?")
+      .bind(authorIdParam)
+      .first<{ email: string }>();
+    if (!author) return c.json({ items: [], total: 0, page: 1, pageSize: 20 });
+    authorEmail = author.email;
+  }
 
   const result = await searchItems(
     c.env.DB,
@@ -125,7 +154,7 @@ items.get("/", async (c) => {
       type: isItemType(typeParam) ? typeParam : undefined,
       q: c.req.query("q"),
       tagIds,
-      authorEmail: authorEmailParam ? (authorEmailParam === "me" ? user.email : authorEmailParam) : undefined,
+      authorEmail,
       sort: (c.req.query("sort") as SortOption) || "newest",
       page: Number(c.req.query("page") ?? "1"),
       pageSize: Number(c.req.query("pageSize") ?? "20"),
@@ -239,10 +268,8 @@ items.post("/", async (c) => {
     }
 
     const bytes = await file.arrayBuffer();
-    if (type === "mod") {
-      const parsed = readModArchive(new Uint8Array(bytes));
-      if (!parsed.ok) return c.json({ error: parsed.error }, 400);
-    }
+    const assetError = validateAssetBytes(type, file.name, new Uint8Array(bytes));
+    if (assetError) return c.json({ error: assetError }, 400);
 
     r2Key = `${r2PrefixFor(type)}/${id}/${file.name}`;
     fileName = file.name;
@@ -349,10 +376,8 @@ items.put("/:id", async (c) => {
     // バージョンごとに別オブジェクトとして保存する(過去バージョンの参照用に、同名で
     // 再アップロードしても既存のファイルを上書き・削除しない)。
     const bytes = await file.arrayBuffer();
-    if (existing.type === "mod") {
-      const parsed = readModArchive(new Uint8Array(bytes));
-      if (!parsed.ok) return c.json({ error: parsed.error }, 400);
-    }
+    const assetError = validateAssetBytes(existing.type, file.name, new Uint8Array(bytes));
+    if (assetError) return c.json({ error: assetError }, 400);
     const newKey = `${r2PrefixFor(existing.type)}/${id}/${Date.now()}-${file.name}`;
     await c.env.ASSETS_BUCKET.put(newKey, bytes, {
       httpMetadata: { contentType: contentTypeForFileName(file.name) },
@@ -664,7 +689,8 @@ const MAX_COMMENT_LENGTH = 2000;
 
 const COMMENT_SELECT = `
   SELECT ic.id as id, ic.item_id as item_id, ic.author_email as author_email,
-         ic.body as body, ic.created_at as created_at, u.display_name as author_display_name
+         ic.body as body, ic.created_at as created_at, u.display_name as author_display_name,
+         u.public_id as author_public_id
   FROM item_comments ic
   JOIN users u ON u.email = ic.author_email
 `;

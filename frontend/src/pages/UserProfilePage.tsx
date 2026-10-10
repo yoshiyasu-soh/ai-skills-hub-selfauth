@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { useUser } from "../lib/UserContext";
-import type { User } from "../lib/types";
+import type { PublicUser } from "../lib/types";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
@@ -14,29 +14,29 @@ function Field({ label, value }: { label: string; value: string | null }) {
 }
 
 export default function UserProfilePage() {
-  const { email } = useParams<{ email: string }>();
+  const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useUser();
 
-  const [profile, setProfile] = useState<User | null>(null);
+  const [profile, setProfile] = useState<PublicUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!email) return;
+    if (!id) return;
     setLoading(true);
     setError(null);
     api.users
-      .get(email)
+      .get(id)
       .then((res) => setProfile(res.user))
       .catch((err) => setError(err instanceof Error ? err.message : "取得に失敗しました"))
       .finally(() => setLoading(false));
-  }, [email]);
+  }, [id]);
 
   if (loading) return <p className="text-sm text-ink-secondary">読み込み中...</p>;
   if (error) return <p className="text-sm text-danger">{error}</p>;
   if (!profile) return null;
 
-  const isSelf = currentUser?.email === profile.email;
+  const isSelf = currentUser?.id === profile.id;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -45,10 +45,7 @@ export default function UserProfilePage() {
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-2 text-lg font-semibold text-ink-secondary">
             {profile.displayName.slice(0, 1)}
           </span>
-          <div>
-            <h1 className="font-display text-xl font-bold leading-tight text-ink">{profile.displayName}</h1>
-            <p className="text-sm text-ink-secondary">{profile.email}</p>
-          </div>
+          <h1 className="font-display text-xl font-bold leading-tight text-ink">{profile.displayName}</h1>
         </div>
         {isSelf && (
           <Link

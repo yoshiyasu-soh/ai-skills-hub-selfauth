@@ -4,6 +4,35 @@ import { readModArchive, repackageMod } from "./modArchive";
 
 const SKILL_MD_FILENAME = "skill.md";
 
+// スキルZIPの展開上限。Workerのメモリ(128MB)を食い潰すZIP爆弾を、展開前(ヘッダーの宣言サイズ)で止める。
+const SKILL_ZIP_MAX_ENTRIES = 1000;
+const SKILL_ZIP_MAX_ENTRY_BYTES = 25 * 1024 * 1024;
+const SKILL_ZIP_MAX_TOTAL_BYTES = 40 * 1024 * 1024;
+
+/**
+ * スキルのZIPを上限付きで展開する。壊れている、またはファイル数・サイズが上限を超える場合は null。
+ * 投稿時の検証と、プラグイン形式への変換の両方で使う(壊れたZIP1件で marketplace.json 全体が
+ * 失敗しないよう、展開エラーを例外のまま外へ出さない)。
+ */
+export function unzipSkillArchive(buf: Uint8Array): Record<string, Uint8Array> | null {
+  try {
+    let count = 0;
+    let total = 0;
+    return unzipSync(buf, {
+      filter: (f) => {
+        if (f.name.endsWith("/")) return false;
+        count++;
+        total += f.originalSize;
+        if (count > SKILL_ZIP_MAX_ENTRIES) throw new Error("too many entries");
+        if (f.originalSize > SKILL_ZIP_MAX_ENTRY_BYTES || total > SKILL_ZIP_MAX_TOTAL_BYTES) throw new Error("too large");
+        return true;
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export interface PluginPackage {
   zipBytes: Uint8Array;
   sha256Hex: string;
@@ -104,8 +133,8 @@ export async function buildAndCachePluginPackage(
     const text = await obj.text();
     files[`skills/${identifier}/SKILL.md`] = strToU8(text);
   } else {
-    const buf = new Uint8Array(await obj.arrayBuffer());
-    const entries = unzipSync(buf);
+    const entries = unzipSkillArchive(new Uint8Array(await obj.arrayBuffer()));
+    if (!entries) return null;
     const skillMdPath = findSkillMdPath(entries);
     if (!skillMdPath) return null;
 

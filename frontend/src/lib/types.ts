@@ -1,7 +1,7 @@
 export type ItemType = "skill" | "prompt" | "agent" | "mod" | "external";
 
 export interface ModFinding {
-  kind: "call" | "hook";
+  kind: "call" | "hook" | "config";
   name: string;
   level: "high" | "medium";
   label: string;
@@ -46,7 +46,7 @@ export interface Item {
   fileName: string | null;
   fileSize: number | null;
   version: string;
-  authorEmail: string;
+  authorId: string;
   authorName: string;
   usageCount: number;
   favoriteCount: number;
@@ -66,7 +66,7 @@ export interface Item {
 export interface Comment {
   id: number;
   itemId: string;
-  authorEmail: string;
+  authorId: string;
   authorName: string;
   body: string;
   createdAt: string;
@@ -100,8 +100,9 @@ export interface VersionNotification {
   updatedAt: string;
 }
 
-export interface User {
-  email: string;
+/** 他の利用者のプロフィール。メールアドレスは含まれない(識別には公開IDを使う) */
+export interface PublicUser {
+  id: string;
   displayName: string;
   givenName: string | null;
   surname: string | null;
@@ -109,6 +110,11 @@ export interface User {
   jobTitle: string | null;
   department: string | null;
   employeeType: string | null;
+}
+
+/** ログイン中の本人(本人のメールアドレスを含む) */
+export interface User extends PublicUser {
+  email: string;
 }
 
 export interface ProfileUpdatePayload {

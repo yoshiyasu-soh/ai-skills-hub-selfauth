@@ -27,7 +27,7 @@ export type ReadModResult = { ok: true; pkg: ModPackage } | { ok: false; error: 
 export type RiskLevel = "high" | "medium" | "low";
 
 export interface ModFinding {
-  kind: "call" | "hook";
+  kind: "call" | "hook" | "config";
   name: string;
   level: Exclude<RiskLevel, "low">;
   label: string;
@@ -172,6 +172,26 @@ const HOOK_RISK: Record<string, { level: "high" | "medium"; label: string }> = {
   "plugin.register": { level: "medium", label: "他のModの読み込みを判定できる" },
 };
 
+/**
+ * フックモジュール以外で、インストールした利用者のマシン上でコマンドを起動するプラグインの構成要素。
+ * 再パッケージ(repackageMod)はこれらをそのまま配信するため、モジュールの走査結果が「低」でも見落とさないよう別に検出する。
+ */
+function configFindings(pkg: ModPackage): ModFinding[] {
+  const findings: ModFinding[] = [];
+  const add = (name: string, label: string) => findings.push({ kind: "config", name, level: "high", label });
+
+  if (pkg.files[".mcp.json"]) add(".mcp.json", "MCPサーバー(外部プログラム)を起動");
+  if (pkg.files[".lsp.json"]) add(".lsp.json", "言語サーバー(外部プログラム)を起動");
+  if (pkg.manifest.mcpServers !== undefined) add("plugin.json: mcpServers", "MCPサーバー(外部プログラム)を起動");
+  if (pkg.manifest.lspServers !== undefined) add("plugin.json: lspServers", "言語サーバー(外部プログラム)を起動");
+  if (pkg.manifest.hooks !== undefined) add("plugin.json: hooks", "コマンドフック(シェルコマンド)を実行");
+
+  const hooksJson = JSON.parse(strFromU8(pkg.files["hooks/hooks.json"])) as { hooks?: unknown };
+  if (hooksJson.hooks !== undefined) add("hooks/hooks.json: hooks", "コマンドフック(シェルコマンド)を実行");
+
+  return findings;
+}
+
 function riskOfHook(name: string): { level: "high" | "medium"; label: string } | null {
   if (name.startsWith("classic.")) return { level: "medium", label: "設定フック相当のイベントを処理できる" };
   return HOOK_RISK[name] ?? null;
@@ -199,7 +219,7 @@ export function scanMod(pkg: ModPackage): ModScan {
     for (const m of src.matchAll(/\$\.env\.set\(\s*['"]([^'"]+)['"]/g)) envWrites.add(m[1]);
   }
 
-  const findings: ModFinding[] = [];
+  const findings: ModFinding[] = configFindings(pkg);
   for (const name of [...calls].sort()) {
     const r = CALL_RISK[name];
     if (r) findings.push({ kind: "call", name: `$.${name}`, ...r });

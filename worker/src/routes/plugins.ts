@@ -28,7 +28,11 @@ plugins.get("/marketplace.json", async (c) => {
   const entries: Record<string, unknown>[] = [];
 
   for (const item of results ?? []) {
-    const pkg = await getOrBuildPluginPackage(c.env, item, item.author_display_name);
+    // 1件の変換失敗(R2の一時的な障害等)で一覧全体が失敗しないよう、そのアイテムだけを除外する
+    const pkg = await getOrBuildPluginPackage(c.env, item, item.author_display_name).catch((err: unknown) => {
+      console.error(`plugin package build failed: item=${item.id}`, err);
+      return null;
+    });
     // SKILL.mdが見つからない等、プラグイン形式に変換できないものは一覧から除外する
     if (!pkg) continue;
 

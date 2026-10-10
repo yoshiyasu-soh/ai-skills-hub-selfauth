@@ -39,7 +39,7 @@ export default function EditProfilePage() {
         employeeType,
       });
       await refresh();
-      navigate(`/users/${encodeURIComponent(user!.email)}`);
+      navigate(`/users/${user!.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "更新に失敗しました");
     } finally {

@@ -46,6 +46,9 @@ export default function ResetPasswordPage() {
       <div className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-4 py-12 text-center">
         <LogoMark className="mb-4 h-10 w-10" />
         <h1 className="mb-2 font-display text-lg font-bold text-ink">パスワードを再設定しました</h1>
+        <p className="text-sm text-ink-secondary">
+          安全のため、他の端末のログインと個人アクセストークンはすべて無効にしました。MCP等で使う場合は、トークンを発行し直してください。
+        </p>
         <button
           type="button"
           onClick={() => navigate("/login")}

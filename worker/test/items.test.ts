@@ -261,9 +261,13 @@ describe("コメントスレッド", () => {
       body: JSON.stringify({ body: "とても参考になりました" }),
     });
     expect(createRes.status).toBe(201);
-    const created = await createRes.json<{ comment: { id: number; body: string; authorEmail: string; canDelete: boolean } }>();
+    const created = await createRes.json<{
+      comment: { id: number; body: string; authorName: string; authorEmail?: string; canDelete: boolean };
+    }>();
     expect(created.comment.body).toBe("とても参考になりました");
-    expect(created.comment.authorEmail).toBe(OTHER);
+    expect(created.comment.authorName).toBe("other");
+    // メールアドレスは他の利用者に公開しない(識別には公開IDを使う)
+    expect(created.comment.authorEmail).toBeUndefined();
     expect(created.comment.canDelete).toBe(true);
 
     const listRes = await SELF.fetch(`https://example.com/api/items/${id}/comments`, {

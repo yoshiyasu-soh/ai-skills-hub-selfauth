@@ -1,21 +1,37 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import LogoMark from "../components/LogoMark";
-import { api } from "../lib/api";
+import TurnstileWidget, { useTurnstileSiteKey } from "../components/TurnstileWidget";
+import { ApiError, api } from "../lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const turnstileSiteKey = useTurnstileSiteKey();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // トークンは1回しか使えないため、失敗後の再試行ではウィジェットを作り直す
+  const [turnstileKey, setTurnstileKey] = useState(0);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError(null);
     setSubmitting(true);
     try {
-      await api.auth.requestPasswordReset(email);
+      await api.auth.requestPasswordReset(email, turnstileToken ?? undefined);
+      setDone(true);
+    } catch (err) {
+      // ボット対策で拒否された場合だけ再試行させる。それ以外はアカウントの有無を推測されないよう同じ表示にする
+      if (err instanceof ApiError && err.message.startsWith("bot_check_failed")) {
+        setError("ボット対策の確認ができませんでした。もう一度お試しください。");
+        setTurnstileToken(null);
+        setTurnstileKey((k) => k + 1);
+      } else {
+        setDone(true);
+      }
     } finally {
       setSubmitting(false);
-      setDone(true);
     }
   }
 
@@ -42,9 +58,18 @@ export default function ForgotPasswordPage() {
               className="rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
             />
           </label>
+          {turnstileSiteKey && (
+            <TurnstileWidget
+              key={turnstileKey}
+              siteKey={turnstileSiteKey}
+              action="password_reset"
+              onToken={setTurnstileToken}
+            />
+          )}
+          {error && <p className="text-sm text-danger">{error}</p>}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || turnstileSiteKey === undefined || (Boolean(turnstileSiteKey) && !turnstileToken)}
             className="rounded-md bg-cta px-3.5 py-2 text-sm font-semibold text-cta-text shadow-sm transition-colors hover:bg-cta-hover disabled:opacity-50"
           >
             {submitting ? "送信中..." : "再設定メールを送る"}

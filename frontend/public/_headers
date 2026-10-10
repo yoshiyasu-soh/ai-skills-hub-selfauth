@@ -1,0 +1,11 @@
+# 画面(静的アセット)に付与するセキュリティヘッダー。Workers Static Assets がビルド成果物(dist/)の
+# このファイルを読み込んで適用する。/api/* は Worker が応答するためここは効かず、worker/src/index.ts で付与している。
+# - script-src / frame-src の challenges.cloudflare.com は、登録・パスワード再設定画面の Cloudflare Turnstile 用
+# - img-src は外部画像を読み込まない(Markdownの外部画像はリンクとして表示する。MarkdownContent.tsx 参照)
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000

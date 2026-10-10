@@ -9,6 +9,7 @@ import type {
   ModScan,
   NewApiToken,
   ProfileUpdatePayload,
+  PublicUser,
   RankingPeriod,
   SortOption,
   Tag,
@@ -70,7 +71,7 @@ export interface ListItemsParams {
   sort?: SortOption;
   page?: number;
   pageSize?: number;
-  authorEmail?: string;
+  authorId?: string;
 }
 
 export interface ListItemsResult {
@@ -93,23 +94,24 @@ export const api = {
   },
 
   auth: {
-    register: (email: string, password: string) =>
+    config: () => request<{ turnstileSiteKey: string | null }>("/auth/config"),
+    register: (email: string, turnstileToken?: string) =>
       request<{ ok: true; message: string }>("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, turnstileToken }),
       }),
-    verifyEmail: (token: string) =>
+    verifyEmail: (token: string, password: string, displayName: string) =>
       request<{ ok: true; email: string }>("/auth/verify-email", {
         method: "POST",
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, password, displayName }),
       }),
     login: (email: string, password: string) =>
       request<{ user: User }>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
     logout: () => request<{ ok: true }>("/auth/logout", { method: "POST" }),
-    requestPasswordReset: (email: string) =>
+    requestPasswordReset: (email: string, turnstileToken?: string) =>
       request<{ ok: true; message: string }>("/auth/request-password-reset", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       }),
     resetPassword: (token: string, password: string) =>
       request<{ ok: true }>("/auth/reset-password", {
@@ -179,7 +181,7 @@ export const api = {
   },
 
   users: {
-    get: (email: string) => request<{ user: User }>(`/users/${encodeURIComponent(email)}`),
+    get: (id: string) => request<{ user: PublicUser }>(`/users/${encodeURIComponent(id)}`),
   },
 
   notifications: {

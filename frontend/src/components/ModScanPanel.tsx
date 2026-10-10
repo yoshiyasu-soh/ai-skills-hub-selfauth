@@ -5,7 +5,8 @@ import type { ModScan } from "../lib/types";
 const LEVEL_META = {
   high: { label: "要注意", box: "border-danger/30 bg-danger-dim", text: "text-danger" },
   medium: { label: "注意", box: "border-external/30 bg-external-dim", text: "text-external" },
-  low: { label: "低", box: "border-border bg-surface-2", text: "text-success" },
+  // 静的スキャンは安全性を保証しないため、「低」と断定せず「検出なし」と中立色で示す
+  low: { label: "検出なし", box: "border-border bg-surface-2", text: "text-ink-secondary" },
 } as const;
 
 function Chips({ items }: { items: string[] }) {
@@ -76,7 +77,9 @@ export default function ModScanPanel({ itemId }: { itemId: string }) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-ink-secondary">ファイル・プロセス・ネットワーク等に関わる呼び出しは見つかりませんでした。</p>
+            <p className="text-sm text-ink-secondary">
+              ファイル・プロセス・ネットワーク等に関わる呼び出しや、コマンドを起動する設定(MCPサーバー・コマンドフック等)は見つかりませんでした。
+            </p>
           )}
 
           {scan.hooks.length > 0 && (

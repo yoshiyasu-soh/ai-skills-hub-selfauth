@@ -98,7 +98,12 @@ me.get("/tokens", async (c) => {
 });
 
 // ---- 新規発行。生のトークンはこのレスポンスでのみ返す(DBにはハッシュのみ保存) ----
+// ログイン中のブラウザ(セッションCookie)からのみ受け付ける。トークンでトークンを発行できると、
+// 漏えいした1本のトークンから失効させにくい無期限トークンを増やせてしまうため。
 me.post("/tokens", async (c) => {
+  if (c.get("user").authMethod !== "session") {
+    return c.json({ error: "forbidden", message: "トークンの発行はWebサイトにログインして行ってください" }, 403);
+  }
   const email = c.get("user").email;
   const parsed = createTokenSchema.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) return c.json({ error: "invalid_request" }, 400);

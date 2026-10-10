@@ -44,7 +44,7 @@ export default function UserMenu() {
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-48 animate-fade-in rounded-xl border border-border bg-surface py-1.5 shadow-popover">
           <Link
-            to={`/users/${encodeURIComponent(user.email)}`}
+            to={`/users/${user.id}`}
             onClick={() => setOpen(false)}
             className="block px-3.5 py-2 text-sm text-ink-secondary hover:bg-surface-2"
           >

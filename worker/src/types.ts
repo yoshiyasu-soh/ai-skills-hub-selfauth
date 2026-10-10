@@ -47,6 +47,14 @@ export interface Env {
   // メール本文中のリンク生成に使うベースURL。未設定時はリクエストのoriginを使う。
   APP_BASE_URL?: string;
 
+  // Cloudflare Turnstile(会員登録・パスワード再設定の申請のボット対策)。
+  // TURNSTILE_SITE_KEY を設定すると有効になり、以降は検証できないリクエストをすべて拒否する(未設定なら無効)。
+  // TURNSTILE_SITE_KEY / TURNSTILE_HOSTNAMES は公開値のため vars に、TURNSTILE_SECRET は
+  // `wrangler secret put` で設定する。TURNSTILE_HOSTNAMES はウィジェットを表示する画面のホスト名(カンマ区切り)。
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET?: string;
+  TURNSTILE_HOSTNAMES?: string;
+
   // 外部紹介(OSS等)投稿時のGitHubメタデータ自動取得で使う任意のトークン。
   // 未設定でも動作するが(GitHub API未認証枠、60回/時/IP)、設定するとレート制限が緩和される。
   GITHUB_TOKEN?: string;
@@ -55,6 +63,8 @@ export interface Env {
 export interface AuthUser {
   email: string;
   displayName: string;
+  /** どの認証手段で認証されたか(セッションCookie / 個人アクセストークン) */
+  authMethod: "session" | "token";
 }
 
 export type ItemType = "skill" | "prompt" | "agent" | "mod" | "external";
@@ -98,6 +108,7 @@ export interface TagRow {
 
 export interface UserProfileRow {
   email: string;
+  public_id: string;
   display_name: string;
   given_name: string | null;
   surname: string | null;

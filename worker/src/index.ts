@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { secureHeaders } from "hono/secure-headers";
 import { authMiddleware } from "./auth";
 import authRoute from "./routes/auth";
 import favoritesRoute from "./routes/favorites";
@@ -13,6 +14,17 @@ import usersRoute from "./routes/users";
 import type { AuthUser, Env } from "./types";
 
 const app = new Hono<{ Bindings: Env; Variables: { user: AuthUser } }>();
+
+// APIの応答(JSON・ダウンロード)はページとして描画されることがないため、CSPで何も読み込ませず、
+// フレーム埋め込みやMIMEタイプの推測も禁止する。画面(静的アセット)側のヘッダーは frontend/public/_headers で付与する。
+app.use(
+  "/api/*",
+  secureHeaders({
+    xFrameOptions: "DENY",
+    referrerPolicy: "strict-origin-when-cross-origin",
+    contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+  }),
+);
 
 // /api/* 以外は wrangler.jsonc の assets.not_found_handling (SPA fallback) が
 // 直接処理するため、この Worker では /api/* のみをハンドリングする。
@@ -38,7 +50,9 @@ app.route("/api/mcp", mcpRoute);
 
 app.onError((err, c) => {
   console.error(err);
-  const message = err instanceof Error ? err.message : "unexpected error";
+  // 本番ではDBのエラー文などの内部情報を利用者に返さない(詳細はログでのみ確認する)
+  const message =
+    c.env.ENVIRONMENT !== "production" && err instanceof Error ? err.message : "予期しないエラーが発生しました";
   return c.json({ error: "internal_error", message }, 500);
 });
 

@@ -26,7 +26,7 @@ async function authenticateApiToken(c: AppContext, rawToken: string): Promise<bo
       .run(),
   );
 
-  c.set("user", { email: row.email, displayName: row.display_name });
+  c.set("user", { email: row.email, displayName: row.display_name, authMethod: "token" });
   return true;
 }
 
@@ -77,6 +77,6 @@ export async function authMiddleware(c: AppContext, next: Next) {
     return c.json({ error: "unauthorized" }, 401);
   }
 
-  c.set("user", { email: session.email, displayName: session.display_name });
+  c.set("user", { email: session.email, displayName: session.display_name, authMethod: "session" });
   await next();
 }

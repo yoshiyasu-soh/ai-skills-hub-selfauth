@@ -97,6 +97,66 @@ describe("GET /api/plugins/marketplace.json", () => {
   });
 });
 
+describe("壊れたZIP・ZIP爆弾への耐性", () => {
+  const BROKEN_ZIP = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0xde, 0xad, 0xbe, 0xef]);
+
+  it("ZIPとして壊れたファイルはスキルとして投稿できない", async () => {
+    const headers = await apiTokenHeaders(OWNER);
+    const form = new FormData();
+    form.set("type", "skill");
+    form.set("title", SKILL_TITLE);
+    form.set("file", new File([BROKEN_ZIP], "broken.zip", { type: "application/zip" }));
+
+    const res = await SELF.fetch("https://example.com/api/items", { method: "POST", headers, body: form });
+    expect(res.status).toBe(400);
+  });
+
+  it("展開後の合計サイズが上限を超えるZIPはスキルとして投稿できない", async () => {
+    const headers = await apiTokenHeaders(OWNER);
+    const fifteenMb = new Uint8Array(15 * 1024 * 1024);
+    const bomb = zipSync({ "SKILL.md": strToU8("# bomb"), "a.bin": fifteenMb, "b.bin": fifteenMb, "c.bin": fifteenMb });
+    const form = new FormData();
+    form.set("type", "skill");
+    form.set("title", SKILL_TITLE);
+    form.set("file", new File([bomb], "bomb.zip", { type: "application/zip" }));
+
+    const res = await SELF.fetch("https://example.com/api/items", { method: "POST", headers, body: form });
+    expect(res.status).toBe(400);
+  });
+
+  it("壊れたZIPへの差し替え(PUT)はできない", async () => {
+    const headers = await apiTokenHeaders(OWNER);
+    const item = await createSkillItem(headers, new File(["# 正常"], "SKILL.md", { type: "text/markdown" }));
+    const form = new FormData();
+    form.set("file", new File([BROKEN_ZIP], "broken.zip", { type: "application/zip" }));
+
+    const res = await SELF.fetch(`https://example.com/api/items/${item.id}`, { method: "PUT", headers, body: form });
+    expect(res.status).toBe(400);
+  });
+
+  it("壊れたZIPのスキルが既に保存されていても、marketplace.jsonは他のアイテムを返す", async () => {
+    const headers = await apiTokenHeaders(OWNER);
+    const good = await createSkillItem(headers, new File(["# 正常"], "SKILL.md", { type: "text/markdown" }));
+
+    // 投稿時の検証が入る前に保存されたデータを想定し、APIを通さず直接保存する
+    const brokenId = crypto.randomUUID();
+    const brokenKey = `skills/${brokenId}/broken.zip`;
+    await env.ASSETS_BUCKET.put(brokenKey, BROKEN_ZIP);
+    await env.DB.prepare(
+      `INSERT INTO items (id, type, slug, title, r2_key, file_name, file_size, author_email)
+       VALUES (?, 'skill', ?, 'broken', ?, 'broken.zip', ?, ?)`,
+    )
+      .bind(brokenId, `broken-${brokenId.slice(0, 8)}`, brokenKey, BROKEN_ZIP.byteLength, OWNER)
+      .run();
+
+    const res = await SELF.fetch("https://example.com/api/plugins/marketplace.json", { headers });
+    expect(res.status).toBe(200);
+    const body = await res.json<{ plugins: { source: { url: string } }[] }>();
+    expect(body.plugins).toHaveLength(1);
+    expect(body.plugins[0].source.url).toContain(good.id);
+  });
+});
+
 describe("GET /api/plugins/:id/archive.zip", () => {
   it("SKILL.md単体スキルは.claude-plugin/plugin.jsonとskills/<id>/SKILL.mdを含むzipになる", async () => {
     const headers = await apiTokenHeaders(OWNER);

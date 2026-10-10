@@ -79,7 +79,7 @@ export default function App() {
           <Route path="/post" element={<PostItemPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/ranking" element={<RankingPage />} />
-          <Route path="/users/:email" element={<UserProfilePage />} />
+          <Route path="/users/:id" element={<UserProfilePage />} />
           <Route path="/settings/profile" element={<EditProfilePage />} />
           <Route path="/settings/tokens" element={<ApiTokensPage />} />
           <Route path="/guide" element={<DocsPage />} />

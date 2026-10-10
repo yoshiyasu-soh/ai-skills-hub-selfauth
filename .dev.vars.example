@@ -21,3 +21,9 @@ ENVIRONMENT=development
 # Public Repositories only・Contents: Read-onlyで作成すれば十分)。
 # https://github.com/settings/tokens から発行する。
 # GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# 任意: 会員登録・パスワード再設定の申請のボット対策(Cloudflare Turnstile)。未設定なら無効。
+# ローカルで動作を確かめる場合は、localhost を登録したウィジェットのキーを設定する(詳細は docs/setup-selfauth.md)。
+# TURNSTILE_SITE_KEY=0x4AAAAAAA...
+# TURNSTILE_SECRET=0x4AAAAAAA...
+# TURNSTILE_HOSTNAMES=localhost,127.0.0.1

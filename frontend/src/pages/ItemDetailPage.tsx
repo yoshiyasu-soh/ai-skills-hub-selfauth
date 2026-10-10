@@ -303,7 +303,7 @@ export default function ItemDetailPage() {
             {item.favoriteCount}
           </span>
           <Link
-            to={`/users/${encodeURIComponent(item.authorEmail)}`}
+            to={`/users/${item.authorId}`}
             className="flex items-center gap-1.5 hover:underline"
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-2 text-[10px] font-semibold text-ink-secondary">

@@ -18,14 +18,14 @@ ranking.get("/", async (c) => {
     const params = typeFilter ? [typeFilter] : [];
 
     const { results } = await c.env.DB.prepare(
-      `SELECT i.*, u.display_name as author_display_name
+      `SELECT i.*, u.display_name as author_display_name, u.public_id as author_public_id
        FROM items i JOIN users u ON u.email = i.author_email
        ${where}
        ORDER BY i.usage_count DESC
        LIMIT ?`,
     )
       .bind(...params, limit)
-      .all<ItemRow & { author_display_name: string }>();
+      .all<ItemRow & { author_display_name: string; author_public_id: string }>();
 
     const dtos = await toItemDTOs(c.env.DB, results ?? [], user.email);
     const items = dtos.map((dto) => ({ ...dto, periodCount: dto.usageCount }));
@@ -55,12 +55,12 @@ ranking.get("/", async (c) => {
   const placeholders = ids.map(() => "?").join(",");
 
   const { results: itemRows } = await c.env.DB.prepare(
-    `SELECT i.*, u.display_name as author_display_name
+    `SELECT i.*, u.display_name as author_display_name, u.public_id as author_public_id
      FROM items i JOIN users u ON u.email = i.author_email
      WHERE i.id IN (${placeholders})`,
   )
     .bind(...ids)
-    .all<ItemRow & { author_display_name: string }>();
+    .all<ItemRow & { author_display_name: string; author_public_id: string }>();
 
   const dtos = await toItemDTOs(c.env.DB, itemRows ?? [], user.email);
   const countByItem = new Map(rows.map((r) => [r.item_id, r.cnt]));

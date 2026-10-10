@@ -77,7 +77,7 @@ export default function CommentSection({ itemId, onCountChange }: Props) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <Link
-                    to={`/users/${encodeURIComponent(comment.authorEmail)}`}
+                    to={`/users/${comment.authorId}`}
                     className="text-sm font-semibold text-ink hover:underline"
                   >
                     {comment.authorName}

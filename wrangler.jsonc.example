@@ -64,5 +64,12 @@
 		//   npx wrangler secret put GITHUB_TOKEN
 		// (必要なスコープは public_repo の読み取りのみ。fine-grained PATなら
 		//  Public Repositories のみ・Contents: Read-only で作成すれば十分)
+		// 任意(本番では推奨): 会員登録・パスワード再設定の申請のボット対策(Cloudflare Turnstile)。
+		// サイトキーを設定すると有効になる。シークレットキーは機密情報のため以下のコマンドで別途設定する:
+		//   npx wrangler secret put TURNSTILE_SECRET
+		// TURNSTILE_HOSTNAMES はウィジェットを表示する画面のホスト名(カンマ区切り。本番に localhost は含めない)。
+		// 詳細は docs/setup-selfauth.md 参照。
+		// "TURNSTILE_SITE_KEY": "0x4AAAAAAA...",
+		// "TURNSTILE_HOSTNAMES": "skills.example.com",
 	}
 }

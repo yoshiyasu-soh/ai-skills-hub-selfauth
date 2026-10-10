@@ -22,7 +22,8 @@ export interface ItemDTO {
   fileName: string | null;
   fileSize: number | null;
   version: string;
-  authorEmail: string;
+  /** 投稿者の公開ID(メールアドレスは他の利用者に公開しない) */
+  authorId: string;
   authorName: string;
   usageCount: number;
   favoriteCount: number;
@@ -38,7 +39,7 @@ export interface ItemDTO {
   stars: number | null;
 }
 
-type RowWithAuthor = ItemRow & { author_display_name?: string };
+type RowWithAuthor = ItemRow & { author_display_name: string; author_public_id: string };
 
 /**
  * items テーブルの行配列を、タグ・お気に入り状態を付与した DTO に変換する。
@@ -98,8 +99,8 @@ export async function toItemDTOs(
     fileName: r.file_name,
     fileSize: r.file_size,
     version: r.version,
-    authorEmail: r.author_email,
-    authorName: r.author_display_name ?? r.author_email.split("@")[0],
+    authorId: r.author_public_id,
+    authorName: r.author_display_name,
     usageCount: r.usage_count,
     favoriteCount: r.favorite_count,
     createdAt: r.created_at,
@@ -189,14 +190,14 @@ export async function searchItems(
   const offset = (page - 1) * pageSize;
   const { results } = await db
     .prepare(
-      `SELECT i.*, u.display_name as author_display_name
+      `SELECT i.*, u.display_name as author_display_name, u.public_id as author_public_id
        FROM items i JOIN users u ON u.email = i.author_email
        ${where}
        ORDER BY ${orderBy}
        LIMIT ? OFFSET ?`,
     )
     .bind(...values, pageSize, offset)
-    .all<ItemRow & { author_display_name: string }>();
+    .all<ItemRow & { author_display_name: string; author_public_id: string }>();
 
   const items = await toItemDTOs(db, results ?? [], viewerEmail);
   return { items, total, page, pageSize };
@@ -275,7 +276,7 @@ export async function resolveOrCreateTagIds(db: D1Database, names: string[], cre
 export async function fetchItemRow(db: D1Database, id: string): Promise<RowWithAuthor | null> {
   return db
     .prepare(
-      `SELECT i.*, u.display_name as author_display_name
+      `SELECT i.*, u.display_name as author_display_name, u.public_id as author_public_id
        FROM items i JOIN users u ON u.email = i.author_email
        WHERE i.id = ?`,
     )

@@ -1,7 +1,8 @@
 export interface CommentDTO {
   id: number;
   itemId: string;
-  authorEmail: string;
+  /** コメント投稿者の公開ID(メールアドレスは他の利用者に公開しない) */
+  authorId: string;
   authorName: string;
   body: string;
   createdAt: string;
@@ -13,6 +14,7 @@ export interface CommentRow {
   id: number;
   item_id: string;
   author_email: string;
+  author_public_id: string;
   author_display_name: string;
   body: string;
   created_at: string;
@@ -22,7 +24,7 @@ export function toCommentDTO(row: CommentRow, viewerEmail: string, itemAuthorEma
   return {
     id: row.id,
     itemId: row.item_id,
-    authorEmail: row.author_email,
+    authorId: row.author_public_id,
     authorName: row.author_display_name,
     body: row.body,
     createdAt: row.created_at,

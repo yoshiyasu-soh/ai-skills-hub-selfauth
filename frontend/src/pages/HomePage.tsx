@@ -123,7 +123,7 @@ export default function HomePage() {
         sort,
         page,
         pageSize: PAGE_SIZE,
-        authorEmail: mine ? "me" : undefined,
+        authorId: mine ? "me" : undefined,
       })
       .then((res) => {
         if (cancelled) return;
