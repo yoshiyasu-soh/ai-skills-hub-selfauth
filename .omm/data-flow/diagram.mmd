@@ -1,0 +1,16 @@
+graph LR
+    submission["投稿入力\nPOST /api/items・MCP create_item"]
+    validation["検証と正規化\nworker/src/lib/items.ts"]
+    asset-storage["資産保存\nR2"]
+    item-records["アイテム行\nitems / item_tags / item_versions"]
+    usage-log["利用ログ\nusage_events"]
+    ranking-view["ランキング・一覧\nroutes/ranking.ts"]
+    plugin-cache["プラグイン変換キャッシュ\nR2"]
+    submission -->|"種別・URL・タグを検証"| validation
+    validation -->|"ZIP・MD を保存"| asset-storage
+    validation -->|"メタデータと旧版を保存"| item-records
+    item-records -->|"DL・コピー・訪問を記録"| usage-log
+    usage-log -->|"ユニークユーザー数で集計"| ranking-view
+    asset-storage -->|"plugin 形式へ変換"| plugin-cache
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    class asset-storage,item-records,usage-log,plugin-cache store

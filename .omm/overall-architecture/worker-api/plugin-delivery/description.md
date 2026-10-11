@@ -1,0 +1,1 @@
+worker/src/routes/plugins.ts と worker/src/lib/pluginArchive.ts。skill と mod のアイテムを DB から列挙して marketplace.json を動的生成し、/:id/archive.zip で Claude Code プラグイン形式の ZIP (sha256 付き) を配信する。変換結果は R2 にキャッシュする (0016)。

@@ -1,0 +1,14 @@
+created: 2026-10-11T12:40:47.755Z
+updated: 2026-10-11T12:41:13.250Z
+update_count: 7
+last_field: note
+git_commit: 1cc09fb
+git_branch: main
+children:
+  - browser
+  - claude-clients
+  - d1-database
+  - external-services
+  - frontend
+  - r2-bucket
+  - worker-api

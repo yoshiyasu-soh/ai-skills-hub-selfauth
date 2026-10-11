@@ -1,0 +1,1 @@
+worker/src/routes/mcp.ts と worker/src/mcp/tools.ts。@modelcontextprotocol/server で search_items, get_item, get_skill_source, list_tags, create_item, update_item, set_item_favorite を公開する。認証は authMiddleware に委譲し、検証済みの viewerEmail だけを受け取る。ZIP 資産のアップロードは非対応で、スキルは SKILL.md 単体のみ。

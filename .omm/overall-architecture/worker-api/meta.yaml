@@ -1,0 +1,17 @@
+created: 2026-10-11T12:41:37.935Z
+updated: 2026-10-11T12:41:47.464Z
+update_count: 2
+last_field: diagram
+kind: nested-class
+title: worker-api
+children:
+  - app-entry
+  - auth-lib
+  - auth-middleware
+  - auth-routes
+  - domain-lib
+  - items-routes
+  - mcp-server
+  - other-routes
+  - plugin-delivery
+parentPath: []

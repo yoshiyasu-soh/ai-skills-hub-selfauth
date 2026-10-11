@@ -1,0 +1,12 @@
+graph LR
+    app-shell["App Shell\nfrontend/src/App.tsx"]
+    pages["Pages\nfrontend/src/pages/"]
+    components["Components\nfrontend/src/components/"]
+    doc-viewer["Doc Viewer\nfrontend/src/components/docviewer/"]
+    client-lib["Client Lib\nfrontend/src/lib/"]
+    app-shell -->|"React.lazy でロード"| pages
+    pages -->|"UI 部品"| components
+    pages -->|"ZIP/MD 閲覧"| doc-viewer
+    pages -->|"api.ts で /api/* 呼び出し"| client-lib
+    doc-viewer -->|"parseDoc・検索"| client-lib
+    components -->|"Context・型"| client-lib

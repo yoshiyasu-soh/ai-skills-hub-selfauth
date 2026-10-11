@@ -1,0 +1,23 @@
+graph LR
+    app-entry["App Entry\nworker/src/index.ts"]
+    auth-middleware["Auth Middleware\nworker/src/auth.ts"]
+    auth-routes["Auth Routes\nworker/src/routes/auth.ts"]
+    items-routes["Items Routes\nworker/src/routes/items.ts"]
+    other-routes["Other Routes\nworker/src/routes/"]
+    mcp-server["MCP Server\nworker/src/mcp/tools.ts"]
+    plugin-delivery["Plugin Delivery\nworker/src/routes/plugins.ts"]
+    auth-lib["Auth Lib\nworker/src/lib/auth/"]
+    domain-lib["Domain Lib\nworker/src/lib/"]
+    app-entry -->|"/api/auth 以外に適用"| auth-middleware
+    app-entry -->|"ルーティング"| auth-routes
+    app-entry -->|"ルーティング"| items-routes
+    app-entry -->|"ルーティング"| other-routes
+    app-entry -->|"/api/mcp"| mcp-server
+    app-entry -->|"/api/plugins"| plugin-delivery
+    auth-routes -->|"パスワード・トークン・レート制限"| auth-lib
+    auth-middleware -->|"セッション・トークン検証"| auth-lib
+    items-routes -->|"検索・タグ・バージョン"| domain-lib
+    mcp-server -->|"同じ検索・登録ロジックを再利用"| domain-lib
+    plugin-delivery -->|"スキル/Mod を plugin ZIP に変換"| domain-lib
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    class app-entry entry

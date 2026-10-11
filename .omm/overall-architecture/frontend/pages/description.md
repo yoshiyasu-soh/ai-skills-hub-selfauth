@@ -1,0 +1,1 @@
+frontend/src/pages/ の 18 ページ。ログイン系 (Login, Register, VerifyEmail, ForgotPassword, ResetPassword)、一覧・詳細・投稿・編集 (Home, ItemDetail, PostItem, EditItem)、Favorites, Ranking, UserProfile, 設定 (EditProfile, ApiTokens)、ガイド (Docs, Guide, McpGuide, ClaudePluginGuide)。

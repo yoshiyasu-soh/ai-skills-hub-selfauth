@@ -1,0 +1,1 @@
+Cloudflare D1 (SQLite)。migrations/0001〜0017 でスキーマを管理。users, items, tags, item_tags, favorites, usage_events, item_watches, item_comments, item_versions, sessions, api_tokens, email_verification_tokens, password_reset_tokens, auth_attempts を持つ。items を参照する子テーブルは ON DELETE CASCADE。

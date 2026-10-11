@@ -1,0 +1,12 @@
+graph LR
+    asset-router["Asset Router\nwrangler.jsonc assets"]
+    security-headers["Security Headers\nworker/src/index.ts"]
+    auth-gate["Auth Gate\nworker/src/auth.ts"]
+    route-handler["Route Handler\nworker/src/routes/"]
+    data-access["Data Access\nD1 / R2"]
+    error-handler["Error Handler\nworker/src/index.ts onError"]
+    asset-router -->|"/api/* のみ Worker を先に実行"| security-headers
+    security-headers -->|"CSP・nosniff 付与"| auth-gate
+    auth-gate -->|"AuthUser を設定 (/api/auth は素通し)"| route-handler
+    route-handler -->|"SQL・オブジェクト操作"| data-access
+    route-handler -->|"例外"| error-handler

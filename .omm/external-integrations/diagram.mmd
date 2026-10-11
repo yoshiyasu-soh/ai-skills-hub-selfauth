@@ -1,0 +1,14 @@
+graph LR
+    worker["Worker API\nworker/src/"]
+    resend["Resend API\nworker/src/lib/email.ts"]
+    cf-email["Cloudflare Email Service\nsend_email バインディング"]
+    turnstile["Cloudflare Turnstile\nworker/src/lib/auth/turnstile.ts"]
+    github-api["GitHub API\nworker/src/routes/items.ts"]
+    mcp-clients["MCP クライアント\nClaude Desktop / Code"]
+    worker -->|"EMAIL_PROVIDER=resend"| resend
+    worker -->|"EMAIL_PROVIDER=cloudflare"| cf-email
+    worker -->|"Siteverify でトークン検証"| turnstile
+    worker -->|"リポジトリ情報取得"| github-api
+    mcp-clients -->|"Streamable HTTP + 個人トークン"| worker
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    class resend,cf-email,turnstile,github-api,mcp-clients external

@@ -1,0 +1,20 @@
+graph LR
+    browser["Web ブラウザ\n利用者"]
+    claude-clients["Claude Code / Desktop\nMCP・プラグインクライアント"]
+    frontend["Frontend SPA\nfrontend/src/"]
+    worker-api["Worker API\nworker/src/"]
+    d1-database["D1 データベース\nmigrations/"]
+    r2-bucket["R2 バケット\nASSETS_BUCKET"]
+    external-services["外部サービス\nResend / Turnstile / GitHub"]
+    browser -->|"静的アセット取得"| frontend
+    frontend -->|"fetch /api/*"| worker-api
+    claude-clients -->|"Bearer トークンで MCP・marketplace"| worker-api
+    worker-api -->|"SQL 読み書き"| d1-database
+    worker-api -->|"ZIP・SKILL.md 保存/取得"| r2-bucket
+    worker-api -->|"メール送信・Bot 検証・メタデータ取得"| external-services
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+    class browser,claude-clients,external-services external
+    class worker-api entry
+    class d1-database,r2-bucket store

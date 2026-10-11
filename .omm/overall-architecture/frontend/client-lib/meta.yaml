@@ -1,0 +1,9 @@
+created: 2026-10-11T12:42:42.900Z
+updated: 2026-10-11T12:42:42.901Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: client-lib
+children: []
+parentPath:
+  - frontend

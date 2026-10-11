@@ -1,0 +1,1 @@
+EMAIL_PROVIDER=cloudflare のときだけ使う代替手段。send_email バインディングで送信する。Workers Paid プラン限定で、EMAIL_FROM_ADDRESS のドメイン認証が必要。
