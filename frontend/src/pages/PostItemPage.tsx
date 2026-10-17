@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import FileDropzone from "../components/FileDropzone";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
 import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, PlugIcon, SparkleIcon, StarIcon, TagIcon } from "../components/icons";
@@ -44,7 +45,7 @@ const TYPE_OPTION_LABEL: Record<ItemType, string> = {
 const TYPE_OPTION_HINT: Record<ItemType, string> = {
   skill: "再利用可能な機能(SKILL.md や ZIP 一式)",
   prompt: "コピーして使う指示文",
-  agent: "サブエージェント定義(.md)",
+  agent: "サブエージェント定義(.md、複数まとめるなら ZIP)",
   mod: "Claude Code を拡張するプラグイン(ZIP)",
   external: "外部に公開されているOSS等の紹介(リンク)",
 };
@@ -180,7 +181,7 @@ export default function PostItemPage() {
       return;
     }
     if (type === "agent" && !file) {
-      setError("エージェント定義のファイル(.md)を選択してください");
+      setError("エージェント定義のファイル(.md または .zip)を選択してください");
       return;
     }
     if (type === "mod" && !file) {
@@ -385,12 +386,7 @@ export default function PostItemPage() {
               <>
                 <div>
                   <label className={labelClass}>スキル資産(.zip または SKILL.md) *</label>
-                  <input
-                    type="file"
-                    accept=".zip,.md"
-                    onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
-                  />
+                  <FileDropzone accept=".zip,.md" file={file} onFileChange={(f) => void handleFileChange(f)} />
                   <p className="mt-1.5 text-xs text-ink-secondary">
                     最大25MBまで。ZIP一式でもSKILL.md単体でも投稿できます。npx skills add 互換の配布は将来対応予定です。
                   </p>
@@ -402,23 +398,18 @@ export default function PostItemPage() {
                   )}
                 </div>
                 <div>
-                  <label className={labelClass}>使い方メモ(任意)</label>
-                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
+                  <label className={labelClass}>使い方メモ(任意・Markdown対応)</label>
+                  <MarkdownEditor value={body} onChange={setBody} rows={4} textareaClassName={inputClass} />
                 </div>
               </>
             ) : type === "agent" ? (
               <>
                 <div>
-                  <label className={labelClass}>エージェント定義(.md) *</label>
-                  <input
-                    type="file"
-                    accept=".md"
-                    onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
-                  />
+                  <label className={labelClass}>エージェント定義(.md または .zip) *</label>
+                  <FileDropzone accept=".md,.zip" file={file} onFileChange={(f) => void handleFileChange(f)} />
                   <p className="mt-1.5 text-xs text-ink-secondary">
-                    最大25MBまで。冒頭のフロントマター(name / description)からタイトル・概要が自動入力されます。
-                    利用者は .claude/agents/ に置いて使います。
+                    最大25MBまで。.md 単体は冒頭のフロントマター(name / description)からタイトル・概要が自動入力されます。
+                    ZIP は複数の定義(.md)をまとめて投稿できます。利用者は .claude/agents/ に置いて使います。
                   </p>
                   {autoFilled && (
                     <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-success">
@@ -428,20 +419,15 @@ export default function PostItemPage() {
                   )}
                 </div>
                 <div>
-                  <label className={labelClass}>使い方メモ(任意)</label>
-                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
+                  <label className={labelClass}>使い方メモ(任意・Markdown対応)</label>
+                  <MarkdownEditor value={body} onChange={setBody} rows={4} textareaClassName={inputClass} />
                 </div>
               </>
             ) : type === "mod" ? (
               <>
                 <div>
                   <label className={labelClass}>Mod(プラグインのフォルダをZIPにしたもの) *</label>
-                  <input
-                    type="file"
-                    accept=".zip"
-                    onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
-                  />
+                  <FileDropzone accept=".zip" file={file} onFileChange={(f) => void handleFileChange(f)} />
                   <p className="mt-1.5 text-xs text-ink-secondary">
                     最大25MBまで。.claude-plugin/plugin.json と、modules を持つ hooks/hooks.json が必要です(構成はガイドを参照)。
                     投稿時に検査し、不備があれば理由を表示します。
@@ -452,8 +438,8 @@ export default function PostItemPage() {
                   </p>
                 </div>
                 <div>
-                  <label className={labelClass}>使い方メモ(任意)</label>
-                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
+                  <label className={labelClass}>使い方メモ(任意・Markdown対応)</label>
+                  <MarkdownEditor value={body} onChange={setBody} rows={4} textareaClassName={inputClass} />
                 </div>
               </>
             ) : type === "prompt" ? (

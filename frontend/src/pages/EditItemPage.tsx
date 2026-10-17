@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import FileDropzone from "../components/FileDropzone";
 import MarkdownEditor from "../components/MarkdownEditor";
 import TagPicker from "../components/TagPicker";
 import { BotIcon, BoxIcon, CheckIcon, ExternalLinkIcon, InfoIcon, PlugIcon, SparkleIcon, TagIcon } from "../components/icons";
@@ -297,14 +298,9 @@ export default function EditItemPage() {
               <>
                 <div>
                   <label className={labelClass}>
-                    {isAgent ? "エージェント定義(.md)" : isMod ? "Mod(プラグインのフォルダをZIPにしたもの)" : "スキル資産(.zip または SKILL.md)"} — 差し替える場合のみ選択
+                    {isAgent ? "エージェント定義(.md または .zip)" : isMod ? "Mod(プラグインのフォルダをZIPにしたもの)" : "スキル資産(.zip または SKILL.md)"} — 差し替える場合のみ選択
                   </label>
-                  <input
-                    type="file"
-                    accept={isAgent ? ".md" : isMod ? ".zip" : ".zip,.md"}
-                    onChange={(e) => void handleFileChange(e.target.files?.[0] ?? null)}
-                    className="w-full text-sm text-ink-secondary file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink-secondary hover:file:bg-border"
-                  />
+                  <FileDropzone accept={isAgent ? ".md,.zip" : isMod ? ".zip" : ".zip,.md"} file={file} onFileChange={(f) => void handleFileChange(f)} />
                   {item.fileName && (
                     <p className="mt-1.5 text-xs text-ink-secondary">
                       現在のファイル: <span className="font-mono">{item.fileName}</span>
@@ -318,8 +314,8 @@ export default function EditItemPage() {
                   )}
                 </div>
                 <div>
-                  <label className={labelClass}>使い方メモ</label>
-                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} className={inputClass} />
+                  <label className={labelClass}>使い方メモ(Markdown対応)</label>
+                  <MarkdownEditor value={body} onChange={setBody} rows={4} textareaClassName={inputClass} />
                 </div>
               </>
             ) : isExternal ? null : (

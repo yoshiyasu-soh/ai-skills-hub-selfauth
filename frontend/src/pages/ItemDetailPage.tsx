@@ -59,7 +59,14 @@ function buildInstallCommand(item: Item, os: InstallOs): string {
     if (os === "windows") {
       const dir = `$env:USERPROFILE\\.claude\\agents`;
       const headers = `@{ Authorization = "Bearer $env:AI_SKILLS_HUB_TOKEN" }`;
+      if (!isMd) {
+        const zip = `$env:TEMP\\${name}.zip`;
+        return `New-Item -ItemType Directory -Force -Path "${dir}" | Out-Null; Invoke-WebRequest -Uri "${url}" -Headers ${headers} -OutFile "${zip}"; Expand-Archive -Path "${zip}" -DestinationPath "${dir}" -Force; Remove-Item "${zip}"`;
+      }
       return `New-Item -ItemType Directory -Force -Path "${dir}" | Out-Null; Invoke-WebRequest -Uri "${url}" -Headers ${headers} -OutFile "${dir}\\${name}.md"`;
+    }
+    if (!isMd) {
+      return `mkdir -p ~/.claude/agents && curl -fsSL -H "Authorization: Bearer $AI_SKILLS_HUB_TOKEN" "${url}" -o /tmp/${name}.zip && unzip -o /tmp/${name}.zip -d ~/.claude/agents && rm /tmp/${name}.zip`;
     }
     return `mkdir -p ~/.claude/agents && curl -fsSL -H "Authorization: Bearer $AI_SKILLS_HUB_TOKEN" "${url}" -o ~/.claude/agents/${name}.md`;
   }
@@ -432,7 +439,7 @@ export default function ItemDetailPage() {
                     />
                   )}
                   {hasBody && activeTab === "body" && (
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink">{item.body}</p>
+                    <MarkdownContent content={item.body} />
                   )}
                   <div className={activeTab === "comments" ? "" : "hidden"}>
                     <CommentSection itemId={item.id} onCountChange={setCommentCount} />

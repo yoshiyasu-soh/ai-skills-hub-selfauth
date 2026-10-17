@@ -133,7 +133,7 @@ export function buildMcpServer(env: Env, viewerEmail: string, baseUrl: string): 
       } else if (item.type === "agent") {
         body.usageNote = item.body || null;
         body.fileName = item.fileName;
-        body.note = "サブエージェント定義(.md)です。ダウンロードはWebサイトから行い、.claude/agents/ に配置してください。";
+        body.note = "サブエージェント定義(.md、または複数定義をまとめた.zip)です。ダウンロードはWebサイトから行い、.claude/agents/ に配置してください。";
       } else {
         body.usageNote = item.body || null;
         body.fileName = item.fileName;

@@ -53,8 +53,8 @@ async function shouldCountUsage(
 
 type Fields = Record<string, unknown>;
 
-// エージェント定義は単一の .md ファイル(.claude/agents/<name>.md に配置される)のみ。
-const ALLOWED_AGENT_EXTENSIONS = [".md"];
+// エージェント定義は単一の .md(.claude/agents/<name>.md に配置)か、複数定義をまとめた .zip。
+const ALLOWED_AGENT_EXTENSIONS = [".md", ".zip"];
 
 // Mod はプラグインのフォルダをZIPにしたもののみ(.claude-plugin/plugin.json と hooks/hooks.json が必要)。
 const ALLOWED_MOD_EXTENSIONS = [".zip"];
@@ -69,7 +69,7 @@ function isAllowedAssetFile(type: FileItemType, fileName: string): boolean {
 }
 
 function assetFileErrorMessage(type: FileItemType): string {
-  if (type === "agent") return "file must be an agent definition (.md) file";
+  if (type === "agent") return "file must be an agent definition (.md) or a .zip archive of agent definitions";
   if (type === "mod") return "file must be a .zip archive of the mod (plugin) folder";
   return "file must be a .zip archive or a SKILL.md (.md) file";
 }
@@ -88,7 +88,7 @@ function validateAssetBytes(type: FileItemType, fileName: string, bytes: Uint8Ar
     const parsed = readModArchive(bytes);
     return parsed.ok ? null : parsed.error;
   }
-  if (type === "skill" && fileName.toLowerCase().endsWith(".zip") && !unzipSkillArchive(bytes)) {
+  if ((type === "skill" || type === "agent") && fileName.toLowerCase().endsWith(".zip") && !unzipSkillArchive(bytes)) {
     return "ZIPを展開できません(壊れている、またはファイル数・展開後のサイズが上限を超えています)";
   }
   return null;
@@ -245,7 +245,7 @@ items.post("/", async (c) => {
   if (title.length > 200) return c.json({ error: "title is too long (max 200 chars)" }, 400);
   if (type === "prompt" && !bodyText) return c.json({ error: "body (prompt text) is required" }, 400);
   if (type === "skill" && !file) return c.json({ error: "file (.zip or .md) is required" }, 400);
-  if (type === "agent" && !file) return c.json({ error: "file (.md) is required" }, 400);
+  if (type === "agent" && !file) return c.json({ error: "file (.md or .zip) is required" }, 400);
   if (type === "mod" && !file) return c.json({ error: "file (.zip) is required" }, 400);
   if (type === "external") {
     if (!sourceUrl) return c.json({ error: "sourceUrl is required" }, 400);
