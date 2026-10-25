@@ -7,3 +7,10 @@ wrangler.jsonc
 .DS_Store
 frontend/dist/
 worker/dist/
+
+# AI ツール・エージェントが生成する個人用ファイル
+.claude/
+.agents/
+.cortex/
+.playwright-mcp/
+skills-lock.json
